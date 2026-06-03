@@ -12,7 +12,7 @@ export default function FavProduct() {
     return (
         <section className="w-full max-w-[1280px] mx-auto px-10 pt-10">
             <div className="flex justify-between items-end mb-6">
-                <h2 className="text-emerald-950 text-2xl font-bold font-serif">Gợi Ý Hôm Nay</h2>
+                <h2 className="text-emerald-950 text-2xl font-bold font-playfair">Sản phẩm được yêu thích</h2>
                 <a href="#" className="text-emerald-700 text-sm font-medium hover:underline">Xem tất cả →</a>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">

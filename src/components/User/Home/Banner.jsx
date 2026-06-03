@@ -4,14 +4,14 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 const SLIDES = [
     {
         id: 1,
-        image: "https://placehold.co/1200x400/2d6a4f/ffffff",
+        image: "./public/images/banner1.jpg",
         title: "Mua rau tại vườn",
         subtitle: "Rau sạch tươi ngon, thu hoạch mỗi ngày từ nông trại của chúng tôi.",
     },
     {
         id: 2,
-        image: "https://placehold.co/1200x400/1b4332/ffffff",
-        title: "Nông sản hữu cơ",
+        image: "./public/images/banner2.jpg",
+        title: "Giảm giá cuối tuần",
         subtitle: "100% không thuốc trừ sâu, an toàn cho cả gia đình bạn.",
     },
 ];

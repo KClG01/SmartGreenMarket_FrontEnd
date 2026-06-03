@@ -10,7 +10,7 @@ export default function BestSellingProductCard({ name = "Rau", price = "45.000đ
 
             <div className="overflow-hidden">
                 <img
-                    src={image || "https://placehold.co/280x200/e8f5e9/4a7c59"}
+                    src={image || "./public/images/rau.jpg"}
                     alt={name}
                     className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
                 />

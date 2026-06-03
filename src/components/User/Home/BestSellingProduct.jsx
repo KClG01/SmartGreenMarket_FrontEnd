@@ -11,7 +11,7 @@ const PRODUCTS = [
     { id: 6, name: "Súp lơ xanh", price: "30.000đ", unit: "/cây" },
 ];
 
-export default function BestSellingProduct({ title = "Bán Chạy Nhất" }) {
+export default function BestSellingProduct() {
     const scrollRef = useRef(null);
 
     const scroll = (dir) => {
@@ -26,7 +26,7 @@ export default function BestSellingProduct({ title = "Bán Chạy Nhất" }) {
         <section className="w-full max-w-[1280px] mx-auto px-10 pt-10">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-emerald-950 text-2xl font-bold font-serif">{title}</h2>
+                <h2 className="text-emerald-950 text-2xl font-bold font-playfair">Bán Chạy Nhất</h2>
                 <a href="#" className="text-emerald-700 text-sm font-medium hover:underline">
                     Xem tất cả →
                 </a>
