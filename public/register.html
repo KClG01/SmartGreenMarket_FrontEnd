@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="globals.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Inter, sans-serif;
+        }
+
+        .page {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+            height: 100%;
+        }
+
+        .left {
+            flex: 1;
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            background-color: #006c49;
+        }
+
+        .left-img {
+            position: absolute;
+            inset: 0;
+            background-image: url(../src/assets/img/33-1759021058-29cec9fc-9061-4ac1-a899-f758829507a7-2476348e.jpg);
+            background-size: cover;
+            background-position: 50% 50%;
+            mix-blend-mode: overlay;
+            opacity: 0.6;
+        }
+
+        .left-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(0deg, rgba(0, 108, 73, 0.85) 0%, rgba(0, 108, 73, 0.1) 100%);
+        }
+
+        .logo-row {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-box {
+            width: 44px;
+            height: 44px;
+            background: #fff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-box i {
+            font-size: 22px;
+            color: #006c49;
+        }
+
+        .brand-name {
+            font-size: 22px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: -0.4px;
+        }
+
+        .left-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .left-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.25;
+            letter-spacing: -0.7px;
+            margin-bottom: 14px;
+        }
+
+        .left-subtitle {
+            font-size: 15px;
+            color: #9df4c9;
+            line-height: 1.7;
+            opacity: 0.9;
+            margin-bottom: 28px;
+        }
+
+        .feature-cards {
+            display: flex;
+            gap: 14px;
+        }
+
+        .feat-card {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(187, 202, 191, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+
+        .feat-icon {
+            font-size: 22px;
+            color: #9df4c9;
+            margin-bottom: 10px;
+        }
+
+        .feat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 3px;
+        }
+
+        .feat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .left-footer {
+            position: relative;
+            z-index: 2;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .right {
+            flex: 1;
+            background: #f9f9ff;
+            padding: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .form-wrap {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .form-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #141b2b;
+            letter-spacing: -0.6px;
+            margin-bottom: 8px;
+        }
+
+        .form-sub {
+            font-size: 14px;
+            color: #3c4a42;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #3c4a42;
+            margin-bottom: 7px;
+        }
+
+        .field label i {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            padding: 14px 16px;
+            background: #f1f3ff;
+            border: 1px solid #bbcabf;
+            border-radius: 12px;
+            font-size: 15px;
+            color: #141b2b;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: #10b981;
+        }
+
+        .field input::placeholder {
+            color: #9ca3af;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 22px 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: #bbcabf;
+        }
+
+        .divider-text {
+            font-size: 10px;
+            font-weight: 700;
+            color: #3c4a42;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .social-btns {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .social-btn {
+            flex: 1;
+            padding: 13px;
+            border: 1px solid #bbcabf;
+            border-radius: 12px;
+            background: #fff;
+            font-size: 15px;
+            color: #141b2b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .footer-link {
+            font-size: 14px;
+            color: #3c4a42;
+        }
+
+        .footer-link a {
+            color: #006c49;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .icon {
+            position: relative;
+            width: 21.3px;
+            height: 21.28px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page">
+        <div class="left">
+            <div class="left-img"></div>
+            <div class="left-gradient"></div>
+
+            <div class="logo-row">
+                <div class="logo-box"><img src="../src/assets/img/logo.png" class="icon" alt=""></div>
+                <span class="brand-name">Smart Green Market</span>
+            </div>
+
+            <div class="left-content">
+                <div class="left-title">Tham gia cộng đồng<br>Smart Green</div>
+                <div class="left-subtitle">Hệ thống quản trị thông minh dành cho chuỗi cung ứng nông sản<br>bền vững.
+                    Quản lý sản phẩm, chứng nhận và dữ liệu thị trường<br>trong tầm tay bạn.</div>
+                <div class="feature-cards">
+                    <div class="feat-card">
+                        <div class="feat-icon"><i class="ti ti-rosette" aria-hidden="true"></i></div>
+                        <div class="feat-label">Chứng nhận</div>
+                        <div class="feat-value">Chuẩn Toàn Cầu</div>
+                    </div>
+                    <div class="feat-card">
+                        <div class="feat-icon"><i class="ti ti-chart-line" aria-hidden="true"></i></div>
+                        <div class="feat-label">Dữ liệu</div>
+                        <div class="feat-value">Thời gian thực</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="left-footer">© 2024 Smart Green Market. All rights reserved.</div>
+        </div>
+
+        <div class="right">
+            <div class="form-wrap">
+                <div class="form-title">Đăng ký tài khoản</div>
+                <div class="form-sub">Bắt đầu quản lý hành trình nông nghiệp số của bạn ngay hôm nay.</div>
+
+                <div class="field">
+                    <label><i class="ti ti-user" aria-hidden="true"></i> Họ và tên</label>
+                    <input type="text" placeholder="Nguyễn Văn A" />
+                </div>
+                <div class="field">
+                    <label><i class="ti ti-mail" aria-hidden="true"></i> Email công việc</label>
+                    <input type="email" placeholder="name@company.com" />
+                </div>
+                <div class="field">
+                    <label><i class="ti ti-phone" aria-hidden="true"></i> Số điện thoại</label>
+                    <input type="tel" placeholder="090 123 4567" />
+                </div>
+                <div class="field">
+                    <label><i class="ti ti-lock" aria-hidden="true"></i> Mật khẩu</label>
+                    <input type="password" placeholder="••••••••" />
+                </div>
+                <div class="field">
+                    <label><i class="ti ti-shield-check" aria-hidden="true"></i> Vai trò quản trị</label>
+                    <select>
+                        <option value="" disabled selected>Chọn vai trò của bạn</option>
+                        <option>Nông dân / Nhà sản xuất</option>
+                        <option>Nhà phân phối</option>
+                        <option>Nhà bán lẻ</option>
+                        <option>Quản trị viên</option>
+                    </select>
+                </div>
+
+                <button class="submit-btn"><span>Tạo tài khoản</span><i class="ti ti-arrow-right"
+                        aria-hidden="true"></i></button>
+
+                <div class="divider">
+                    <div class="divider-line"></div>
+                    <span class="divider-text">HOẶC TIẾP TỤC VỚI</span>
+                    <div class="divider-line"></div>
+                </div>
+
+                <div class="social-btns">
+                    <button class="social-btn"><i class="ti ti-brand-google" aria-hidden="true"></i> Google</button>
+                    <button class="social-btn"><i class="ti ti-brand-facebook" aria-hidden="true"></i> Facebook</button>
+                </div>
+
+                <p class="footer-link">Đã có tài khoản? <a href="#">Đăng nhập ngay</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setHeight() {
+            const page = document.querySelector('.page');
+            page.style.minHeight = window.innerHeight + 'px';
+        }
+        setHeight();
+        window.addEventListener('resize', setHeight);
+    </script>
+</body>
+
+</html>

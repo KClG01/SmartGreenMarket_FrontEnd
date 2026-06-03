@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="globals.css">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Inter, sans-serif;
+        }
+
+        .page {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .left {
+            flex: 1;
+            position: relative;
+            background-image: url(../src/assets/img/33-1759021058-29cec9fc-9061-4ac1-a899-f758829507a7-2476348e.jpg);
+            background-size: cover;
+            background-position: 50% 50%;
+        }
+
+        .left-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(141deg, rgba(0, 108, 73, 0.85) 0%, rgba(0, 108, 73, 0.45) 100%);
+        }
+
+        .left-inner {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            min-height: 100vh;
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .logo-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-box {
+            width: 48px;
+            height: 48px;
+            background: #fff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-box i {
+            font-size: 24px;
+            color: #006c49;
+        }
+
+        .brand-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+
+        .left-content {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 576px;
+        }
+
+        .left-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.25;
+            letter-spacing: -0.7px;
+        }
+
+        .left-desc {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.65;
+        }
+
+        .stats {
+            display: flex;
+            gap: 32px;
+            padding-top: 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-num {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .left-footer {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .right {
+            width: 520px;
+            flex-shrink: 0;
+            background: #f9f9ff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 48px;
+        }
+
+        .form-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            max-width: 384px;
+            width: 100%;
+        }
+
+        .form-header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #141b2b;
+            letter-spacing: -0.3px;
+        }
+
+        .form-sub {
+            font-size: 14px;
+            color: #3c4a42;
+            line-height: 1.5;
+        }
+
+        .form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .field label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #3c4a42;
+        }
+
+        .forgot {
+            font-size: 12px;
+            font-weight: 500;
+            color: #006c49;
+            cursor: pointer;
+        }
+
+        .input-wrap {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #bbcabf;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+            padding: 0 16px;
+            gap: 10px;
+        }
+
+        .input-wrap i {
+            font-size: 15px;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+
+        .input-wrap input {
+            flex: 1;
+            border: none;
+            background: none;
+            padding: 15px 0;
+            font-size: 15px;
+            color: #141b2b;
+            outline: none;
+        }
+
+        .input-wrap input::placeholder {
+            color: #9ca3af;
+        }
+
+        .eye-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .eye-btn i {
+            font-size: 16px;
+            color: #9ca3af;
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .remember input[type=checkbox] {
+            width: 18px;
+            height: 18px;
+            accent-color: #006c49;
+            cursor: pointer;
+        }
+
+        .remember span {
+            font-size: 14px;
+            color: #3c4a42;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0px 4px 6px -4px rgba(16, 185, 129, 0.3), 0px 10px 15px -3px rgba(16, 185, 129, 0.2);
+        }
+
+        .register-link {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #3c4a42;
+        }
+
+        .register-link a {
+            color: #006c49;
+            text-decoration: none;
+        }
+
+        .right-footer {
+            font-size: 10px;
+            font-weight: 700;
+            color: #3c4a42;
+            opacity: 0.6;
+            text-align: center;
+        }
+         .icon {
+            position: relative;
+            width: 21.3px;
+            height: 21.28px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="left">
+            <div class="left-overlay"></div>
+            <div class="left-inner">
+                <div class="logo-row">
+                    <div class="logo-box"><img src="../src/assets/img/logo.png" class="icon" alt=""></div>
+                    <span class="brand-name">Smart Green Market</span>
+                </div>
+
+                <div class="left-content">
+                    <div class="left-title">Hệ thống Nhà cung cấp</div>
+                    <div class="left-desc">Nền tảng quản lý thông minh cho chuỗi cung ứng nông nghiệp bền vững.<br>Minh
+                        bạch thông tin, tối ưu vận hành và kết nối thị trường.</div>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-num">1.2k+</div>
+                            <div class="stat-label">Nhà vườn</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-num">450+</div>
+                            <div class="stat-label">Chứng chỉ GlobalGAP</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-num">24/7</div>
+                            <div class="stat-label">Giám sát sản lượng</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="left-footer">© 2023 Smart Green Market. All rights reserved.</div>
+            </div>
+        </div>
+
+        <div class="right">
+            <div class="form-wrap">
+                <div class="form-header">
+                    <div class="form-title">Đăng nhập</div>
+                    <div class="form-sub">Vui lòng nhập thông tin quản trị viên để tiếp tục.</div>
+                </div>
+
+                <div class="form-fields">
+                    <div class="field">
+                        <label>Email hoặc Tên đăng nhập</label>
+                        <div class="input-wrap">
+                            <i class="ti ti-mail" aria-hidden="true"></i>
+                            <input type="email" placeholder="admin@smartgreen.vn" />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-top">
+                            <label>Mật khẩu</label>
+                            <span class="forgot">Quên mật khẩu?</span>
+                        </div>
+                        <div class="input-wrap">
+                            <i class="ti ti-lock" aria-hidden="true"></i>
+                            <input type="password" placeholder="••••••••" id="pw" />
+                            <button class="eye-btn"
+                                onclick="var p=document.getElementById('pw');p.type=p.type==='password'?'text':'password'">
+                                <i class="ti ti-eye" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <label class="remember">
+                        <input type="checkbox" />
+                        <span>Ghi nhớ đăng nhập</span>
+                    </label>
+
+                    <button class="login-btn">Đăng nhập</button>
+                </div>
+
+                <div class="register-link">
+                    <span>Bạn chưa có tài khoản quản trị?</span>
+                    <a href="#">Đăng ký tài khoản mới</a>
+                </div>
+            </div>
+
+            <div class="right-footer">© 2023 Smart Green Market. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script>
+        function fit() {
+            document.querySelector('.page').style.minHeight = window.innerHeight + 'px';
+            document.querySelector('.left-inner').style.minHeight = window.innerHeight + 'px';
+            document.querySelector('.right').style.minHeight = window.innerHeight + 'px';
+        }
+        fit();
+        window.addEventListener('resize', fit);
+    </script>
+</body>
+
+</html>
