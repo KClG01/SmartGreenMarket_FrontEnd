@@ -1,11 +1,15 @@
-function App() {
-  return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-      <h1 className="text-4xl font-bold text-white">
-        React + Vite + Tailwind CSS
-      </h1>
-    </div>
-  )
-}
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import UserLayout from "./layouts/UserLayout";
+import { Home } from "./pages/User/Home";
 
-export default App
+export default function App() {
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<UserLayout />}>
+                    <Route index element={<Home />} />
+                </Route>
+            </Routes>
+        </BrowserRouter>
+    );
+}
