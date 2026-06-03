@@ -9,6 +9,10 @@ const PRODUCTS = [
     { id: 4, name: "Cà chua bi đà lạt", price: "35.000đ", unit: "/kg" },
     { id: 5, name: "Bắp cải trắng", price: "18.000đ", unit: "/kg" },
     { id: 6, name: "Súp lơ xanh", price: "30.000đ", unit: "/cây" },
+    { id: 7, name: "Xà lách lô lô", price: "25.000đ", unit: "/kg" },
+    { id: 8, name: "Cà chua bi đà lạt", price: "35.000đ", unit: "/kg" },
+    { id: 9, name: "Bắp cải trắng", price: "18.000đ", unit: "/kg" },
+    { id: 10, name: "Súp lơ xanh", price: "30.000đ", unit: "/cây" },
 ];
 
 export default function BestSellingProduct() {
