@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Modal from "../common/Modal";
+import Modal from "../../common/Modal";
 
 /**
  * CategoryFormModal — Add / Edit category

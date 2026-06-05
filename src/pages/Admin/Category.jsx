@@ -3,7 +3,7 @@ import Toolbar from "../../components/Admin/UI/Toolbar";
 import Filter  from "../../components/Admin/UI/Filter";
 import CategoryTable      from "../../components/Admin/Category/CategoryTable";
 import CategoryFormModal  from "../../components/Admin/Category/CategoryFormModal";
-import DeleteConfirmModal from "../../components/Admin/common/DeleteConfirmModal";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 const INITIAL_DATA = [

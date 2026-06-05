@@ -2,7 +2,7 @@ import { useState } from "react";
 import Toolbar from "../../components/Admin/UI/Toolbar";
 import Filter  from "../../components/Admin/UI/Filter";
 import ProductTable from "../../components/Admin/Product/ProductTable";
-import DeleteConfirmModal from "../../components/Admin/common/DeleteConfirmModal";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 const INITIAL_DATA = [
