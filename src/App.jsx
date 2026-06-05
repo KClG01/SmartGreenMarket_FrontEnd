@@ -3,6 +3,7 @@ import UserLayout from "./layouts/UserLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import { Home } from "./pages/User/Home";
 import CategoryPage from "./pages/Admin/Category";
+import ProductPage from "./pages/Admin/Product";
 
 export default function App() {
     return (
@@ -22,7 +23,7 @@ export default function App() {
                         </div>
                     } />
                     <Route path="danh-muc" element={<CategoryPage />} />
-                    {/* Thêm các route khác tại đây: config, suppliers, agents, users, products */}
+                    <Route path="san-pham" element={<ProductPage />} />
                 </Route>
             </Routes>
         </BrowserRouter>
