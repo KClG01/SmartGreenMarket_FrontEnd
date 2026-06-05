@@ -1,14 +1,8 @@
-/**
- * Filter — status chip buttons
- * Props:
- *   value    : string  — "" | "active" | "paused" | "pending"
- *   onChange : (val: string) => void
- */
 const OPTIONS = [
     { label: "Tất cả",         value: "" },
     { label: "Đang hoạt động", value: "active" },
-    { label: "Tạm ngưng",      value: "paused" },
-    { label: "Đăng ký",        value: "pending" },
+    { label: "Tạm khóa",      value: "locked" },
+    { label: "Vô hiệu hóa",        value: "banned" },
 ];
 
 export default function Filter({ value, onChange }) {

@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import UserLayout from "./layouts/UserLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import { Home } from "./pages/User/Home";
+import SettingPage from "./pages/Admin/Setting";
+import SupplierPage from "./pages/Admin/Suppiler";
 import CategoryPage from "./pages/Admin/Category";
 import ProductPage from "./pages/Admin/Product";
 
@@ -22,6 +24,8 @@ export default function App() {
                             Chọn mục quản lý từ sidebar.
                         </div>
                     } />
+                    <Route path="cau-hinh" element={<SettingPage />} />
+                    <Route path="nha-cung-cap" element={<SupplierPage />} />
                     <Route path="danh-muc" element={<CategoryPage />} />
                     <Route path="san-pham" element={<ProductPage />} />
                 </Route>
