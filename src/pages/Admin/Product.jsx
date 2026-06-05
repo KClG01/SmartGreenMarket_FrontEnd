@@ -6,13 +6,13 @@ import DeleteConfirmModal from "../../components/Admin/common/DeleteConfirmModal
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 const INITIAL_DATA = [
-  { id: 1, code: "#GM-P-01", name: "Rau cải thìa",    supplier: "Nông trại Xanh", status: "active",  image: "" },
-  { id: 2, code: "#GM-P-02", name: "Cà chua bi",       supplier: "Garden Fresh",   status: "pending", image: "" },
-  { id: 3, code: "#GM-P-03", name: "Táo hữu cơ",       supplier: "Nông trại Xanh", status: "paused",  image: "" },
-  { id: 4, code: "#GM-P-04", name: "Khoai tây Đà Lạt", supplier: "VietFarm",       status: "active",  image: "" },
-  { id: 5, code: "#GM-P-05", name: "Dưa leo sạch",     supplier: "VietFarm",       status: "active",  image: "" },
-  { id: 6, code: "#GM-P-06", name: "Bí đỏ hữu cơ",    supplier: "Nông trại Xanh", status: "active",  image: "" },
-  { id: 7, code: "#GM-P-07", name: "Ớt chuông đỏ",    supplier: "Garden Fresh",   status: "pending", image: "" },
+  { id: 1, code: "#GM-P-01", name: "Rau cải thìa",    supplier: "Nông trại Xanh", status: "active",  image: "../public/images/rau.jpg" },
+  { id: 2, code: "#GM-P-02", name: "Cà chua bi",       supplier: "Garden Fresh",   status: "pending", image: "../public/images/rau.jpg" },
+  { id: 3, code: "#GM-P-03", name: "Táo hữu cơ",       supplier: "Nông trại Xanh", status: "paused",  image: "../public/images/rau.jpg" },
+  { id: 4, code: "#GM-P-04", name: "Khoai tây Đà Lạt", supplier: "VietFarm",       status: "active",  image: "../public/images/rau.jpg" },
+  { id: 5, code: "#GM-P-05", name: "Dưa leo sạch",     supplier: "VietFarm",       status: "active",  image: "../public/images/rau.jpg" },
+  { id: 6, code: "#GM-P-06", name: "Bí đỏ hữu cơ",    supplier: "Nông trại Xanh", status: "active",  image: "../public/images/rau.jpg" },
+  { id: 7, code: "#GM-P-07", name: "Ớt chuông đỏ",    supplier: "Garden Fresh",   status: "pending", image: "../public/images/rau.jpg" },
 ];
 
 export default function ProductPage() {
