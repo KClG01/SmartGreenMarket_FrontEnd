@@ -4,17 +4,17 @@ import { tableStyles, paginationVi } from "../../common/tableStyles";
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
     active:  { label: "ĐANG HOẠT ĐỘNG", bg: "bg-green-200",   text: "text-green-800"  },
-    paused:  { label: "TẠM NGƯNG",      bg: "bg-red-200",    text: "text-red-700"   },
-    pending: { label: "ĐĂNG KÝ",        bg: "bg-orange-200",  text: "text-orange-500" },
+    locked:  { label: "TẠM KHÓA",      bg: "bg-orange-200",    text: "text-orange-700"   },
+    banned: { label: "VÔ HIỆU HÓA",        bg: "bg-red-200",  text: "text-red-700" },
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView, onDelete) => [
   {
-    name: "Mã sản phẩm",
+    name: "Mã nhà cung cấp",
     selector: (row) => row.code,
     sortable: true,
-    width: "150px",
+    width: "200px",
     cell: (row) => (
       <span className="text-emerald-800 text-xs font-semibold font-mono">
         {row.code}
@@ -22,35 +22,13 @@ const buildColumns = (onView, onDelete) => [
     ),
   },
   {
-    name: "Hình ảnh",
-    width: "110px",
-    cell: (row) => (
-      <img
-        src={row.image || "https://placehold.co/48x48"}
-        alt={row.name}
-        className="w-12 h-12 rounded-lg border border-stone-300 object-cover"
-      />
-    ),
-  },
-  {
-    name: "Tên sản phẩm",
+    name: "Tên nhà cung cấp",
     selector: (row) => row.name,
     sortable: true,
     grow: 2,
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
         {row.name}
-      </span>
-    ),
-  },
-  {
-    name: "Nhà cung cấp",
-    selector: (row) => row.supplier,
-    sortable: true,
-    width: "170px",
-    cell: (row) => (
-      <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {row.supplier}
       </span>
     ),
   },
@@ -77,14 +55,21 @@ const buildColumns = (onView, onDelete) => [
         <button
           onClick={() => onView(row)}
           title="Xem chi tiết"
-          className="p-1.5 rounded-lg font-bold bg-blue-200 text-blue-800  hover:bg-blue-300 transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg bg-blue-200 text-blue-700 hover:text-blue-700 hover:bg-blue-300 transition-colors cursor-pointer"
         >
-          Xem chi tiết
+           Xem chi tiết
+        </button>
+        <button
+          onClick={() => onView(row)}
+          title="Duyệt"
+          className="p-1.5 rounded-lg bg-orange-200 text-orange-700 hover:text-orange-700 hover:bg-orange-300 transition-colors cursor-pointer"
+        >
+            Duyệt
         </button>
         <button
           onClick={() => onDelete(row)}
           title="Xóa"
-          className="p-1.5 rounded-lg font-bold bg-red-200 text-red-800 hover:bg-red-300 transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg bg-red-200 text-red-700 hover:text-red-700 hover:bg-red-300 transition-colors cursor-pointer"
         >
           Xóa
         </button>
@@ -94,16 +79,7 @@ const buildColumns = (onView, onDelete) => [
   },
 ];
 
-/**
- * ProductTable
- * Props:
- *   data         : Product[]
- *   search       : string
- *   statusFilter : string  — "" | "active" | "paused" | "pending"
- *   onView       : (row) => void
- *   onDelete     : (row) => void
- */
-export default function ProductTable({ data, search, statusFilter, onView, onDelete }) {
+export default function SuppilerTable({ data, search, statusFilter, onView, onDelete }) {
   const filtered = data.filter((row) => {
     const matchName   = row.name.toLowerCase().includes((search ?? "").toLowerCase());
     const matchStatus = statusFilter ? row.status === statusFilter : true;
@@ -122,7 +98,7 @@ export default function ProductTable({ data, search, statusFilter, onView, onDel
         customStyles={tableStyles}
         noDataComponent={
           <div className="py-16 text-sm text-neutral-400 font-['Geist']">
-            Không tìm thấy sản phẩm.
+            Không tìm thấy nhà cung cấp.
           </div>
         }
         defaultSortFieldId={1}
