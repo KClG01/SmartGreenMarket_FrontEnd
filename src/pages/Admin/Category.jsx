@@ -26,7 +26,7 @@ let nextId = INITIAL_DATA.length + 1;
 export default function CategoryPage() {
   const [data,         setData]         = useState(INITIAL_DATA);
   const [search,       setSearch]       = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("registered");
 
   // Modal states
   const [showAdd,   setShowAdd]   = useState(false);

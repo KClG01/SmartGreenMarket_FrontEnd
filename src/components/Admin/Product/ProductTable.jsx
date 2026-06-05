@@ -6,6 +6,7 @@ const STATUS_CONFIG = {
     active:  { label: "ĐANG HOẠT ĐỘNG", bg: "bg-green-200",   text: "text-green-800"  },
     paused:  { label: "TẠM NGƯNG",      bg: "bg-red-200",    text: "text-red-700"   },
     pending: { label: "ĐĂNG KÝ",        bg: "bg-orange-200",  text: "text-orange-500" },
+    registered: { label: "ĐĂNG KÝ",      bg: "bg-blue-200",   text: "text-blue-700"  },
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
@@ -24,6 +25,7 @@ const buildColumns = (onView, onDelete) => [
   {
     name: "Hình ảnh",
     width: "110px",
+    center: true,
     cell: (row) => (
       <img
         src={row.image || "https://placehold.co/48x48"}
@@ -81,6 +83,15 @@ const buildColumns = (onView, onDelete) => [
         >
           Xem chi tiết
         </button>
+        {row.status === "registered" && (
+          <button
+            onClick={() => onView(row)}
+            title="Duyệt"
+            className="p-1.5 rounded-lg font-bold bg-orange-200 text-orange-700 hover:text-orange-700 hover:bg-orange-300 transition-colors cursor-pointer"
+          >
+            Duyệt
+          </button>
+        )}
         <button
           onClick={() => onDelete(row)}
           title="Xóa"

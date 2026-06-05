@@ -1,8 +1,9 @@
 const OPTIONS = [
-    { label: "Tất cả",         value: "" },
-    { label: "Đang hoạt động", value: "active" },
-    { label: "Tạm khóa",      value: "locked" },
-    { label: "Vô hiệu hóa",        value: "banned" },
+    { label: "TẤT CẢ",         value: "" },
+    { label: "ĐANG HOẠT ĐỘNG", value: "active" },
+    { label: "TẠM KHÓA",      value: "locked" },
+    { label: "VÔ HIỆU HÓA",        value: "banned" },
+    { label: "ĐĂNG KÝ",        value: "registered" },
 ];
 
 export default function Filter({ value, onChange }) {

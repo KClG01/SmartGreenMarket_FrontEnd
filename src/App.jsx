@@ -6,6 +6,7 @@ import SettingPage from "./pages/Admin/Setting";
 import SupplierPage from "./pages/Admin/Suppiler";
 import CategoryPage from "./pages/Admin/Category";
 import ProductPage from "./pages/Admin/Product";
+import CertificationPage from "./pages/Admin/Certification";
 
 export default function App() {
     return (
@@ -28,6 +29,7 @@ export default function App() {
                     <Route path="nha-cung-cap" element={<SupplierPage />} />
                     <Route path="danh-muc" element={<CategoryPage />} />
                     <Route path="san-pham" element={<ProductPage />} />
+                    <Route path="chung-chi" element={<CertificationPage />} />
                 </Route>
             </Routes>
         </BrowserRouter>
