@@ -6,6 +6,7 @@ const STATUS_CONFIG = {
     active:  { label: "ĐANG HOẠT ĐỘNG", bg: "bg-green-200",   text: "text-green-800"  },
     locked:  { label: "TẠM KHÓA",      bg: "bg-orange-200",    text: "text-orange-700"   },
     banned: { label: "VÔ HIỆU HÓA",        bg: "bg-red-200",  text: "text-red-700" },
+    registered: { label: "ĐĂNG KÝ",        bg: "bg-blue-200", text: "text-blue-700" },
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
@@ -55,21 +56,23 @@ const buildColumns = (onView, onDelete) => [
         <button
           onClick={() => onView(row)}
           title="Xem chi tiết"
-          className="p-1.5 rounded-lg bg-blue-200 text-blue-700 hover:text-blue-700 hover:bg-blue-300 transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg font-bold bg-blue-200 text-blue-700 hover:text-blue-700 hover:bg-blue-300 transition-colors cursor-pointer"
         >
            Xem chi tiết
         </button>
-        <button
-          onClick={() => onView(row)}
-          title="Duyệt"
-          className="p-1.5 rounded-lg bg-orange-200 text-orange-700 hover:text-orange-700 hover:bg-orange-300 transition-colors cursor-pointer"
-        >
+        {row.status === "registered" && (
+          <button
+            onClick={() => onView(row)}
+            title="Duyệt"
+            className="p-1.5 rounded-lg font-bold bg-orange-200 text-orange-700 hover:text-orange-700 hover:bg-orange-300 transition-colors cursor-pointer"
+          >
             Duyệt
-        </button>
+          </button>
+        )}
         <button
           onClick={() => onDelete(row)}
           title="Xóa"
-          className="p-1.5 rounded-lg bg-red-200 text-red-700 hover:text-red-700 hover:bg-red-300 transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg font-bold bg-red-200 text-red-700 hover:text-red-700 hover:bg-red-300 transition-colors cursor-pointer"
         >
           Xóa
         </button>

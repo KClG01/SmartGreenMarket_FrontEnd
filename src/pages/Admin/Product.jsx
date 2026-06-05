@@ -7,18 +7,18 @@ import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 // ── Mock data ─────────────────────────────────────────────────────────────────
 const INITIAL_DATA = [
   { id: 1, code: "#GM-P-01", name: "Rau cải thìa",    supplier: "Nông trại Xanh", status: "active",  image: "../public/images/rau.jpg" },
-  { id: 2, code: "#GM-P-02", name: "Cà chua bi",       supplier: "Garden Fresh",   status: "pending", image: "../public/images/rau.jpg" },
+  { id: 2, code: "#GM-P-02", name: "Cà chua bi",       supplier: "Garden Fresh",   status: "registered", image: "../public/images/rau.jpg" },
   { id: 3, code: "#GM-P-03", name: "Táo hữu cơ",       supplier: "Nông trại Xanh", status: "paused",  image: "../public/images/rau.jpg" },
   { id: 4, code: "#GM-P-04", name: "Khoai tây Đà Lạt", supplier: "VietFarm",       status: "active",  image: "../public/images/rau.jpg" },
   { id: 5, code: "#GM-P-05", name: "Dưa leo sạch",     supplier: "VietFarm",       status: "active",  image: "../public/images/rau.jpg" },
   { id: 6, code: "#GM-P-06", name: "Bí đỏ hữu cơ",    supplier: "Nông trại Xanh", status: "active",  image: "../public/images/rau.jpg" },
-  { id: 7, code: "#GM-P-07", name: "Ớt chuông đỏ",    supplier: "Garden Fresh",   status: "pending", image: "../public/images/rau.jpg" },
+  { id: 7, code: "#GM-P-07", name: "Ớt chuông đỏ",    supplier: "Garden Fresh",   status: "registered", image: "../public/images/rau.jpg" },
 ];
 
 export default function ProductPage() {
   const [data,         setData]         = useState(INITIAL_DATA);
   const [search,       setSearch]       = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("registered");
 
   // Modal states
   const [deleteRow, setDeleteRow] = useState(null); // row | null
@@ -35,8 +35,6 @@ export default function ProductPage() {
       <Toolbar
         search={search}
         onSearch={setSearch}
-        onAdd={() => {/* mở ProductFormModal nếu có */}}
-        addLabel="Thêm sản phẩm"
         searchPlaceholder="Tìm kiếm sản phẩm..."
       />
 
@@ -53,7 +51,7 @@ export default function ProductPage() {
         data={data}
         search={search}
         statusFilter={statusFilter}
-        onView={(row) => {/* mở ProductDetailModal nếu có */}}
+        // onView={(row) => {/* mở ProductDetailModal nếu có */}}
         onDelete={(row) => setDeleteRow(row)}
       />
 

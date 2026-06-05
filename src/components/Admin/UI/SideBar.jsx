@@ -8,6 +8,7 @@ import {
     Tag,
     Package,
     LogOut,
+    FileCheck,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
     { label: "Quản lý người dùng",   icon: Users,           to: "/quan-tri/nguoi-dung" },
     { label: "Quản lý danh mục",     icon: Tag,             to: "/quan-tri/danh-muc" },
     { label: "Quản lý sản phẩm",     icon: Package,         to: "/quan-tri/san-pham" },
+    { label: "Quản lý chứng chỉ",    icon: FileCheck,       to: "/quan-tri/chung-chi" },
 ];
 
 export default function SideBar() {

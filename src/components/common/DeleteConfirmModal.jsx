@@ -9,7 +9,7 @@ import Modal from "./Modal";
  *   itemName  : string
  *   itemType  : string  — e.g. "sản phẩm" | "danh mục"
  */
-export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, itemName, itemType = "mục" }) {
+export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, itemName, itemType = "mục", }) {
   const handleConfirm = () => {
     onConfirm();
     onClose();
@@ -47,7 +47,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, itemNam
         {itemName && (
           <span className="font-semibold text-emerald-950">"{itemName}"</span>
         )}
-        ? Hành động này không thể hoàn tác.
+       ? Hành động này không thể hoàn tác.
       </p>
     </Modal>
   );
