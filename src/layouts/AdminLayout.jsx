@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { Bell } from "lucide-react";
+import { Toaster } from "sonner";
 import SideBar from "../components/Admin/UI/SideBar";
 
 export default function AdminLayout() {
@@ -36,6 +37,13 @@ export default function AdminLayout() {
             <main className="pt-16 pl-64 min-h-screen">
                 <Outlet />
             </main>
+
+            {/* ── Toast ─────────────────────────────────────────────────────── */} 
+            <Toaster 
+                position="top-right" 
+                richColors 
+                closeButton 
+            />
         </div>
     );
 }

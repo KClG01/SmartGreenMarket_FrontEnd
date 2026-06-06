@@ -3,7 +3,7 @@ import Toolbar from "../../components/Admin/UI/Toolbar";
 import Filter  from "../../components/Admin/UI/Filter";
 import CategoryTable      from "../../components/Admin/Category/CategoryTable";
 import CategoryFormModal  from "../../components/Admin/Category/CategoryFormModal";
-import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 const INITIAL_DATA = [
@@ -18,7 +18,7 @@ const INITIAL_DATA = [
   { id:  9, code: "C-09", name: "Đậu hạt",      productCount: 11, status: "paused"  },
   { id: 10, code: "C-10", name: "Hoa ăn được",  productCount:  3, status: "pending" },
   { id: 11, code: "C-11", name: "Trái cây",     productCount: 20, status: "active"  },
-  { id: 12, code: "C-12", name: "Ngũ cốc",      productCount:  7, status: "active"  },
+  { id: 12, code: "C-12", name: "Ngũ cốc",      productCount:  7, status: "registered"  },
 ];
 
 let nextId = INITIAL_DATA.length + 1;
@@ -100,13 +100,15 @@ export default function CategoryPage() {
         initial={editRow ? { name: editRow.name, active: editRow.status === "active" } : null}
       />
 
-      {/* Dùng chung DeleteConfirmModal từ common/ thay vì Category/DeleteConfirmModal */}
-      <DeleteConfirmModal
+      <ConfirmModal
         isOpen={deleteRow !== null}
         onClose={() => setDeleteRow(null)}
         onConfirm={handleDelete}
-        itemName={deleteRow?.name ?? ""}
-        itemType="danh mục"
+        title="Xóa danh mục"
+        message={`Bạn có chắc chắn muốn xóa danh mục "${deleteRow?.name}" không?`}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        variant="danger"
       />
     </div>
   );
