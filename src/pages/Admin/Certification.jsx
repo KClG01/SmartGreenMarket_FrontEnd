@@ -2,7 +2,7 @@ import { useState } from "react";
 import Toolbar from "../../components/Admin/UI/Toolbar";
 import Filter  from "../../components/Admin/Certification/CertificationFilter";
 import CerificationTable from "../../components/Admin/Certification/CertificationTable";
-import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 const INITIAL_DATA = [
@@ -56,12 +56,15 @@ export default function CertificationPage() {
       />
 
       {/* ── Modals ──────────────────────────────────────────────────────── */}
-      <DeleteConfirmModal
+      <ConfirmModal
         isOpen={deleteRow !== null}
         onClose={() => setDeleteRow(null)}
         onConfirm={handleDelete}
-        itemName={deleteRow?.name ?? ""}
-        itemType="chứng chỉ"
+        title="Xóa chứng chỉ"
+        message={`Bạn có chắc chắn muốn xóa chứng chỉ "${deleteRow?.name}" không?`}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        variant="danger"
       />
     </div>
   );

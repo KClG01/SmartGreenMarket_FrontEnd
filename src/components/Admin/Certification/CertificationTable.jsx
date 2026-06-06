@@ -5,7 +5,7 @@ import { tableStyles, paginationVi } from "../../common/tableStyles";
 const STATUS_CONFIG = {
     active:  { label: "ĐÃ DUYỆT", bg: "bg-green-200",   text: "text-green-800"  },
     rejected:  { label: "TỪ CHỐI",        bg: "bg-red-200",     text: "text-red-700"   },
-    registered: { label: "ĐĂNG KÝ",        bg: "bg-orange-200",  text: "text-orange-500" },
+    registered: { label: "ĐĂNG KÝ",        bg: "bg-blue-200",  text: "text-blue-800" },
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
