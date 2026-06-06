@@ -25,7 +25,7 @@ export default function ConfirmModal({
 
       toastType: "warning",
 
-      successMessage: "Cập nhật thành công",
+      successMessage: `${confirmText} dữ liệu thành công`,
 
       errorMessage: "Không thể cập nhật dữ liệu",
   },
@@ -40,7 +40,7 @@ export default function ConfirmModal({
 
       toastType: "success",
 
-      successMessage: "Thêm dữ liệu thành công",
+      successMessage: `${confirmText} dữ liệu thành công`,
 
       errorMessage: "Không thể thêm dữ liệu",
   },
@@ -55,7 +55,7 @@ export default function ConfirmModal({
 
       toastType: "error",
 
-      successMessage: "Xóa dữ liệu thành công",
+      successMessage: `${confirmText} dữ liệu thành công`,
 
       errorMessage: "Không thể xóa dữ liệu",
   },
@@ -107,7 +107,7 @@ variantStyles.warning;
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X size={20} />
           </button>
@@ -123,7 +123,7 @@ variantStyles.warning;
                 <button
                     onClick={onClose}
                     disabled={loading}
-                    className="flex-1 px-4 py-2.5 border border-neutral-300 rounded-xl text-neutral-700 font-medium hover:bg-neutral-100 transition-colors disabled:opacity-50"
+                    className="cursor-pointer flex-1 px-4 py-2.5 border border-neutral-300 rounded-xl text-neutral-700 font-medium hover:bg-neutral-100 transition-colors disabled:opacity-50"
                 >
                     {cancelText}
                 </button>
@@ -131,7 +131,7 @@ variantStyles.warning;
                 <button
                     onClick={handleConfirm}
                     disabled={loading}
-                    className={`flex-1 px-4 py-2.5 text-white rounded-xl font-medium transition-all focus:outline-none focus:ring-4 disabled:opacity-50 ${style.confirmBtn}`}
+                    className={`cursor-pointer flex-1 px-4 py-2.5 text-white rounded-xl font-medium transition-all focus:outline-none focus:ring-4 disabled:opacity-50 ${style.confirmBtn}`}
                 >
                     {loading
                         ? "Đang xử lý..."

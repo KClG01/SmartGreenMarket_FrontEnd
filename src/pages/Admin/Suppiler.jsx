@@ -34,16 +34,91 @@ export default function SupplierPage() {
   
   // setData(response.data);
 
-  const handleDelete = () => {
-    setData((prev) => prev.filter((row) => row.id !== deleteRow.id));
-  };
+  // ── DELETE ────────────────────────────────────────────────────────────────
+    const handleDelete = () => {
+        setData((prev) =>
+            prev.filter(
+                (row) => row.id !== deleteRow.id
+            )
+        );
 
-  const handleApprove = (supplier) => {
-    setData((prev) => prev.map((item) => item.id === supplier.id ? {...item, status: "active",} : item));
+        setDeleteRow(null);
+    };
 
-    setViewRow(null);
+    // ── APPROVE ───────────────────────────────────────────────────────────────
+    const handleApprove = (supplier) => {
+        setData((prev) =>
+            prev.map((item) =>
+                item.id === supplier.id
+                    ? {
+                          ...item,
+                          status: "active",
+                      }
+                    : item
+            )
+        );
 
-  };
+        setViewRow(null);
+    };
+
+    // ── REJECT ────────────────────────────────────────────────────────────────
+    const handleReject = (supplier) => {
+        setData((prev) =>
+            prev.filter(
+                (item) => item.id !== supplier.id
+            )
+        );
+
+        setViewRow(null);
+    };
+
+    // ── LOCK ──────────────────────────────────────────────────────────────────
+    const handleLock = (supplier) => {
+        setData((prev) =>
+            prev.map((item) =>
+                item.id === supplier.id
+                    ? {
+                          ...item,
+                          status: "locked",
+                      }
+                    : item
+            )
+        );
+
+        setViewRow(null);
+    };
+
+    // ── UNLOCK ────────────────────────────────────────────────────────────────
+    const handleUnlock = (supplier) => {
+        setData((prev) =>
+            prev.map((item) =>
+                item.id === supplier.id
+                    ? {
+                          ...item,
+                          status: "active",
+                      }
+                    : item
+            )
+        );
+
+        setViewRow(null);
+    };
+
+    // ── BAN ───────────────────────────────────────────────────────────────────
+    const handleBan = (supplier) => {
+        setData((prev) =>
+            prev.map((item) =>
+                item.id === supplier.id
+                    ? {
+                          ...item,
+                          status: "banned",
+                      }
+                    : item
+            )
+        );
+
+        setViewRow(null);
+    };
 
   return (
     <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
@@ -82,12 +157,17 @@ export default function SupplierPage() {
         cancelText="Hủy"
         variant="danger"
       />
-      <SupplierViewModal
-        isOpen={viewRow !== null}
-        onClose={() => setViewRow(null)}
-        supplier={viewRow}
-        onApprove={handleApprove}
-      />
+      {/* View Modal */}
+            <SupplierViewModal
+                isOpen={viewRow !== null}
+                onClose={() => setViewRow(null)}
+                supplier={viewRow}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onLock={handleLock}
+                onUnlock={handleUnlock}
+                onBan={handleBan}
+            />
 
     </div>
   );
