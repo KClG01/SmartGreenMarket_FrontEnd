@@ -92,7 +92,7 @@ const buildColumns = (onView, onDelete) => [
   },
 ];
 
-export default function CertificationTable({ data, search, statusFilter, onEdit, onDelete }) {
+export default function CertificationTable({ data, search, statusFilter, onView, onDelete }) {
     const filtered = data.filter((row) => {
         const matchName   = row.name.toLowerCase().includes(search.toLowerCase());
         const matchStatus = statusFilter ? row.status === statusFilter : true;
@@ -100,7 +100,7 @@ export default function CertificationTable({ data, search, statusFilter, onEdit,
         return matchName && matchStatus;
     });
 
-    const columns = buildColumns(onEdit, onDelete);
+    const columns = buildColumns(onView, onDelete);
 
     return (
         <div className="w-full rounded-xl border border-neutral-200 overflow-hidden">

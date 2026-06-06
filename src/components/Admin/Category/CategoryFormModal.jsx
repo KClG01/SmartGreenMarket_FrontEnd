@@ -60,15 +60,8 @@ return (
             footer={
                 <>
                     <button
-                        onClick={onClose}
-                        className="px-5 py-2 text-sm font-semibold text-neutral-600 hover:text-neutral-800 transition-colors"
-                    >
-                        Hủy
-                    </button>
-
-                    <button
                         onClick={handleOpenConfirm}
-                        className="px-5 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors"
+                        className="cursor-pointer px-5 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors"
                     >
                         {isEdit
                             ? "Lưu thay đổi"
@@ -125,7 +118,7 @@ return (
                         onClick={() =>
                             setActive((a) => !a)
                         }
-                        className={`relative w-12 h-6 rounded-full transition-colors duration-200
+                        className={`relative w-12 h-6 rounded-full transition-colors duration-200 cursor-pointer 
                             
                             ${
                                 active

@@ -44,7 +44,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
                     </h2>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
+                        className="cursor-pointer w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>
