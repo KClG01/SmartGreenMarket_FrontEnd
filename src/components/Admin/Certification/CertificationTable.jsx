@@ -9,7 +9,7 @@ const STATUS_CONFIG = {
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
-const buildColumns = (onView, onDelete) => [
+const buildColumns = (onView) => [
     {
         name: "Mã chứng chỉ",
         selector: (row) => row.code,
@@ -69,22 +69,6 @@ const buildColumns = (onView, onDelete) => [
           className="p-1.5 rounded-lg font-bold bg-blue-200 text-blue-800  hover:bg-blue-300 transition-colors cursor-pointer"
         >
           Xem chi tiết
-        </button>
-        {row.status === "registered" && (
-          <button
-            onClick={() => onView(row)}
-            title="Duyệt"
-            className="p-1.5 rounded-lg font-bold bg-orange-200 text-orange-700 hover:text-orange-700 hover:bg-orange-300 transition-colors cursor-pointer"
-          >
-            Duyệt
-          </button>
-        )}
-        <button
-          onClick={() => onDelete(row)}
-          title="Xóa"
-          className="p-1.5 rounded-lg font-bold bg-red-200 text-red-800 hover:bg-red-300 transition-colors cursor-pointer"
-        >
-          Xóa
         </button>
       </div>
     ),

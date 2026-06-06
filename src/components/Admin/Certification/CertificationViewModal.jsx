@@ -9,8 +9,9 @@ export default function CertificationViewModal({
     certification,
     onApprove,
     onReject,
+    onDelete,
 }) {
-    const [confirmType, setConfirmType] =
+    const [confirmConfig, setConfirmConfig] =
         useState(null);
 
     if (!isOpen || !certification)
@@ -20,21 +21,39 @@ export default function CertificationViewModal({
         certification.status ===
         "registered";
 
-    const handleApprove =
+    const isActive =
+        certification.status ===
+        "active";
+
+    const isRejected =
+        certification.status ===
+        "rejected";
+
+    const openConfirm = ({
+        title,
+        message,
+        confirmText,
+        variant,
+        action,
+    }) => {
+        setConfirmConfig({
+            title,
+            message,
+            confirmText,
+            variant,
+            action,
+        });
+    };
+
+    const handleConfirm =
         async () => {
-            await onApprove(
-                certification
-            );
+            if (
+                confirmConfig?.action
+            ) {
+                await confirmConfig.action();
+            }
 
-            onClose();
-        };
-
-    const handleReject =
-        async () => {
-            await onReject(
-                certification
-            );
-
+            setConfirmConfig(null);
             onClose();
         };
 
@@ -54,7 +73,9 @@ export default function CertificationViewModal({
                         </h2>
 
                         <button
-                            onClick={onClose}
+                            onClick={
+                                onClose
+                            }
                             className="cursor-pointer p-2 rounded-full hover:bg-neutral-100 transition-colors"
                         >
                             <X className="w-5 h-5 text-zinc-900" />
@@ -75,7 +96,7 @@ export default function CertificationViewModal({
                             />
 
                             <InfoField
-                                label="Supplier ID"
+                                label="Supplier"
                                 value={
                                     certification.supplier
                                 }
@@ -133,88 +154,148 @@ export default function CertificationViewModal({
                                 certification.description
                             }
                         />
-
-                        {/* Demo content để test scrollbar */}
-                        <TextAreaField
-                            label="Ghi chú"
-                            value={`
-Lorem ipsum dolor sit amet.
-Lorem ipsum dolor sit amet.
-Lorem ipsum dolor sit amet.
-Lorem ipsum dolor sit amet.
-Lorem ipsum dolor sit amet.
-Lorem ipsum dolor sit amet.
-Lorem ipsum dolor sit amet.
-                            `}
-                        />
                     </div>
 
                     {/* Footer */}
-                    {isRegistered && (
-                        <div className="px-8 py-6 border-t border-neutral-200 flex justify-end gap-4 shrink-0 bg-white">
+                    <div className="px-8 py-6 border-t border-neutral-200 flex justify-end gap-4 shrink-0 bg-white">
 
+                        {/* REGISTERED */}
+                        {isRegistered && (
+                            <>
+                                <button
+                                    onClick={() =>
+                                        openConfirm(
+                                            {
+                                                title:
+                                                    "Từ chối chứng chỉ",
+                                                message: `Bạn có chắc chắn muốn xóa chứng chỉ "${certification.name}" không?`,
+                                                confirmText:
+                                                    "Xóa",
+                                                variant:
+                                                    "danger",
+                                                action:
+                                                    () =>
+                                                        onDelete(
+                                                            certification
+                                                        ),
+                                            }
+                                        )
+                                    }
+                                    className="cursor-pointer px-6 py-2.5 bg-red-700 hover:bg-red-600 text-white text-base font-bold rounded-lg transition-colors"
+                                >
+                                    Từ chối
+                                </button>
+
+                                <button
+                                    onClick={() =>
+                                        openConfirm(
+                                            {
+                                                title:
+                                                    "Duyệt chứng chỉ",
+                                                message: `Bạn có chắc chắn muốn duyệt chứng chỉ "${certification.name}" không?`,
+                                                confirmText:
+                                                    "Duyệt",
+                                                variant:
+                                                    "warning",
+                                                action:
+                                                    () =>
+                                                        onApprove(
+                                                            certification
+                                                        ),
+                                            }
+                                        )
+                                    }
+                                    className="cursor-pointer px-8 py-2.5 bg-green-700 hover:bg-green-600 text-white text-base font-bold rounded-lg transition-colors shadow-sm"
+                                >
+                                    Duyệt
+                                </button>
+                            </>
+                        )}
+
+                        {/* ACTIVE */}
+                        {isActive && (
                             <button
                                 onClick={() =>
-                                    setConfirmType(
-                                        "reject"
+                                    openConfirm(
+                                        {
+                                            title:
+                                                "Từ chối chứng chỉ",
+                                            message: `Bạn có chắc chắn muốn từ chối chứng chỉ "${certification.name}" không?`,
+                                            confirmText:
+                                                "Từ chối",
+                                            variant:
+                                                "danger",
+                                            action:
+                                                () =>
+                                                    onReject(
+                                                        certification
+                                                    ),
+                                        }
                                     )
                                 }
                                 className="cursor-pointer px-6 py-2.5 bg-red-700 hover:bg-red-600 text-white text-base font-bold rounded-lg transition-colors"
                             >
                                 Từ chối
                             </button>
+                        )}
 
+                        {/* REJECTED */}
+                        {isRejected && (
                             <button
                                 onClick={() =>
-                                    setConfirmType(
-                                        "approve"
+                                    openConfirm(
+                                        {
+                                            title:
+                                                "Duyệt lại chứng chỉ",
+                                            message: `Bạn có chắc chắn muốn duyệt lại chứng chỉ "${certification.name}" không?`,
+                                            confirmText:
+                                                "Duyệt",
+                                            variant:
+                                                "warning",
+                                            action:
+                                                () =>
+                                                    onApprove(
+                                                        certification
+                                                    ),
+                                        }
                                     )
                                 }
                                 className="cursor-pointer px-8 py-2.5 bg-green-700 hover:bg-green-600 text-white text-base font-bold rounded-lg transition-colors shadow-sm"
                             >
                                 Duyệt
                             </button>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
 
-            {/* Approve Confirm */}
+            {/* Confirm Modal */}
             <ConfirmModal
                 isOpen={
-                    confirmType ===
-                    "approve"
+                    confirmConfig !==
+                    null
                 }
                 onClose={() =>
-                    setConfirmType(null)
+                    setConfirmConfig(
+                        null
+                    )
                 }
                 onConfirm={
-                    handleApprove
+                    handleConfirm
                 }
-                title="Duyệt chứng chỉ"
-                message={`Bạn có chắc chắn muốn duyệt chứng chỉ "${certification.name}" không?`}
-                confirmText="Duyệt"
+                title={
+                    confirmConfig?.title
+                }
+                message={
+                    confirmConfig?.message
+                }
+                confirmText={
+                    confirmConfig?.confirmText
+                }
                 cancelText="Hủy"
-                variant="warning"
-            />
-
-            {/* Reject Confirm */}
-            <ConfirmModal
-                isOpen={
-                    confirmType ===
-                    "reject"
+                variant={
+                    confirmConfig?.variant
                 }
-                onClose={() =>
-                    setConfirmType(null)
-                }
-                onConfirm={
-                    handleReject
-                }
-                title="Từ chối chứng chỉ"
-                message={`Bạn có chắc chắn muốn từ chối chứng chỉ "${certification.name}" không?`}
-                confirmText="Từ chối"
-                cancelText="Hủy"
-                variant="danger"
             />
         </>
     );

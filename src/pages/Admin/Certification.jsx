@@ -28,20 +28,72 @@ export default function CertificationPage() {
   // Modal states
   const [deleteRow, setDeleteRow] = useState(null); // row | null
 
-  // ── CRUD ──────────────────────────────────────────────────────────────────
+  // ── DELETE ─────────────────────────────────────────────────────
   const handleDelete = () => {
-    setData((prev) => prev.filter((row) => row.id !== deleteRow.id));
-  };
-  const handleApprove = (certification) => {
-    setData((prev) => prev.map((item) => item.id === certification.id ? {...item, status: "active", } : item));
-    setViewRow(null);
+      setData((prev) =>
+          prev.filter(
+              (row) =>
+                  row.id !== deleteRow.id
+          )
+      );
 
+      setDeleteRow(null);
   };
 
-  const handleReject = (certification) => {
-    setData((prev) => prev.map((item) => item.id === certification.id? {...item,status: "rejected",}: item));
-    setViewRow(null);
+  // ── APPROVE ────────────────────────────────────────────────────
+  const handleApprove = (
+      certification
+  ) => {
+      setData((prev) =>
+          prev.map((item) =>
+              item.id ===
+              certification.id
+                  ? {
+                        ...item,
+                        status: "active",
+                    }
+                  : item
+          )
+      );
+
+      setViewRow(null);
   };
+
+  // ── REJECT ─────────────────────────────────────────────────────
+  const handleReject = (
+      certification
+  ) => {
+      setData((prev) =>
+          prev.map((item) =>
+              item.id ===
+              certification.id
+                  ? {
+                        ...item,
+                        status:
+                            "rejected",
+                    }
+                  : item
+          )
+      );
+
+      setViewRow(null);
+  };
+
+  // ── REMOVE REGISTERED CERTIFICATION ───────────────────────────
+  const handleDeleteCertification = (
+      certification
+  ) => {
+      setData((prev) =>
+          prev.filter(
+              (item) =>
+                  item.id !==
+                  certification.id
+          )
+      );
+
+      setViewRow(null);
+  };
+
 
   return (
     <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
@@ -82,11 +134,14 @@ export default function CertificationPage() {
         variant="danger"
       />
       <CertificationViewModal
-        isOpen={viewRow !== null}
-        onClose={() => setViewRow(null)}
-        certification={viewRow}
-        onApprove={handleApprove}
-        onReject={handleReject}
+          isOpen={viewRow !== null}
+          onClose={() => setViewRow(null)}
+          certification={viewRow}
+          onApprove={handleApprove}
+          onReject={handleReject}
+          onDelete={
+              handleDeleteCertification
+          }
       />
     </div>
   );
