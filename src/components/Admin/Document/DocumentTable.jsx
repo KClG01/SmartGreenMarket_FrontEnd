@@ -18,15 +18,6 @@ const DOCUMENT_TYPE_LABELS = {
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView) => [
     {
-        name: "CODE",
-        selector: (row) => row.code,
-        sortable: true,
-        width: '100px',
-        cell: (row) => (
-            <span className="text-sm font-semibold font-['Geist',sans-serif]">{row.code}</span>
-        ),
-    },
-    {
         name: "Hình ảnh",
         width: "110px",
         center: true,

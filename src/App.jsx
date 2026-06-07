@@ -11,6 +11,7 @@ import CategoryPage from "./pages/Admin/Category";
 import ProductPage from "./pages/Admin/Product";
 import CertificationPage from "./pages/Admin/Certification";
 import DocumentPage from "./pages/Admin/Document";
+import NotificationPage from "./pages/Admin/Notification";
 
 export default function App() {
     return (
@@ -34,6 +35,7 @@ export default function App() {
                             <Route path="san-pham" element={<ProductPage />} />
                             <Route path="chung-chi" element={<CertificationPage />} />
                             <Route path="giay-to" element={<DocumentPage />} />
+                            <Route path="thong-bao" element={<NotificationPage />} />
                         </Route>
                     {/* </Route> */}
                 </Routes>

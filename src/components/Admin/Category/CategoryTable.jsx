@@ -64,6 +64,7 @@ export default function CategoryTable({ data, search, statusFilter, onView }) {
     });
 
     return (
+        <div className="w-full rounded-xl border border-neutral-200 overflow-hidden">
             <DataTable
                 columns={buildColumns(onView)}
                 data={filtered}
@@ -81,5 +82,6 @@ export default function CategoryTable({ data, search, statusFilter, onView }) {
                 highlightOnHover
                 responsive
             />
+        </div>
     );
 }
