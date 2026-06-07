@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-// import { AuthProvider } from "./contexts/authProvider";
-// import AdminProtectedRoute from "./contexts/adminProtectedRoute";
+import { AuthProvider } from "./contexts/authProvider";
+import AdminProtectedRoute from "./contexts/adminProtectedRoute";
 import UserLayout from "./layouts/UserLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import { HomePage } from "./pages/User/Home";
@@ -18,7 +18,7 @@ import {
 export default function App() {
     return (
         <BrowserRouter>
-            {/* <AuthProvider> */}
+            <AuthProvider>
                 <Routes>
                     <Route path="/admin/login" element={<AdminLoginPage />} />
 
@@ -29,7 +29,7 @@ export default function App() {
                     </Route>
 
                     {/* Admin */}
-                    {/* <Route element={<AdminProtectedRoute />}> */}
+                    <Route element={<AdminProtectedRoute />}>
                         <Route path="/quan-tri" element={<AdminLayout />}>
                             <Route path="cau-hinh" element={<SettingPage />} />
                             <Route path="nha-cung-cap" element={<SupplierPage />} />
@@ -39,9 +39,9 @@ export default function App() {
                             <Route path="giay-to" element={<DocumentPage />} />
                             <Route path="thong-bao" element={<NotificationPage />} />
                         </Route>
-                    {/* </Route> */}
+                    </Route>
                 </Routes>
-            {/* </AuthProvider> */}
+            </AuthProvider>
         </BrowserRouter>
     );
 }

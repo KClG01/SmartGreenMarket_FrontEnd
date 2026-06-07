@@ -98,8 +98,9 @@ export default function CertificationTable({ data, search, statusFilter, onView 
                 columns={columns}
                 data={filtered}
                 pagination
-                paginationPerPage={6}
-                paginationRowsPerPageOptions={[6, 12, 20]}
+                paginationServer
+                paginationTotalRows={data?.count}
+                paginationPerPage={data?.page_size }
                 paginationComponentOptions={paginationVi}
                 customStyles={tableStyles}
                 noDataComponent={

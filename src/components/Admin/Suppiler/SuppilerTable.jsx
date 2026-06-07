@@ -3,10 +3,9 @@ import { tableStyles, paginationVi } from "../../common/tableStyles";
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-    active:  { label: "ĐANG HOẠT ĐỘNG", bg: "bg-green-200",   text: "text-green-800"  },
-    rejected:  { label: "TẠM NGƯNG",      bg: "bg-red-200",    text: "text-red-700"   },
+    approved:  { label: "ĐANG HOẠT ĐỘNG", bg: "bg-green-200",   text: "text-green-800"  },
+    rejected:  { label: "TỪ CHỐI",      bg: "bg-red-200",    text: "text-red-700"   },
     pending: { label: "CHỜ DUYỆT",        bg: "bg-amber-200",  text: "text-amber-800" },
-    inactive: { label: "CHỜ DUYỆT",        bg: "bg-blue-200",  text: "text-blue-800" },
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
@@ -14,13 +13,13 @@ const buildColumns = (onView) => [
     {
         id: 1,
         name: "NHÀ CUNG CẤP",
-        selector: (row) => row.name,
+        selector: (row) => row.company_name,
         sortable: true,
         grow: 2,
 
         cell: (row) => (
             <span className="text-sm font-semibold font-['Geist',sans-serif]">
-                {row.name}
+                {row.company_name}
             </span>
         ),
     },
@@ -55,6 +54,7 @@ const buildColumns = (onView) => [
         name: "Trạng thái",
         selector: (row) => row.verification_status,
         sortable: true,
+        center:true,
         width: "200px",
 
         cell: (row) => {
@@ -94,7 +94,7 @@ export default function SupplierTable({ data, search, statusFilter, onView,}) {
         const keyword = (search ?? "").toLowerCase();
 
         const matchName =
-            (row.name ?? "")
+            (row.company_name  ?? "")
                 .toLowerCase()
                 .includes(keyword) ||
 
@@ -109,9 +109,9 @@ export default function SupplierTable({ data, search, statusFilter, onView,}) {
             (row.verification_status ?? "")
                 .toLowerCase()
                 .includes(keyword);
-        const matchStatus = statusFilter
-            ? row.verification_status === statusFilter
-            : true;
+        const matchStatus =
+            !statusFilter ||
+            row.verification_status === statusFilter;
 
         return matchName && matchStatus;
     });
@@ -122,8 +122,8 @@ export default function SupplierTable({ data, search, statusFilter, onView,}) {
                 columns={buildColumns(onView)}
                 data={filtered}
                 pagination
-                paginationPerPage={6}
-                paginationRowsPerPageOptions={[6, 12, 20]}
+                paginationTotalRows={data?.count}
+                paginationPerPage={data?.page_size }
                 paginationComponentOptions={paginationVi}
                 customStyles={tableStyles}
                 noDataComponent={

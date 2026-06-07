@@ -1,7 +1,7 @@
 import axiosClient from "./axiosClient";
 
 export const userService = {
-  getAll: () => axiosClient.get("/users/").then((res) => res.data),
+  getAll: () => axiosClient.get("/users/").then((res) => res.data.result),
 };
 
 // Xử lý bug

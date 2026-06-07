@@ -2,7 +2,8 @@ import axiosClient from "./axiosClient";
 
 export const supplierDocumentService = {
   // --- ADMIN + SUPPLIER
-  getAll: () => axiosClient.get("/supplier-documents/").then((res) => res.data),
+  getAll: () =>
+    axiosClient.get("/supplier-documents/").then((res) => res.data.results),
 
   // [
   //   {
@@ -53,10 +54,19 @@ export const supplierDocumentService = {
   // ]
 
   // --- ADMIN
-  verify: (id, data) =>
-    axiosClient
-      .post(`/supplier-documents/${id}/verify/`, data)
-      .then((res) => res.data),
+  verify: (id, status) => {
+    const formData = new FormData();
+
+    formData.append("status", status);
+
+    return axiosClient
+      .post(`/supplier-documents/${id}/verify/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => res.data);
+  },
 
   //   {
   //     "status": "approved / rejected",
