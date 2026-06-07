@@ -9,7 +9,6 @@ export default function CertificationViewModal({
     certification,
     onApprove,
     onReject,
-    onDelete,
 }) {
     const [confirmConfig, setConfirmConfig] =
         useState(null);
@@ -88,7 +87,7 @@ export default function CertificationViewModal({
                         <div className="grid grid-cols-2 gap-6">
 
                             <InfoField
-                                label="Certificate ID"
+                                label="Mã chứng chỉ"
                                 value={
                                     certification.code
                                 }
@@ -96,7 +95,7 @@ export default function CertificationViewModal({
                             />
 
                             <InfoField
-                                label="Supplier"
+                                label="Nhà cung cấp"
                                 value={
                                     certification.supplier
                                 }
@@ -104,34 +103,7 @@ export default function CertificationViewModal({
                             />
                         </div>
 
-                        <InfoField
-                            label="Tên chứng chỉ"
-                            value={
-                                certification.name
-                            }
-                            serif
-                        />
-
                         <div className="grid grid-cols-2 gap-6">
-
-                            <InfoField
-                                label="Mã số chứng chỉ"
-                                value={
-                                    certification.code
-                                }
-                                mono
-                            />
-
-                            <InfoField
-                                label="Cơ quan cấp"
-                                value={
-                                    certification.issuedBy
-                                }
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-6">
-
                             <DateField
                                 label="Ngày cấp"
                                 value={
@@ -147,7 +119,23 @@ export default function CertificationViewModal({
                                 danger
                             />
                         </div>
+                         <div className="grid grid-cols-2 gap-6">
 
+                            <InfoField
+                                label="Cơ quan cấp"
+                                value={
+                                    certification.issuedBy
+                                }
+                                mono
+                            />
+
+                            <InfoField
+                                label="Ngày duyệt chứng chỉ"
+                                value={
+                                    certification.verifiedAt
+                                }
+                            />
+                        </div>
                         <TextAreaField
                             label="Mô tả chi tiết"
                             value={
@@ -175,7 +163,7 @@ export default function CertificationViewModal({
                                                     "danger",
                                                 action:
                                                     () =>
-                                                        onDelete(
+                                                        onReject(
                                                             certification
                                                         ),
                                             }

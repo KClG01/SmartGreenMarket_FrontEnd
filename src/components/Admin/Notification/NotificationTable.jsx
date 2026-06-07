@@ -3,47 +3,64 @@ import { tableStyles, paginationVi } from "../../common/tableStyles";
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-    active:  { label: "ĐÃ DUYỆT", bg: "bg-green-200",   text: "text-green-800"  },
-    rejected:  { label: "TỪ CHỐI",        bg: "bg-red-200",     text: "text-red-700"   },
-    pending: { label: "CHỜ DUYỆT",        bg: "bg-amber-200",  text: "text-amber-700" },
+    active:  { label: "ĐÃ ĐỌC", bg: "bg-green-200",   text: "text-green-800"  },
+    inactive: { label: "CHƯA ĐỌC",        bg: "bg-amber-200",  text: "text-amber-700" },
 };
-
+const TYPE = {
+    info: {label: "THÔNG BÁO"},
+    warning: {label: "CẢNH BÁO"},
+    success: {label: "THÀNH CÔNG"},
+    error: {label: "THẤT BẠI"},
+}
+const TYPE_REF = {
+    supplier_document: {label: "GIẤY TỜ"},
+    supplier: {label: "NHÀ CUNG CẤP"},
+    category: {label: "DANH MỤC"},
+    certification: {label: "CHỨNG CHỈ"},
+}
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView) => [
     {
-        name: "CODE",
-        selector: (row) => row.certificate_code,
+        name: "THÔNG BÁO",
+        selector: (row) => row.type,
         sortable: true,
         width: '100px',
-        cell: (row) => (
-            <span className="font-bold text-sm font-semibold font-['Geist',sans-serif]">
-                {row.certificate_code}
-            </span>
-        ),
+        cell: (row) => {
+            const st = TYPE[row.type];
+            return (
+                <span className={`px-2.5 py-1 rounded-full font-bold text-sm font-semibold font-['Geist',sans-serif] uppercase tracking-wide ${st.bg} ${st.text}`}>
+                    {st.label}
+                </span>
+            );
+        },
     },
     {
-        name: "Tên chứng chỉ",
-        selector: (row) => row.name,
+        name: "TIÊU ĐỀ",
+        selector: (row) => row.title,
         sortable: true,
         center:true,
         grow: 1,
         cell: (row) => (
             <span className="font-bold text-sm font-semibold font-['Geist',sans-serif]">
-                {row.name}
+                {row.title}
             </span>
         ),
     },
     {
-        name: "Nhà cung cấp",
-        selector: (row) => row.supplier,
+        name: "LOẠI",
+        selector: (row) => row.referenceType,
         sortable: true,
         center: true,
+        
         grow: 1,
-        cell: (row) => (
-            <span className="font-bold text-sm font-semibold font-['Geist',sans-serif]">
-                {row.supplier}
-            </span>
-        ),
+        cell: (row) => {
+            const st = TYPE_REF[row.referenceType];
+            return (
+                <span className={`px-2.5 py-1 rounded-full font-bold text-sm font-semibold font-['Geist',sans-serif] uppercase tracking-wide ${st.bg} ${st.text}`}>
+                    {st.label}
+                </span>
+            );
+        },
     },
     {
         name: "Trạng thái",
@@ -80,7 +97,7 @@ const buildColumns = (onView) => [
   },
 ];
 
-export default function CertificationTable({ data, search, statusFilter, onView }) {
+export default function NotificationTable({ data, search, statusFilter, onView }) {
     const filtered = data.filter((row) => {
         const matchName   = row.name.toLowerCase().includes(search.toLowerCase()) ||
                             row.supplier.toLowerCase().includes(search.toLowerCase()) ||
@@ -104,7 +121,7 @@ export default function CertificationTable({ data, search, statusFilter, onView 
                 customStyles={tableStyles}
                 noDataComponent={
                     <div className="py-16 text-sm text-neutral-400 font-['Geist',sans-serif]">
-                        Không tìm thấy chứng chỉ.
+                        Không tìm thấy thông báo.
                     </div>
                 }
                 defaultSortFieldId={1}

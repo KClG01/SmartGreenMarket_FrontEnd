@@ -117,22 +117,24 @@ export default function SupplierTable({ data, search, statusFilter, onView,}) {
     });
 
     return (
-        <DataTable
-            columns={buildColumns(onView)}
-            data={filtered}
-            pagination
-            paginationPerPage={6}
-            paginationRowsPerPageOptions={[6, 12, 20]}
-            paginationComponentOptions={paginationVi}
-            customStyles={tableStyles}
-            noDataComponent={
-                <div className="py-6 text-sm text-neutral-500">
-                    Không tìm thấy nhà cung cấp.
-                </div>
-            }
-            defaultSortFieldId={1}
-            highlightOnHover
-            responsive
-        />
+        <div className="w-full rounded-xl border border-neutral-200 overflow-hidden">
+            <DataTable
+                columns={buildColumns(onView)}
+                data={filtered}
+                pagination
+                paginationPerPage={6}
+                paginationRowsPerPageOptions={[6, 12, 20]}
+                paginationComponentOptions={paginationVi}
+                customStyles={tableStyles}
+                noDataComponent={
+                    <div className="py-6 text-sm text-neutral-500">
+                        Không tìm thấy nhà cung cấp.
+                    </div>
+                }
+                defaultSortFieldId={1}
+                highlightOnHover
+                responsive
+            />
+        </div>
     );
 }

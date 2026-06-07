@@ -1,93 +1,273 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
 import Toolbar from "../../components/Admin/UI/Toolbar";
-import Filter  from "../../components/Admin/Document/DocumentFilter";
+import Filter from "../../components/Admin/Document/DocumentFilter";
 import DocumentTable from "../../components/Admin/Document/DocumentTable";
 import DocumentViewModal from "../../components/Admin/Document/DocumentViewModal";
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
-const INITIAL_DATA = [
-  { id: 1, file_url: "../public/images/rau.jpg", document_type: "business_license",    supplier: "Nông trại Xanh", status: "pending",  image: "../public/images/rau.jpg" },
-  { id: 2, file_url: "../public/images/rau.jpg", document_type: "id_card",       supplier: "Nông trại Xanh",   status: "pending", image: "../public/images/rau.jpg" },
-  { id: 3, file_url: "../public/images/rau.jpg", document_type: "tax_certificate",       supplier: "Nông trại Xanh", status: "pending",  image: "../public/images/rau.jpg" },
-  { id: 4, file_url: "../public/images/rau.jpg", document_type: "business_license", supplier: "VietFarm",       status: "active",  image: "../public/images/rau.jpg" },
-  { id: 5, file_url: "../public/images/rau.jpg", document_type: "id_card",     supplier: "VietFarm",       status: "active",  image: "../public/images/rau.jpg" },
-  { id: 6, file_url: "../public/images/rau.jpg", document_type: "tax_certificate",    supplier: "VietFarm", status: "active",  image: "../public/images/rau.jpg" },
-];
+import {
+    supplierDocumentService,
+    handleApiError,
+} from "../../services/api/supplierDocumentService";
 
 export default function DocumentPage() {
-  const [data,         setData]         = useState(INITIAL_DATA);
-  const [search,       setSearch]       = useState("");
-  const [statusFilter, setStatusFilter] = useState("pending");
-    const [viewRow, setViewRow] = useState(null);
+    // ── STATES ─────────────────────────────────────────────
+    const [data, setData] = useState([]);
 
+    const [loading, setLoading] =
+        useState(false);
 
-  // ── CRUD ──────────────────────────────────────────────────────────────────
-  // ── APPROVE ───────────────────────────────────────────────────────────────
-   const handleApprove = (document) => {
-    setData((prev) =>
-        prev.map((item) =>
-            item.id === document.id
-                ? {
-                      ...item,
-                      status: "active",
-                  }
-                : item
-        )
+    const [actionLoading, setActionLoading] =
+        useState(false);
+
+    const [error, setError] =
+        useState("");
+
+    const [search, setSearch] =
+        useState("");
+
+    const [
+        statusFilter,
+        setStatusFilter,
+    ] = useState("pending");
+
+    const [viewRow, setViewRow] =
+        useState(null);
+
+    // ── FETCH ALL DOCUMENTS ─────────────────────────────
+    const fetchDocuments = useCallback(
+        async () => {
+            try {
+                setLoading(true);
+
+                const response =
+                    await supplierDocumentService.getAll();
+
+                // normalize data cho table
+                const formattedData =
+                    response.map(
+                        (document) => ({
+                            id: document.id,
+                            
+                            image:
+                                document.file_url,
+
+                            document_type:
+                                document.document_type,
+
+                            status:
+                                document.status,
+
+                            verified_at:
+                                document.verified_at,
+
+                            created_at:
+                                document.created_at,
+
+                            supplier:
+                                document.supplier,
+
+                            verified_by:
+                                document.verified_by,
+                        })
+                    );
+
+                setData(formattedData);
+            } catch (error) {
+                const message =
+                    handleApiError(
+                        error,
+                        "Không thể tải danh sách giấy tờ"
+                    );
+
+                setError(message);
+            } finally {
+                setLoading(false);
+            }
+        },
+        []
     );
 
-    setViewRow(null);
-};
+    // ── FETCH DETAIL DOCUMENT ──────────────────────────
+    const handleViewDocument =
+        useCallback(async (row) => {
+            try {
+                setLoading(true);
 
-    // ── REJECT ────────────────────────────────────────────────────────────────
-    const handleReject = (document) => {
-    setData((prev) =>
-        prev.map((item) =>
-            item.id === document.id
-                ? {
-                      ...item,
-                      status: "rejected",
-                  }
-                : item
-        )
-    );
+                const detail =
+                    await supplierDocumentService.getById(
+                        row.id
+                    );
 
-    setViewRow(null);
-};
+                // normalize data cho modal
+                const formattedDetail = {
+                    id: detail.id,
 
-  return (
-    <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
+                    file_url:
+                        detail.file_url,
 
-      {/* Toolbar: search + filter button + add CTA */}
-      <Toolbar
-        search={search}
-        onSearch={setSearch}
-        searchPlaceholder="Tìm kiếm giấy tờ..."
-      />
+                    image:
+                        detail.file_url,
 
-      {/* Status filter chips */}
-      <div className="flex items-center gap-3">
-        <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wide font-['Geist',sans-serif]">
-          Lọc:
-        </span>
-        <Filter value={statusFilter} onChange={setStatusFilter} />
-      </div>
+                    document_type:
+                        detail.document_type,
 
-      {/* Data table — pagination & sort built-in */}
-      <DocumentTable
-        data={data}
-        search={search}
-        statusFilter={statusFilter}
-        onView={(row) => setViewRow(row)}
-    />
+                    status:
+                        detail.status,
 
-      {/* ── Modals ──────────────────────────────────────────────────────── */}
-      <DocumentViewModal
-                isOpen={viewRow !== null}
-                onClose={() => setViewRow(null)}
-                document={viewRow}
-                onApprove={handleApprove}
-                onReject={handleReject}
+                    verified_at:
+                        detail.verified_at,
+
+                    created_at:
+                        detail.created_at,
+
+                    supplier:
+                        detail.supplier,
+
+                    verified_by:
+                        detail.verified_by,
+                };
+
+                setViewRow(
+                    formattedDetail
+                );
+            } catch (error) {
+                handleApiError(
+                    error,
+                    "Không thể tải chi tiết giấy tờ"
+                );
+            } finally {
+                setLoading(false);
+            }
+        }, []);
+
+    // ── INITIAL FETCH ──────────────────────────────────
+    useEffect(() => {
+        fetchDocuments();
+    }, [fetchDocuments]);
+
+    // ── APPROVE ────────────────────────────────────────
+    const handleApprove = async (
+        document
+    ) => {
+        try {
+            setActionLoading(true);
+
+            await supplierDocumentService.verify(
+                document.id,
+                {
+                    status: "approved",
+                }
+            );
+
+            setViewRow(null);
+
+            await fetchDocuments();
+        } catch (error) {
+            console.error(
+                handleApiError(
+                    error,
+                    "Không thể duyệt giấy tờ"
+                )
+            );
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    // ── REJECT ─────────────────────────────────────────
+    const handleReject = async (
+        document
+    ) => {
+        try {
+            setActionLoading(true);
+
+            await supplierDocumentService.verify(
+                document.id,
+                {
+                    status: "rejected",
+                }
+            );
+
+            setViewRow(null);
+
+            await fetchDocuments();
+        } catch (error) {
+            console.error(
+                handleApiError(
+                    error,
+                    "Không thể từ chối giấy tờ"
+                )
+            );
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    return (
+        <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
+
+            {/* TOOLBAR */}
+            <Toolbar
+                search={search}
+                onSearch={setSearch}
+                searchPlaceholder="Tìm kiếm giấy tờ..."
             />
-    </div>
-  );
+
+            {/* FILTER */}
+            <div className="flex items-center gap-3">
+
+                <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wide font-['Geist',sans-serif]">
+                    Lọc:
+                </span>
+
+                <Filter
+                    value={statusFilter}
+                    onChange={
+                        setStatusFilter
+                    }
+                />
+            </div>
+
+            {/* ERROR */}
+            {error && (
+                <div className="px-4 py-3 rounded-xl bg-red-100 text-red-700 text-sm">
+                    {error}
+                </div>
+            )}
+
+            {/* TABLE */}
+            <DocumentTable
+                data={data}
+                loading={loading}
+                search={search}
+                statusFilter={
+                    statusFilter
+                }
+                onView={
+                    handleViewDocument
+                }
+            />
+
+            {/* VIEW MODAL */}
+            <DocumentViewModal
+                isOpen={
+                    viewRow !== null
+                }
+                onClose={() =>
+                    setViewRow(null)
+                }
+                document={viewRow}
+                onApprove={
+                    handleApprove
+                }
+                onReject={
+                    handleReject
+                }
+                loading={
+                    actionLoading
+                }
+            />
+        </div>
+    );
 }

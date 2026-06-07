@@ -55,8 +55,7 @@ export default function DocumentViewModal({
                             <h2 className="text-lg font-bold text-neutral-900">
                                 {
                                     DOCUMENT_TYPE_LABELS[
-                                        document
-                                            .document_type
+                                        document.document_type
                                     ]
                                 }
                             </h2>
@@ -86,9 +85,7 @@ export default function DocumentViewModal({
                                 <InfoField
                                     label="Nhà cung cấp"
                                     value={
-                                        document
-                                            .supplier
-                                            ?.full_name
+                                        document.supplier
                                     }
                                 />
                             </div>
@@ -98,7 +95,7 @@ export default function DocumentViewModal({
 
                                 <img
                                     src={
-                                        document.file_url
+                                        document.image
                                     }
                                     alt=""
                                     className="w-full object-contain"
