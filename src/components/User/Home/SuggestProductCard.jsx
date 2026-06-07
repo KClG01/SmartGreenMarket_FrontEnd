@@ -4,9 +4,9 @@ export default function FavProductCard({ name = "Rau", price = "45.000đ", unit 
     return (
         <div className="w-64 shrink-0 bg-white rounded-2xl shadow-sm border border-stone-100 flex flex-col overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all duration-200 relative">
             {/* Badge */}
-            <span className="absolute top-3 left-3 z-10 px-2.5 py-0.5 bg-red-400 text-white text-[10px] font-bold uppercase tracking-wide rounded-full">
+            {/* <span className="absolute top-3 left-3 z-10 px-2.5 py-0.5 bg-red-400 text-white text-[10px] font-bold uppercase tracking-wide rounded-full">
                 Yêu thích
-            </span>
+            </span> */}
 
             <div className="overflow-hidden">
                 <img

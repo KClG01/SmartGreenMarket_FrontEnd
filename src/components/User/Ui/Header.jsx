@@ -1,4 +1,4 @@
-import { Search, ShoppingCart, User } from "lucide-react";
+import { Search, ShoppingCart, Newspaper, User } from "lucide-react";
 
 export default function Header() {
     return (
@@ -11,10 +11,10 @@ export default function Header() {
                         GreenMarket
                     </span>
                     <nav className="flex items-center gap-6">
-                        <a href="#" className="text-neutral-600 text-sm font-medium hover:text-emerald-700 transition-colors">
+                        <a href="#" className="text-neutral-600 text-sm font-medium hover:scale-105 hover:text-green-600 transition-colors">
                             Cửa hàng
                         </a>
-                        <a href="#" className="text-neutral-600 text-sm font-medium hover:text-emerald-700 transition-colors">
+                        <a href="#" className="text-neutral-600 text-sm font-medium hover:scale-105 hover:text-green-600 transition-colors">
                             Danh mục
                         </a>
                     </nav>
@@ -34,12 +34,14 @@ export default function Header() {
 
                 {/* Icons */}
                 <div className="flex items-center gap-2 shrink-0">
-                    <button className="p-2 rounded-full hover:bg-zinc-100 transition-colors text-zinc-700">
-                        <User className="w-5 h-5" />
+                    <button className="p-2 rounded-full hover:bg-zinc-100 hover:text-green-600 transition-colors text-zinc-700">
+                        <Newspaper className="w-5 h-5" />
                     </button>
-                    <button className="relative p-2 rounded-full hover:bg-zinc-100 transition-colors text-zinc-700">
+                    <button className="p-2 rounded-full hover:bg-zinc-100 hover:text-green-600 transition-colors text-zinc-700">
                         <ShoppingCart className="w-5 h-5" />
-                        <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
+                    </button>
+                    <button className="p-2 rounded-full hover:bg-zinc-100 hover:text-green-600 transition-colors text-zinc-700">
+                        <User className="w-5 h-5" />
                     </button>
                 </div>
 
