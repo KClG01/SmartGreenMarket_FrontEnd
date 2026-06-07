@@ -1,17 +1,19 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+// import { AuthProvider } from "./contexts/authProvider";
+// import AdminProtectedRoute from "./contexts/adminProtectedRoute";
 import UserLayout from "./layouts/UserLayout";
 import AdminLayout from "./layouts/AdminLayout";
-import { Home } from "./pages/User/Home";
-import AdminLoginPage from "./pages/Admin/AdminLogin";
-import { AuthProvider } from "./contexts/authProvider";
-import AdminProtectedRoute from "./contexts/adminProtectedRoute";
-import SettingPage from "./pages/Admin/Setting";
-import SupplierPage from "./pages/Admin/Suppiler";
-import CategoryPage from "./pages/Admin/Category";
-import ProductPage from "./pages/Admin/Product";
-import CertificationPage from "./pages/Admin/Certification";
-import DocumentPage from "./pages/Admin/Document";
-import NotificationPage from "./pages/Admin/Notification";
+import { HomePage } from "./pages/User/Home";
+import {
+  AdminLoginPage, 
+  SettingPage,
+  SupplierPage,
+  CategoryPage,
+  ProductPage,
+  CertificationPage,
+  DocumentPage,
+  NotificationPage,
+} from "./pages/Admin";
 
 export default function App() {
     return (
@@ -22,8 +24,8 @@ export default function App() {
 
                     {/* User */}
                     <Route path="/" element={<UserLayout />}>
-                        <Route index element={<Home />} />
-                        <Route path="trang-chu" element={<Home />} />
+                        <Route index element={<HomePage />} />
+                        <Route path="trang-chu" element={<HomePage />} />
                     </Route>
 
                     {/* Admin */}
