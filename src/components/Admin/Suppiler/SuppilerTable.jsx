@@ -1,79 +1,67 @@
 import DataTable from "react-data-table-component";
-import {
-    tableStyles,
-    paginationVi,
-} from "../../common/tableStyles";
+import { tableStyles, paginationVi } from "../../common/tableStyles";
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-    active: {
-        label: "ĐANG HOẠT ĐỘNG",
-        bg: "bg-green-200",
-        text: "text-green-800",
-    },
-
-    locked: {
-        label: "TẠM KHÓA",
-        bg: "bg-orange-200",
-        text: "text-orange-700",
-    },
-
-    banned: {
-        label: "VÔ HIỆU HÓA",
-        bg: "bg-red-200",
-        text: "text-red-700",
-    },
-
-    registered: {
-        label: "ĐĂNG KÝ",
-        bg: "bg-blue-200",
-        text: "text-blue-700",
-    },
+    active:  { label: "ĐANG HOẠT ĐỘNG", bg: "bg-green-200",   text: "text-green-800"  },
+    rejected:  { label: "TẠM NGƯNG",      bg: "bg-red-200",    text: "text-red-700"   },
+    pending: { label: "CHỜ DUYỆT",        bg: "bg-amber-200",  text: "text-amber-800" },
+    inactive: { label: "CHỜ DUYỆT",        bg: "bg-blue-200",  text: "text-blue-800" },
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView) => [
     {
-        name: "Mã nhà cung cấp",
-        selector: (row) => row.code,
-        sortable: true,
-        width: "200px",
-
-        cell: (row) => (
-            <span className="text-emerald-800 text-xs font-semibold font-mono">
-                {row.code}
-            </span>
-        ),
-    },
-
-    {
-        name: "Tên nhà cung cấp",
+        id: 1,
+        name: "NHÀ CUNG CẤP",
         selector: (row) => row.name,
         sortable: true,
         grow: 2,
 
         cell: (row) => (
-            <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
+            <span className="text-sm font-semibold font-['Geist',sans-serif]">
                 {row.name}
             </span>
         ),
     },
 
     {
+        name: "ĐỊA CHỈ",
+        selector: (row) => row.address,
+        sortable: true,
+        grow: 2,
+
+        cell: (row) => (
+            <span className="text-sm font-semibold font-['Geist',sans-serif]">
+                {row.address}
+            </span>
+        ),
+    },
+
+    {
+        name: "PHONE",
+        selector: (row) => row.phone,
+        sortable: true,
+        grow: 1,
+
+        cell: (row) => (
+            <span className="text-sm font-semibold font-['Geist',sans-serif]">
+                {row.phone}
+            </span>
+        ),
+    },
+
+    {
         name: "Trạng thái",
-        selector: (row) => row.status,
+        selector: (row) => row.verification_status,
         sortable: true,
         width: "200px",
 
         cell: (row) => {
             const st =
-                STATUS_CONFIG[row.status] ??
-                STATUS_CONFIG.registered;
-
+                STATUS_CONFIG[row.verification_status] ?? STATUS_CONFIG.pending;
             return (
-                <span
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${st.bg} ${st.text}`}
-                >
+                <span className={`px-2.5 py-1 rounded-full text-sm font-semibold font-['Geist',sans-serif] uppercase tracking-wide ${st.bg} ${st.text}`}>
                     {st.label}
                 </span>
             );
@@ -87,24 +75,13 @@ const buildColumns = (onView) => [
 
         cell: (row) => (
             <div className="flex items-center gap-2">
-
                 <button
                     onClick={() => onView(row)}
                     title="Xem chi tiết"
-                    className="px-3 py-1.5 rounded-lg font-bold bg-blue-200 text-blue-700 hover:bg-blue-300 transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg font-bold text-sm font-semibold font-['Geist',sans-serif] bg-blue-200 text-blue-700 hover:bg-blue-300 transition-colors cursor-pointer"
                 >
                     Xem chi tiết
                 </button>
-
-                {/* {row.status === "registered" && (
-                    <button
-                        onClick={() => onDelete(row)}
-                        title="Xóa"
-                        className="px-3 py-1.5 rounded-lg font-bold bg-red-200 text-red-700 hover:bg-red-300 transition-colors cursor-pointer"
-                    >
-                        Xóa
-                    </button>
-                )} */}
             </div>
         ),
 
@@ -112,20 +89,28 @@ const buildColumns = (onView) => [
     },
 ];
 
-export default function SupplierTable({
-    data,
-    search,
-    statusFilter,
-    onView,
-    onDelete,
-}) {
+export default function SupplierTable({ data, search, statusFilter, onView,}) {
     const filtered = data.filter((row) => {
-        const matchName = row.name
-            .toLowerCase()
-            .includes((search ?? "").toLowerCase());
+        const keyword = (search ?? "").toLowerCase();
 
+        const matchName =
+            (row.name ?? "")
+                .toLowerCase()
+                .includes(keyword) ||
+
+            (row.address ?? "")
+                .toLowerCase()
+                .includes(keyword) ||
+
+            (row.phone ?? "")
+                .toLowerCase()
+                .includes(keyword) ||
+
+            (row.verification_status ?? "")
+                .toLowerCase()
+                .includes(keyword);
         const matchStatus = statusFilter
-            ? row.status === statusFilter
+            ? row.verification_status === statusFilter
             : true;
 
         return matchName && matchStatus;
@@ -133,7 +118,7 @@ export default function SupplierTable({
 
     return (
         <DataTable
-            columns={buildColumns(onView, onDelete)}
+            columns={buildColumns(onView)}
             data={filtered}
             pagination
             paginationPerPage={6}

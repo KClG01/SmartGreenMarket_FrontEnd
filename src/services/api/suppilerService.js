@@ -1,10 +1,10 @@
 import axiosClient from "./axiosClient";
 
-export const userService = {
+export const supplierService = {
   // --- SUPPLIER
 
   create: (data) =>
-    axiosClient.post("/suppliers", data).then((res) => res.data.data),
+    axiosClient.post("/suppliers/", data).then((res) => res.data.data),
 
   // {
   //   "company_name": "Cong ty Nong San ABC",
@@ -15,7 +15,7 @@ export const userService = {
   // }
 
   update: (id, data) =>
-    axiosClient.put(`/suppliers${id}`, data).then((res) => res.data),
+    axiosClient.put(`/suppliers/${id}/`, data).then((res) => res.data),
 
   // {
   //   "company_name": "string",
@@ -26,7 +26,7 @@ export const userService = {
   // }
 
   // --- ADMIN
-  getAll: () => axiosClient.get("/suppliers").then((res) => res.data),
+  getAll: () => axiosClient.get("/suppliers/").then((res) => res.data),
 
   //[
   //   {
@@ -43,7 +43,7 @@ export const userService = {
   //   }
   // ]
 
-  getById: (id) => axiosClient.get(`/suppliers/${id}`).then((res) => res.data),
+  getById: (id) => axiosClient.get(`/suppliers/${id}/`).then((res) => res.data),
 
   // {
   //   "id": 0,
@@ -133,8 +133,18 @@ export const userService = {
   //   ]
   // }
 
+  status: (id, data) =>
+    axiosClient
+      .post(`/suppliers/${id}/account-status/`, data)
+      .then((res) => res.data),
+
+  // {
+  //   "status": "active / inactive / banned",
+  //   "reason": "string"
+  // }
+
   verify: (id, data) =>
-    axiosClient.put(`/suppliers/${id}`, data).then((res) => res.data),
+    axiosClient.post(`/suppliers/${id}/verify/`, data).then((res) => res.data),
 
   // id
 };

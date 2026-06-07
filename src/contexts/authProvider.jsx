@@ -1,123 +1,212 @@
-import { createContext, useState, useContext, useEffect, useCallback } from "react";
-import axiosClient from "../services/api/axiosClient";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 
-const AuthContext = createContext();
+import { useNavigate } from "react-router-dom";
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+import { authService } from "../services/api/authAdminService";
 
-  const login = async (username, password) => {
-    try {
-      const response = await axiosClient.post("/login", {
+const AuthContext =
+    createContext();
+
+export function AuthProvider({
+    children,
+}) {
+    const navigate =
+        useNavigate();
+
+    const [user, setUser] =
+        useState(() => {
+            const saved =
+                localStorage.getItem(
+                    "user"
+                );
+
+            return saved
+                ? JSON.parse(saved)
+                : null;
+        });
+
+    const [loading, setLoading] =
+        useState(true);
+
+    // LOGIN
+    const login = async (
         username,
         password
-      });
+    ) => {
+        try {
+            // STEP 1 LOGIN
+            const response =
+                await authService.login(
+                    {
+                        username,
+                        password,
+                    }
+                );
 
-      const data = response.data;
+            console.log(
+                "LOGIN RESPONSE:",
+                response
+            );
 
-      const userData = {
-        id: data.id,
-        username: data.username,
-        email: data.email,
-        role: data.role,
-      };
+            const accessToken =
+                response.access;
 
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
-      if (data.vaiTro === "admin") {
-        window.location.href = "/quan-tri/";
-      }
-      if (data.vaiTro === "supplier") {
-        window.location.href = "/nha-cung-cap/";
-      }
-      if (data.vaiTro === "dealer") {
-        window.location.href = "/dai-ly/";
-      }
-      return { success: true };
-    } catch (error) {
-      const message = error.response?.data?.message || "Đăng nhập thất bại. Vui lòng thử lại.";
-      return { success: false, message: message };
-    }
-  };
+            if (!accessToken) {
+                return {
+                    success: false,
+                    message:
+                        "API không trả về access token",
+                };
+            }
 
-  const register = async (data) => {
-    try {
-      await axiosClient.post("/register", data);
+            localStorage.setItem(
+                "access_token",
+                accessToken
+            );
 
-      const loginResult = await login(data.email, data.matKhau);
+            // STEP 2 GET ME
+            const me =
+                await authService.me();
 
-      if (loginResult.success) {
-        return { success: true };
-      } else {
-        return { success: false, message: "Đăng ký thành công nhưng tự động đăng nhập thất bại." };
-      }
+            console.log(
+                "ME RESPONSE:",
+                me
+            );
 
-    } catch (error) {
-      const errorData = error.response?.data;
+            // CHECK ROLE
+            if (
+                me.role !== "admin"
+            ) {
+                localStorage.removeItem(
+                    "access_token"
+                );
 
-      if (errorData?.errors) {
-        const firstErrorKey = Object.keys(errorData.errors)[0];
-        const firstErrorMessage = errorData.errors[firstErrorKey][0];
-        return { success: false, message: firstErrorMessage };
-      }
+                return {
+                    success: false,
+                    message:
+                        "Bạn không có quyền truy cập Admin",
+                };
+            }
 
-      return { success: false, message: errorData?.message || "Đăng ký thất bại" };
-    }
-  };
+            setUser(me);
 
-  const logout = useCallback(async () => {
-    try {
-      await axiosClient.post("/logout");
-    } catch (error) {
-      console.error("Lỗi khi gọi API logout:", error);
-    } finally {
-      localStorage.removeItem("user");
-      setUser(null);
-      window.location.href = "/";
-    }
-  }, []);
+            localStorage.setItem(
+                "user",
+                JSON.stringify(me)
+            );
 
-  // Trong AuthProvider
-  const [isCheckingSession, setIsCheckingSession] = useState(!!user); // true nếu có user
+            navigate("/quan-tri");
 
-  useEffect(() => {
-    if (!user) {
-      setIsCheckingSession(false);
-      return;
-    }
+            return {
+                success: true,
+            };
+        } catch (error) {
+            console.error(error);
 
-    const checkSession = async () => {
-      try {
-        await axiosClient.post("/refresh");
-      } catch (err) {
-        // Không redirect ở đây, để interceptor lo
-        await logout();
-      } finally {
-        setIsCheckingSession(false);
-      }
+            return {
+                success: false,
+                message:
+                    error.response?.data
+                        ?.detail ||
+                    error.response?.data
+                        ?.message ||
+                    "Đăng nhập thất bại",
+            };
+        }
     };
 
-    checkSession();
+    // LOGOUT
+    const logout =
+        useCallback(async () => {
+            try {
+                await authService.logout();
+            } catch (error) {
+                console.error(error);
+            } finally {
+                localStorage.removeItem(
+                    "access_token"
+                );
 
-    const interval = setInterval(() => {
-      axiosClient.post("/refresh").catch(() => logout());
-    }, 50 * 60 * 1000);
+                localStorage.removeItem(
+                    "user"
+                );
 
-    return () => clearInterval(interval);
-  }, [user, logout]);
+                setUser(null);
 
-  // // Trong render
-  // if (isCheckingSession) {
-  //   return <SessionLoading />;
-  // }
-  return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+                navigate(
+                    "/admin/login"
+                );
+            }
+        }, [navigate]);
+
+    // INIT SESSION
+    useEffect(() => {
+        const initAuth =
+            async () => {
+                try {
+                    const token =
+                        localStorage.getItem(
+                            "access_token"
+                        );
+
+                    if (!token) {
+                        setLoading(
+                            false
+                        );
+
+                        return;
+                    }
+
+                    const me =
+                        await authService.me();
+
+                    setUser(me);
+
+                    localStorage.setItem(
+                        "user",
+                        JSON.stringify(
+                            me
+                        )
+                    );
+                } catch (error) {
+                    logout();
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+        initAuth();
+    }, [logout]);
+
+    return (
+        <AuthContext.Provider
+            value={{
+                user,
+                login,
+                logout,
+                loading,
+            }}
+        >
+            {children}
+        </AuthContext.Provider>
+    );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+    const context =
+        useContext(AuthContext);
+
+    if (!context) {
+        throw new Error(
+            "useAuth phải dùng trong AuthProvider"
+        );
+    }
+
+    return context;
+};

@@ -2,7 +2,7 @@ import axiosClient from "./axiosClient";
 
 export const categoryService = {
   // USER
-  getAll: () => axiosClient.get("/categories").then((res) => res.data),
+  getAll: () => axiosClient.get("/categories/").then((res) => res.data),
 
   // [
   //   {
@@ -16,7 +16,8 @@ export const categoryService = {
   //   }
   // ]
 
-  getById: (id) => axiosClient.get(`/categories/${id}`).then((res) => res.data),
+  getById: (id) =>
+    axiosClient.get(`/categories/${id}/`).then((res) => res.data),
 
   // {
   //   "id": 0,
@@ -29,7 +30,7 @@ export const categoryService = {
   // }
   // ADMIN
   create: (data) =>
-    axiosClient.post("/categories", data).then((res) => res.data.data),
+    axiosClient.post("/categories/", data).then((res) => res.data.data),
 
   // {
   //   "name": "string",
@@ -39,7 +40,7 @@ export const categoryService = {
   // }
 
   update: (id, data) =>
-    axiosClient.put(`/categories/${id}`, data).then((res) => res.data),
+    axiosClient.put(`/categories/${id}/`, data).then((res) => res.data),
 
   // {
   //   "name": "string",
@@ -49,7 +50,34 @@ export const categoryService = {
   // }
 
   delete: (id) =>
-    axiosClient.delete(`/categories/${id}`).then((res) => res.data),
+    axiosClient.delete(`/categories/${id}/`).then((res) => res.data),
+
+  lock: (id) =>
+    axiosClient.post(`/categories/${id}/lock/`).then((res) => res.data),
+
+  // {
+  //   "name": "string",
+  //   "description": "string",
+  //   "sort_order": 2147483647
+  // }
+
+  unlock: (id) =>
+    axiosClient.post(`/categories/${id}/unlock/`).then((res) => res.data),
+
+  // {
+  //   "name": "string",
+  //   "description": "string",
+  //   "sort_order": 2147483647
+  // }
+
+  verify: (id, data) =>
+    axiosClient.post(`/categories/${id}/verify/`, data).then((res) => res.data),
+
+  // id
+  // {
+  //   "status": "active / rejected",
+  //   "rejection_reason": "string"
+  // }
 };
 
 // Xử lý bug

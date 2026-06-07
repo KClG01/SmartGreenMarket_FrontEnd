@@ -1,40 +1,62 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "https://localhost:7012/api",
+  baseURL: "https://smart-green-market-api.onrender.com/api",
   headers: {
     "Content-Type": "application/json",
   },
   withCredentials: true,
 });
 
+// REQUEST
+axiosClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("access_token");
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
+// RESPONSE
 axiosClient.interceptors.response.use(
   (response) => response,
 
-  (error) => {
-    const { response, config } = error;
+  async (error) => {
+    const originalRequest = error.config;
 
-    if (response?.status === 403 || response?.status === 401) {
-      // Thêm 401 nếu cần
-      const noRedirectUrls = [
-        "/",
-        "/login",
-        "/register",
-        "/refresh",
-        "/change-password",
-      ];
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
-      const isNoRedirect = noRedirectUrls.some(
-        (url) =>
-          config.url.includes(url) || config.url === url || config.url === "", // trường hợp url rỗng
-      );
+      try {
+        const response = await axios.post(
+          "https://smart-green-market-api.onrender.com/api/refresh/",
+          {},
+          {
+            withCredentials: true,
+          },
+        );
 
-      if (!isNoRedirect) {
-        console.warn("Phiên hết hạn → đăng xuất và redirect về trang login");
+        const newAccessToken = response.data.access;
+
+        localStorage.setItem("access_token", newAccessToken);
+
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+        return axiosClient(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem("access_token");
+
         localStorage.removeItem("user");
-        window.location.href = "/login";
+
+        window.location.href = "/admin/login";
+
+        return Promise.reject(refreshError);
       }
-      // Không reject tiếp ở đây nếu là refresh-token → để catch block xử lý
     }
 
     return Promise.reject(error);

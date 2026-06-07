@@ -5,8 +5,7 @@ import { tableStyles, paginationVi } from "../../common/tableStyles";
 const STATUS_CONFIG = {
     active:  { label: "ĐANG HOẠT ĐỘNG", bg: "bg-green-200",   text: "text-green-800"  },
     paused:  { label: "TẠM NGƯNG",      bg: "bg-red-200",    text: "text-red-700"   },
-    pending: { label: "ĐĂNG KÝ",        bg: "bg-orange-200",  text: "text-orange-500" },
-    registered: { label: "ĐĂNG KÝ",      bg: "bg-blue-200",   text: "text-blue-700"  },
+    pending: { label: "CHỜ DUYỆT",        bg: "bg-amber-200",  text: "text-amber-700" },
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
@@ -83,11 +82,11 @@ const buildColumns = (onView, onDelete) => [
         >
           Xem chi tiết
         </button>
-        {row.status === "registered" && (
+        {row.status === "pending" && (
           <button
             onClick={() => onView(row)}
             title="Duyệt"
-            className="p-1.5 rounded-lg font-bold bg-orange-200 text-orange-700 hover:text-orange-700 hover:bg-orange-300 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg font-bold bg-amber-200 text-amber-700 hover:text-amber-700 hover:bg-amber-300 transition-colors cursor-pointer"
           >
             Duyệt
           </button>
