@@ -1,6 +1,6 @@
-import DataTable from "react-data-table-component";
 import { Eye, Trash2 } from "lucide-react";
 import { tableStyles, paginationVi } from "../../common/tableStyles";
+import DataTable from "react-data-table-component";
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {

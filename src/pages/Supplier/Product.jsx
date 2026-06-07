@@ -1,6 +1,6 @@
 import { useState } from "react";
-import Toolbar from "../../components/Admin/UI/Toolbar";
-import Filter  from "../../components/Admin/UI/Filter";
+// import Toolbar from "../../components/Supplier/UI/Toolbar";
+// import Filter  from "../../components/Supplier/UI/Filter";
 import ProductTable from "../../components/Supplier/Product/ProductTable";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 import CreateProductModal from "../../components/Supplier/Product/CreateProductModal";
