@@ -17,9 +17,9 @@ export default function CertificationViewModal({
     if (!isOpen || !certification)
         return null;
 
-    const isRegistered =
+    const isPending =
         certification.status ===
-        "registered";
+        "pending";
 
     const isActive =
         certification.status ===
@@ -159,8 +159,8 @@ export default function CertificationViewModal({
                     {/* Footer */}
                     <div className="px-8 py-6 border-t border-neutral-200 flex justify-end gap-4 shrink-0 bg-white">
 
-                        {/* REGISTERED */}
-                        {isRegistered && (
+                        {/* PENDING */}
+                        {isPending && (
                             <>
                                 <button
                                     onClick={() =>

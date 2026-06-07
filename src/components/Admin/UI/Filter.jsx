@@ -8,7 +8,7 @@ const OPTIONS = [
     { label: "TẤT CẢ",         value: "" },
     { label: "ĐANG HOẠT ĐỘNG", value: "active" },
     { label: "TẠM NGƯNG",      value: "paused" },
-    { label: "ĐĂNG KÝ",        value: "registered" },
+    { label: "ĐĂNG KÝ",        value: "pending" },
 ];
 
 export default function Filter({ value, onChange }) {

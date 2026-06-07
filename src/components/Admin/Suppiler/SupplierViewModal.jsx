@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-
 import ConfirmModal from "../../common/ConfirmModal";
 
 export default function SupplierViewModal({
@@ -12,15 +11,19 @@ export default function SupplierViewModal({
     onLock,
     onUnlock,
     onBan,
+    loading,
 }) {
     const [confirmConfig, setConfirmConfig] = useState(null);
 
     if (!isOpen || !supplier) return null;
 
-    const isRegistered = supplier.status === "registered";
-    const isActive = supplier.status === "active";
-    const isLocked = supplier.status === "locked";
-    const isBanned = supplier.status === "banned";
+    const isPending = supplier.verification_status === "pending";
+
+    const isActive = supplier.verification_status === "active";
+
+    const isInactive = supplier.verification_status === "inactive";
+
+    const isBanned = supplier.verification_status === "banned";
 
     const openConfirm = ({
         title,
@@ -44,182 +47,295 @@ export default function SupplierViewModal({
         }
 
         setConfirmConfig(null);
+
         onClose();
     };
 
     return (
         <>
-            {/* Overlay */}
+            {/* OVERLAY */}
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
 
-                {/* Modal */}
-                <div className="w-full max-w-[512px] bg-stone-50 rounded-xl shadow-2xl border border-neutral-200 overflow-hidden">
+                {/* MODAL */}
+                <div className="w-full max-w-[760px] max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-neutral-200 flex flex-col overflow-hidden">
 
-                    {/* Header */}
-                    <div className="px-6 py-4 bg-stone-100 border-b border-neutral-200 flex items-center justify-between">
-
-                        <h2 className="text-xl font-semibold text-emerald-950">
-                            Thông tin nhà cung cấp
-                        </h2>
+                    {/* HEADER */}
+                    <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-end shrink-0">
 
                         <button
+                            disabled={loading}
                             onClick={onClose}
-                            className="p-2 rounded-full hover:bg-neutral-200 transition-colors cursor-pointer"
-                        >
-                            <X className="w-5 h-5 text-neutral-700" />
+                            className="p-2 rounded-full hover:bg-neutral-100 transition-colors">
+                            <X className="w-5 h-5" />
                         </button>
                     </div>
 
-                    {/* Body */}
-                    <div className="p-6 flex flex-col gap-4">
+                    {/* BODY */}
+                    <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-300 scrollbar-track-transparent">
 
-                        <InfoField
-                            label="Tên nhà cung cấp"
-                            value={supplier.name}
-                        />
+                        <div className="p-6 flex flex-col gap-6">
 
-                        <InfoField
-                            label="Địa chỉ"
-                            value={supplier.address}
-                        />
+                            {/* AVATAR */}
+                            <div className="flex flex-col items-center justify-center">
 
-                        <InfoField
-                            label="Số điện thoại"
-                            value={supplier.phone}
-                        />
+                                <img
+                                    src={
+                                        supplier.avatar
+                                    }
+                                    alt=""
+                                    className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md"
+                                />
+                            </div>
 
-                        <InfoField
-                            label="Mã số thuế hoặc CCCD"
-                            value={supplier.taxCode}
-                        />
+                            {/* HỌ + TÊN */}
+                            <div className="grid grid-cols-2 gap-4">
 
-                        <InfoField
-                            label="Trạng thái"
-                            value={supplier.status}
-                        />
+                                <InfoField
+                                    label="Họ"
+                                    value={
+                                        supplier.first_name
+                                    }
+                                />
+
+                                <InfoField
+                                    label="Tên"
+                                    value={
+                                        supplier.last_name
+                                    }
+                                />
+                            </div>
+
+                            {/* FULL NAME */}
+                            <InfoField
+                                label="Họ và tên"
+                                value={
+                                    supplier.full_name
+                                }
+                            />
+
+                            {/* EMAIL + PHONE */}
+                            <div className="grid grid-cols-2 gap-4">
+
+                                <InfoField
+                                    label="Email"
+                                    value={
+                                        supplier.email
+                                    }
+                                />
+
+                                <InfoField
+                                    label="Số điện thoại"
+                                    value={
+                                        supplier.phone
+                                    }
+                                />
+                            </div>
+
+                            {/* COMPANY */}
+                            <InfoField
+                                label="Tên công ty"
+                                value={
+                                    supplier.company_name
+                                }
+                            />
+
+                            {/* ADDRESS */}
+                            <InfoField
+                                label="Địa chỉ"
+                                value={
+                                    supplier.address
+                                }
+                            />
+
+                            {/* TAX */}
+                            <InfoField
+                                label="Mã số thuế / CCCD"
+                                value={
+                                    supplier.tax_code
+                                }
+                            />
+
+                            {/* EMAIL + PHONE */}
+                            <div className="grid grid-cols-2 gap-4">
+
+                                <InfoField
+                                    label="Ngày đăng ký"
+                                    value={
+                                        supplier.created_at
+                                    }
+                                />
+
+                                <InfoField
+                                    label="Được duyệt"
+                                    value={
+                                        supplier.updated_at
+                                    }
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Footer */}
-                    <div className="px-6 py-4 bg-stone-100 border-t border-neutral-200 flex justify-center gap-3 flex-wrap">
+                    {/* FOOTER */}
+                    <div className="px-6 py-4 border-t border-neutral-200 flex justify-center gap-3 shrink-0 flex-wrap bg-white">
 
-                        {/* REGISTERED */}
-                        {isRegistered && (
+                        {isPending && (
                             <>
                                 <button
+                                    disabled={loading}
                                     onClick={() =>
                                         openConfirm({
-                                            title: "Duyệt nhà cung cấp",
-                                            message: `Bạn có chắc chắn muốn duyệt nhà cung cấp "${supplier.name}" không?`,
-                                            confirmText: "Duyệt",
-                                            variant: "warning",
-                                            action: () => onApprove(supplier),
+                                            title:
+                                                "Duyệt nhà cung cấp",
+                                            message: `Bạn có chắc chắn muốn duyệt "${supplier.full_name}" không?`,
+                                            confirmText:
+                                                "Duyệt",
+                                            variant:
+                                                "warning",
+                                            action: () =>
+                                                onApprove(
+                                                    supplier
+                                                ),
                                         })
                                     }
-                                    className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-yellow-900 text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+                                    className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 rounded-lg text-sm font-semibold"
                                 >
                                     Duyệt
                                 </button>
 
                                 <button
+                                    disabled={loading}
                                     onClick={() =>
                                         openConfirm({
-                                            title: "Từ chối nhà cung cấp",
-                                            message: `Bạn có chắc chắn muốn từ chối nhà cung cấp "${supplier.name}" không?`,
-                                            confirmText: "Từ chối",
-                                            variant: "danger",
-                                            action: () => onReject(supplier),
+                                            title:
+                                                "Từ chối nhà cung cấp",
+                                            message: `Bạn có chắc chắn muốn từ chối "${supplier.full_name}" không?`,
+                                            confirmText:
+                                                "Từ chối",
+                                            variant:
+                                                "danger",
+                                            action: () =>
+                                                onReject(
+                                                    supplier
+                                                ),
                                         })
                                     }
-                                    className="px-6 py-2.5 bg-red-500 hover:bg-red-400 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+                                    className="px-6 py-2.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-sm font-semibold"
                                 >
                                     Từ chối
                                 </button>
                             </>
                         )}
 
-                        {/* ACTIVE */}
                         {isActive && (
                             <button
+                                disabled={loading}
                                 onClick={() =>
                                     openConfirm({
-                                        title: "Tạm khóa nhà cung cấp",
-                                        message: `Bạn có chắc chắn muốn tạm khóa nhà cung cấp "${supplier.name}" không?`,
-                                        confirmText: "Tạm khóa",
-                                        variant: "warning",
-                                        action: () => onLock(supplier),
+                                        title:
+                                            "Tạm khóa",
+                                        message: `Tạm khóa "${supplier.full_name}" ?`,
+                                        confirmText:
+                                            "Tạm khóa",
+                                        variant:
+                                            "warning",
+                                        action: () =>
+                                            onLock(
+                                                supplier
+                                            ),
                                     })
                                 }
-                                className="px-6 py-2.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+                                className="px-6 py-2.5 bg-orange-500 text-white rounded-lg"
                             >
                                 Tạm khóa
                             </button>
                         )}
 
-                        {/* LOCKED */}
-                        {isLocked && (
+                        {isInactive && (
                             <>
                                 <button
+                                    disabled={loading}
                                     onClick={() =>
                                         openConfirm({
-                                            title: "Mở khóa nhà cung cấp",
-                                            message: `Bạn có chắc chắn muốn mở khóa nhà cung cấp "${supplier.name}" không?`,
-                                            confirmText: "Mở khóa",
-                                            variant: "success",
-                                            action: () => onUnlock(supplier),
+                                            title:
+                                                "Mở khóa",
+                                            message: `Mở khóa "${supplier.full_name}" ?`,
+                                            confirmText:
+                                                "Mở khóa",
+                                            variant:
+                                                "success",
+                                            action: () =>
+                                                onUnlock(
+                                                    supplier
+                                                ),
                                         })
                                     }
-                                    className="px-6 py-2.5 bg-green-500 hover:bg-green-400 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+                                    className="px-6 py-2.5 bg-green-500 text-white rounded-lg"
                                 >
                                     Mở khóa
                                 </button>
 
                                 <button
+                                    disabled={loading}
                                     onClick={() =>
                                         openConfirm({
-                                            title: "Vô hiệu hóa nhà cung cấp",
-                                            message: `Bạn có chắc chắn muốn vô hiệu hóa nhà cung cấp "${supplier.name}" không?`,
-                                            confirmText: "Vô hiệu hóa",
-                                            variant: "danger",
-                                            action: () => onBan(supplier),
+                                            title:
+                                                "Vô hiệu hóa",
+                                            message: `Vô hiệu hóa "${supplier.full_name}" ?`,
+                                            confirmText:
+                                                "Vô hiệu hóa",
+                                            variant:
+                                                "danger",
+                                            action: () =>
+                                                onBan(
+                                                    supplier
+                                                ),
                                         })
                                     }
-                                    className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+                                    className="px-6 py-2.5 bg-red-600 text-white rounded-lg"
                                 >
                                     Vô hiệu hóa
                                 </button>
                             </>
                         )}
-                        {/* BANNED */}
+
                         {isBanned && (
-                            <>
-                                <button
-                                    onClick={() =>
-                                        openConfirm({
-                                            title: "Mở khóa nhà cung cấp",
-                                            message: `Bạn có chắc chắn muốn mở khóa nhà cung cấp "${supplier.name}" không?`,
-                                            confirmText: "Mở khóa",
-                                            variant: "success",
-                                            action: () => onUnlock(supplier),
-                                        })
-                                    }
-                                    className="px-6 py-2.5 bg-green-500 hover:bg-green-400 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
-                                >
-                                    Mở khóa
-                                </button>
-                            </>
+                            <button
+                                disabled={loading}
+                                onClick={() =>
+                                    openConfirm({
+                                        title:
+                                            "Mở khóa",
+                                        message: `Mở khóa "${supplier.full_name}" ?`,
+                                        confirmText:
+                                            "Mở khóa",
+                                        variant:
+                                            "success",
+                                        action: () =>
+                                            onUnlock(
+                                                supplier
+                                            ),
+                                    })
+                                }
+                                className="px-6 py-2.5 bg-green-500 text-white rounded-lg"
+                            >
+                                Mở khóa
+                            </button>
                         )}
                     </div>
                 </div>
             </div>
-
-            {/* Confirm Modal */}
+            {/* CONFIRM */}
             <ConfirmModal
                 isOpen={confirmConfig !== null}
-                onClose={() => setConfirmConfig(null)}
+                onClose={() =>
+                    setConfirmConfig(null)
+                }
                 onConfirm={handleConfirm}
                 title={confirmConfig?.title}
                 message={confirmConfig?.message}
-                confirmText={confirmConfig?.confirmText}
+                confirmText={
+                    confirmConfig?.confirmText
+                }
                 cancelText="Hủy"
                 variant={confirmConfig?.variant}
             />
@@ -230,11 +346,12 @@ export default function SupplierViewModal({
 function InfoField({ label, value }) {
     return (
         <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
-                {label}
-            </span>
 
-            <div className="px-4 py-3 bg-stone-100 rounded-lg border border-stone-300 text-sm text-gray-600">
+            <label className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                {label}
+            </label>
+
+            <div className="px-4 py-3 rounded-xl border border-neutral-200 bg-stone-100 text-sm">
                 {value || "-"}
             </div>
         </div>

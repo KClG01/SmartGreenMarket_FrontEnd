@@ -10,18 +10,18 @@ import CertificationViewModal from "../../components/Admin/Certification/Certifi
 // ── Mock data ─────────────────────────────────────────────────────────────────
 const INITIAL_DATA = [
   { id: 1, code: "CER-01", name: "VietGAP",issuedBy: "Trung tâm Chứng nhận Hữu cơ", issueDate: "2026-06-06", expiryDate: "2027-06-06",   supplier: "Nhà cung cấp A", status: "active",},
-  { id: 2, code: "CER-02", name: "Hữu Cơ",issuedBy: "Trung tâm Chứng nhận Hữu cơ",  issueDate: "2026-06-06", expiryDate: "2027-06-06",     supplier: "Nhà cung cấp A",   status: "registered"},
+  { id: 2, code: "CER-02", name: "Hữu Cơ",issuedBy: "Trung tâm Chứng nhận Hữu cơ",  issueDate: "2026-06-06", expiryDate: "2027-06-06",     supplier: "Nhà cung cấp A",   status: "pending"},
   { id: 3, code: "CER-03", name: "VietGAP",issuedBy: "Trung tâm Chứng nhận Hữu cơ", issueDate: "2026-06-06", expiryDate: "2027-06-06",   supplier: "Nhà cung cấp B", status: "rejected"},
   { id: 4, code: "CER-04", name: "VietGAP",issuedBy: "Trung tâm Chứng nhận Hữu cơ", issueDate: "2026-06-06", expiryDate: "2027-06-06",   supplier: "Nhà cung cấp C",       status: "active" },
   { id: 5, code: "CER-05", name: "VietGAP",issuedBy: "Trung tâm Chứng nhận Hữu cơ", issueDate: "2026-06-06", expiryDate: "2027-06-06",   supplier: "Nhà cung cấp D",       status: "active"},
   { id: 6, code: "CER-06", name: "VietGAP",issuedBy: "Trung tâm Chứng nhận Hữu cơ", issueDate: "2026-06-06", expiryDate: "2027-06-06",   supplier: "Nhà cung cấp E", status: "active" },
-  { id: 7, code: "CER-07", name: "Hữu Cơ",issuedBy: "Trung tâm Chứng nhận Hữu cơ", issueDate: "2026-06-06", expiryDate: "2027-06-06",   supplier: "Nhà cung cấp C",   status: "registered"},
+  { id: 7, code: "CER-07", name: "Hữu Cơ",issuedBy: "Trung tâm Chứng nhận Hữu cơ", issueDate: "2026-06-06", expiryDate: "2027-06-06",   supplier: "Nhà cung cấp C",   status: "pending"},
 ];
 
 export default function CertificationPage() {
   const [data,         setData]         = useState(INITIAL_DATA);
   const [search,       setSearch]       = useState("");
-  const [statusFilter, setStatusFilter] = useState("registered");
+  const [statusFilter, setStatusFilter] = useState("pending");
   const [viewRow, setViewRow] = useState(null);
   
   // setData(response.data);
@@ -70,7 +70,7 @@ export default function CertificationPage() {
                   ? {
                         ...item,
                         status:
-                            "rejected",
+                            "pending",
                     }
                   : item
           )
@@ -79,7 +79,7 @@ export default function CertificationPage() {
       setViewRow(null);
   };
 
-  // ── REMOVE REGISTERED CERTIFICATION ───────────────────────────
+  // ── REMOVE PENDING CERTIFICATION ───────────────────────────
   const handleDeleteCertification = (
       certification
   ) => {
