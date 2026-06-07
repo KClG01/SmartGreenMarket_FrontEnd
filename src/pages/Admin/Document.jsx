@@ -64,8 +64,17 @@ export default function DocumentPage() {
                             created_at:
                                 document.created_at,
 
-                            supplier:
-                                document.supplier,
+                            supplier: {
+                                id: document.supplier?.id,
+                                company_name:
+                                    document.supplier?.company_name,
+                                tax_code:
+                                    document.supplier?.tax_code,
+                                phone:
+                                    document.supplier?.phone,
+                                address:
+                                    document.supplier?.address,
+                            },
 
                             verified_by:
                                 document.verified_by,
@@ -155,9 +164,7 @@ export default function DocumentPage() {
 
             await supplierDocumentService.verify(
                 document.id,
-                {
-                    status: "approved",
-                }
+                "approved"
             );
 
             setViewRow(null);
@@ -184,9 +191,7 @@ export default function DocumentPage() {
 
             await supplierDocumentService.verify(
                 document.id,
-                {
-                    status: "rejected",
-                }
+                "rejected"
             );
 
             setViewRow(null);

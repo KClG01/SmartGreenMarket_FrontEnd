@@ -8,334 +8,165 @@ export default function SupplierViewModal({
     supplier,
     onApprove,
     onReject,
-    onLock,
-    onUnlock,
-    onBan,
     loading,
 }) {
     const [confirmConfig, setConfirmConfig] = useState(null);
 
-    if (!isOpen || !supplier) return null;
+    if (!isOpen || !supplier) {
+        return null;
+    }
 
+    // ─────────────────────────────────────────
+    // LOGIC TRẠNG THÁI DUYỆT
+    // ─────────────────────────────────────────
     const isPending = supplier.verification_status === "pending";
-
-    const isActive = supplier.verification_status === "active";
-
-    const isInactive = supplier.verification_status === "inactive";
-
-    const isBanned = supplier.verification_status === "banned";
-
-    const openConfirm = ({
-        title,
-        message,
-        confirmText,
-        variant,
-        action,
-    }) => {
-        setConfirmConfig({
-            title,
-            message,
-            confirmText,
-            variant,
-            action,
-        });
+    const isApproved = supplier.verification_status === "approved";
+    const isRejected = supplier.verification_status === "rejected";
+    // ─────────────────────────────────────────
+    // XỬ LÝ CONFIRM MODAL
+    // ─────────────────────────────────────────
+    const openConfirm = ({ title, message, confirmText, variant, action }) => {
+        setConfirmConfig({ title, message, confirmText, variant, action });
     };
 
     const handleConfirm = async () => {
         if (confirmConfig?.action) {
             await confirmConfig.action();
         }
-
         setConfirmConfig(null);
-
         onClose();
     };
 
     return (
         <>
             {/* OVERLAY */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-
+            <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
                 {/* MODAL */}
-                <div className="w-full max-w-[760px] max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-neutral-200 flex flex-col overflow-hidden">
-
+                <div className="w-full max-w-[760px] max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl border border-neutral-200 flex flex-col">
                     {/* HEADER */}
-                    <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-end shrink-0">
-
+                    <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-end">
                         <button
                             disabled={loading}
                             onClick={onClose}
-                            className="p-2 rounded-full hover:bg-neutral-100 transition-colors">
+                            className="p-2 rounded-full hover:bg-neutral-100"
+                        >
                             <X className="w-5 h-5" />
                         </button>
                     </div>
 
                     {/* BODY */}
-                    <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-300 scrollbar-track-transparent">
-
-                        <div className="p-6 flex flex-col gap-6">
-
+                    <div className="flex-1 overflow-y-auto">
+                        <div className="p-6 flex flex-col gap-5">
                             {/* AVATAR */}
-                            <div className="flex flex-col items-center justify-center">
-
+                            <div className="flex justify-center">
                                 <img
-                                    src={
-                                        supplier.avatar
-                                    }
+                                    src={supplier.avatar || "https://placehold.co/120x120"}
                                     alt=""
                                     className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md"
                                 />
                             </div>
 
-                            {/* HỌ + TÊN */}
+                            <InfoField label="Họ và tên" value={supplier.full_name} />
+
                             <div className="grid grid-cols-2 gap-4">
-
-                                <InfoField
-                                    label="Họ"
-                                    value={
-                                        supplier.first_name
-                                    }
-                                />
-
-                                <InfoField
-                                    label="Tên"
-                                    value={
-                                        supplier.last_name
-                                    }
-                                />
+                                <InfoField label="Email" value={supplier.email} />
+                                <InfoField label="Số điện thoại" value={supplier.phone} />
                             </div>
 
-                            {/* FULL NAME */}
-                            <InfoField
-                                label="Họ và tên"
-                                value={
-                                    supplier.full_name
-                                }
-                            />
+                            <InfoField label="Tên công ty" value={supplier.company_name} />
+                            <InfoField label="Địa chỉ" value={supplier.address} />
+                            <InfoField label="Mã số thuế" value={supplier.tax_code} />
+                            <InfoField label="Mô tả" value={supplier.description} />
 
-                            {/* EMAIL + PHONE */}
                             <div className="grid grid-cols-2 gap-4">
-
-                                <InfoField
-                                    label="Email"
-                                    value={
-                                        supplier.email
-                                    }
-                                />
-
-                                <InfoField
-                                    label="Số điện thoại"
-                                    value={
-                                        supplier.phone
-                                    }
-                                />
-                            </div>
-
-                            {/* COMPANY */}
-                            <InfoField
-                                label="Tên công ty"
-                                value={
-                                    supplier.company_name
-                                }
-                            />
-
-                            {/* ADDRESS */}
-                            <InfoField
-                                label="Địa chỉ"
-                                value={
-                                    supplier.address
-                                }
-                            />
-
-                            {/* TAX */}
-                            <InfoField
-                                label="Mã số thuế / CCCD"
-                                value={
-                                    supplier.tax_code
-                                }
-                            />
-
-                            {/* EMAIL + PHONE */}
-                            <div className="grid grid-cols-2 gap-4">
-
-                                <InfoField
-                                    label="Ngày đăng ký"
-                                    value={
-                                        supplier.created_at
-                                    }
-                                />
-
-                                <InfoField
-                                    label="Được duyệt"
-                                    value={
-                                        supplier.updated_at
-                                    }
-                                />
+                                <InfoField label="Trạng thái duyệt" value={supplier.verification_status} />
+                                <InfoField label="Trạng thái tài khoản" value={supplier.account_status} />
                             </div>
                         </div>
                     </div>
 
-                    {/* FOOTER */}
-                    <div className="px-6 py-4 border-t border-neutral-200 flex justify-center gap-3 shrink-0 flex-wrap bg-white">
-
+                    {/* FOOTER: CHỈ GIỮ LẠI DUYỆT VÀ TỪ CHỐI */}
+                    <div className="px-6 py-4 border-t border-neutral-200 flex justify-center gap-3 flex-wrap">
+                        
+                        {/* 1. KHI ĐANG CHỜ DUYỆT (PENDING): Hiện cả 2 nút Duyệt & Từ chối */}
                         {isPending && (
                             <>
                                 <button
                                     disabled={loading}
-                                    onClick={() =>
-                                        openConfirm({
-                                            title:
-                                                "Duyệt nhà cung cấp",
-                                            message: `Bạn có chắc chắn muốn duyệt "${supplier.full_name}" không?`,
-                                            confirmText:
-                                                "Duyệt",
-                                            variant:
-                                                "warning",
-                                            action: () =>
-                                                onApprove(
-                                                    supplier
-                                                ),
-                                        })
-                                    }
-                                    className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 rounded-lg text-sm font-semibold"
+                                    onClick={() => openConfirm({
+                                        title: "Duyệt nhà cung cấp",
+                                        message: `Bạn có chắc chắn muốn duyệt "${supplier.company_name || supplier.full_name}"?`,
+                                        confirmText: "Duyệt",
+                                        variant: "success",
+                                        action: () => onApprove(supplier),
+                                    })}
+                                    className="px-6 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-white font-semibold"
                                 >
                                     Duyệt
                                 </button>
 
                                 <button
                                     disabled={loading}
-                                    onClick={() =>
-                                        openConfirm({
-                                            title:
-                                                "Từ chối nhà cung cấp",
-                                            message: `Bạn có chắc chắn muốn từ chối "${supplier.full_name}" không?`,
-                                            confirmText:
-                                                "Từ chối",
-                                            variant:
-                                                "danger",
-                                            action: () =>
-                                                onReject(
-                                                    supplier
-                                                ),
-                                        })
-                                    }
-                                    className="px-6 py-2.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-sm font-semibold"
+                                    onClick={() => openConfirm({
+                                        title: "Từ chối nhà cung cấp",
+                                        message: `Bạn có chắc chắn muốn từ chối "${supplier.company_name || supplier.full_name}"?`,
+                                        confirmText: "Từ chối",
+                                        variant: "danger",
+                                        action: () => onReject(supplier),
+                                    })}
+                                    className="px-6 py-2.5 rounded-xl bg-red-500 hover:bg-red-400 text-white font-semibold"
                                 >
                                     Từ chối
                                 </button>
                             </>
                         )}
 
-                        {isActive && (
+                        {/* 2. KHI ĐÃ DUYỆT RỒI (APPROVED): Chỉ hiện duy nhất nút Từ chối */}
+                        {isApproved && (
                             <button
                                 disabled={loading}
-                                onClick={() =>
-                                    openConfirm({
-                                        title:
-                                            "Tạm khóa",
-                                        message: `Tạm khóa "${supplier.full_name}" ?`,
-                                        confirmText:
-                                            "Tạm khóa",
-                                        variant:
-                                            "warning",
-                                        action: () =>
-                                            onLock(
-                                                supplier
-                                            ),
-                                    })
-                                }
-                                className="px-6 py-2.5 bg-orange-500 text-white rounded-lg"
+                                onClick={() => openConfirm({
+                                    title: "Hủy duyệt / Từ chối",
+                                    message: `Bạn muốn chuyển trạng thái của "${supplier.company_name || supplier.full_name}" thành Từ chối?`,
+                                    confirmText: "Từ chối",
+                                    variant: "danger",
+                                    action: () => onReject(supplier), // Gọi chính xác hàm Từ Chối lên trang cha
+                                })}
+                                className="px-6 py-2.5 rounded-xl bg-red-500 hover:bg-red-400 text-white font-semibold"
                             >
-                                Tạm khóa
+                                Từ chối nhà cung cấp
                             </button>
                         )}
 
-                        {isInactive && (
+                        {isRejected && (
                             <>
                                 <button
                                     disabled={loading}
-                                    onClick={() =>
-                                        openConfirm({
-                                            title:
-                                                "Mở khóa",
-                                            message: `Mở khóa "${supplier.full_name}" ?`,
-                                            confirmText:
-                                                "Mở khóa",
-                                            variant:
-                                                "success",
-                                            action: () =>
-                                                onUnlock(
-                                                    supplier
-                                                ),
-                                        })
-                                    }
-                                    className="px-6 py-2.5 bg-green-500 text-white rounded-lg"
+                                    onClick={() => openConfirm({
+                                        title: "Duyệt nhà cung cấp",
+                                        message: `Bạn có chắc chắn muốn duyệt "${supplier.company_name || supplier.full_name}"?`,
+                                        confirmText: "Duyệt",
+                                        variant: "success",
+                                        action: () => onApprove(supplier),
+                                    })}
+                                    className="px-6 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-white font-semibold"
                                 >
-                                    Mở khóa
-                                </button>
-
-                                <button
-                                    disabled={loading}
-                                    onClick={() =>
-                                        openConfirm({
-                                            title:
-                                                "Vô hiệu hóa",
-                                            message: `Vô hiệu hóa "${supplier.full_name}" ?`,
-                                            confirmText:
-                                                "Vô hiệu hóa",
-                                            variant:
-                                                "danger",
-                                            action: () =>
-                                                onBan(
-                                                    supplier
-                                                ),
-                                        })
-                                    }
-                                    className="px-6 py-2.5 bg-red-600 text-white rounded-lg"
-                                >
-                                    Vô hiệu hóa
+                                    Duyệt
                                 </button>
                             </>
-                        )}
-
-                        {isBanned && (
-                            <button
-                                disabled={loading}
-                                onClick={() =>
-                                    openConfirm({
-                                        title:
-                                            "Mở khóa",
-                                        message: `Mở khóa "${supplier.full_name}" ?`,
-                                        confirmText:
-                                            "Mở khóa",
-                                        variant:
-                                            "success",
-                                        action: () =>
-                                            onUnlock(
-                                                supplier
-                                            ),
-                                    })
-                                }
-                                className="px-6 py-2.5 bg-green-500 text-white rounded-lg"
-                            >
-                                Mở khóa
-                            </button>
                         )}
                     </div>
                 </div>
             </div>
-            {/* CONFIRM */}
+
+            {/* CONFIRM MODAL */}
             <ConfirmModal
                 isOpen={confirmConfig !== null}
-                onClose={() =>
-                    setConfirmConfig(null)
-                }
+                onClose={() => setConfirmConfig(null)}
                 onConfirm={handleConfirm}
                 title={confirmConfig?.title}
                 message={confirmConfig?.message}
-                confirmText={
-                    confirmConfig?.confirmText
-                }
+                confirmText={confirmConfig?.confirmText}
                 cancelText="Hủy"
                 variant={confirmConfig?.variant}
             />
@@ -343,14 +174,13 @@ export default function SupplierViewModal({
     );
 }
 
+// COMPONENTS CON GIỮ NGUYÊN
 function InfoField({ label, value }) {
     return (
-        <div className="flex flex-col gap-1">
-
+        <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
                 {label}
             </label>
-
             <div className="px-4 py-3 rounded-xl border border-neutral-200 bg-stone-100 text-sm">
                 {value || "-"}
             </div>

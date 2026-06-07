@@ -58,15 +58,15 @@ export default function CategoryViewModal({
 
                 {/* MODAL */}
                 <div className="w-full max-w-[620px] bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden flex flex-col">
-                    {/* HEADER */}
-                    <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
-                        <button
-                            disabled={loading}
-                            onClick={onClose}
-                            className="p-2 rounded-full hover:bg-neutral-100 transition-colors">
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
+                {/* HEADER */}
+                <div className="px-6 py-4 border-b border-neutral-200 flex justify-end">
+                    <button
+                        disabled={loading}
+                        onClick={onClose}
+                        className="cursor-pointer p-2 rounded-full hover:bg-neutral-100 transition-colors">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
 
                     {/* BODY */}
                     <div className="p-6 flex flex-col gap-5">

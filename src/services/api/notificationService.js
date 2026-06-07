@@ -2,7 +2,8 @@ import axiosClient from "./axiosClient";
 
 export const notificationService = {
   // ADMIN
-  getAll: () => axiosClient.get("/notifications/").then((res) => res.data),
+  getAll: () =>
+    axiosClient.get("/notifications/my/").then((res) => res.data.results),
 
   //   [
   //         {

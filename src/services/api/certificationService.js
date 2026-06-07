@@ -2,7 +2,8 @@ import axiosClient from "./axiosClient";
 
 export const certificationService = {
   // --- ADMIN + SUPPLIER
-  getAll: () => axiosClient.get("/certifications/").then((res) => res.data),
+  getAll: () =>
+    axiosClient.get("/certifications/").then((res) => res.data.results),
 
   //   [
   //     {

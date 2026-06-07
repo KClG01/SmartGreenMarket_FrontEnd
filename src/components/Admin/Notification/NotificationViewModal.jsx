@@ -158,7 +158,12 @@ export default function NotificationViewModal({
                                 mono
                             />
                         </div>
-
+                                <TextAreaField 
+                                    label="Nội dung"
+                            value={
+                                notification.content
+                            }
+                                />
                         {/* CREATED */}
                         <DateField
                             label="Ngày tạo thông báo"

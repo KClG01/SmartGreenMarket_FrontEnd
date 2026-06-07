@@ -1,11 +1,6 @@
 import DataTable from "react-data-table-component";
 import { tableStyles, paginationVi } from "../../common/tableStyles";
 
-// ── Status config ─────────────────────────────────────────────────────────────
-const STATUS_CONFIG = {
-    active:  { label: "ĐÃ ĐỌC", bg: "bg-green-200",   text: "text-green-800"  },
-    inactive: { label: "CHƯA ĐỌC",        bg: "bg-amber-200",  text: "text-amber-700" },
-};
 const TYPE = {
     info: {label: "THÔNG BÁO"},
     warning: {label: "CẢNH BÁO"},
@@ -24,7 +19,7 @@ const buildColumns = (onView) => [
         name: "THÔNG BÁO",
         selector: (row) => row.type,
         sortable: true,
-        width: '100px',
+        width: '200px',
         cell: (row) => {
             const st = TYPE[row.type];
             return (
@@ -38,8 +33,7 @@ const buildColumns = (onView) => [
         name: "TIÊU ĐỀ",
         selector: (row) => row.title,
         sortable: true,
-        center:true,
-        grow: 1,
+        grow: 3,
         cell: (row) => (
             <span className="font-bold text-sm font-semibold font-['Geist',sans-serif]">
                 {row.title}
@@ -55,22 +49,6 @@ const buildColumns = (onView) => [
         grow: 1,
         cell: (row) => {
             const st = TYPE_REF[row.referenceType];
-            return (
-                <span className={`px-2.5 py-1 rounded-full font-bold text-sm font-semibold font-['Geist',sans-serif] uppercase tracking-wide ${st.bg} ${st.text}`}>
-                    {st.label}
-                </span>
-            );
-        },
-    },
-    {
-        name: "Trạng thái",
-        selector: (row) => row.status,
-        sortable: true,
-        center: true,
-        
-        grow: 1,
-        cell: (row) => {
-            const st = STATUS_CONFIG[row.status] ?? STATUS_CONFIG.pending;
             return (
                 <span className={`px-2.5 py-1 rounded-full font-bold text-sm font-semibold font-['Geist',sans-serif] uppercase tracking-wide ${st.bg} ${st.text}`}>
                     {st.label}
@@ -99,8 +77,9 @@ const buildColumns = (onView) => [
 
 export default function NotificationTable({ data, search, statusFilter, onView }) {
     const filtered = data.filter((row) => {
-        const matchName   = row.name.toLowerCase().includes(search.toLowerCase()) ||
-                            row.supplier.toLowerCase().includes(search.toLowerCase()) ||
+        const matchName   = row.title.toLowerCase().includes(search.toLowerCase()) ||
+                            row.type.toLowerCase().includes(search.toLowerCase()) ||
+                            row.referenceType.toLowerCase().includes(search.toLowerCase()) ||
                             row.status.toLowerCase().includes(search.toLowerCase());
         const matchStatus = statusFilter ? row.status === statusFilter : true;
         
@@ -115,8 +94,9 @@ export default function NotificationTable({ data, search, statusFilter, onView }
                 columns={columns}
                 data={filtered}
                 pagination
-                paginationPerPage={6}
-                paginationRowsPerPageOptions={[6, 12, 20]}
+                paginationServer
+                paginationTotalRows={data?.count}
+                paginationPerPage={data?.page_size }
                 paginationComponentOptions={paginationVi}
                 customStyles={tableStyles}
                 noDataComponent={

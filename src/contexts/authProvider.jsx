@@ -71,8 +71,7 @@ export function AuthProvider({
             );
 
             // STEP 2 GET ME
-            const me =
-                await authService.me();
+            const me = response.account;
 
             console.log(
                 "ME RESPONSE:",
@@ -163,17 +162,16 @@ export function AuthProvider({
                         return;
                     }
 
-                    const me =
-                        await authService.me();
+                    const savedUser =
+                        localStorage.getItem(
+                            "user"
+                        );
 
-                    setUser(me);
-
-                    localStorage.setItem(
-                        "user",
-                        JSON.stringify(
-                            me
-                        )
-                    );
+                    if (savedUser) {
+                        setUser(
+                            JSON.parse(savedUser)
+                        );
+                    }
                 } catch (error) {
                     logout();
                 } finally {

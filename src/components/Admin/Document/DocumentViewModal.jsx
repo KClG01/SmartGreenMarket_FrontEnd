@@ -85,7 +85,7 @@ export default function DocumentViewModal({
                                 <InfoField
                                     label="Nhà cung cấp"
                                     value={
-                                        document.supplier
+                                        document.supplier?.company_name
                                     }
                                 />
                             </div>
@@ -95,7 +95,7 @@ export default function DocumentViewModal({
 
                                 <img
                                     src={
-                                        document.image
+                                        document.file_url
                                     }
                                     alt=""
                                     className="w-full object-contain"
@@ -144,7 +144,7 @@ export default function DocumentViewModal({
                 }
                 onConfirm={handleApprove}
                 title="Duyệt giấy tờ"
-                message={`Bạn có chắc chắn muốn duyệt giấy tờ "${document.code}" không?`}
+                message={`Bạn có chắc chắn muốn duyệt giấy tờ này không?`}
                 confirmText="Duyệt"
                 cancelText="Hủy"
                 variant="success"
@@ -160,7 +160,7 @@ export default function DocumentViewModal({
                 }
                 onConfirm={handleReject}
                 title="Từ chối giấy tờ"
-                message={`Bạn có chắc chắn muốn từ chối giấy tờ "${document.code}" không?`}
+                message={`Bạn có chắc chắn muốn từ chối giấy tờ này không?`}
                 confirmText="Từ chối"
                 cancelText="Hủy"
                 variant="danger"
