@@ -111,11 +111,11 @@ export default function NotificationBell() {
             {/* Nút Chuông */}
             <button 
                 onClick={() => setIsOpenDropdown(!isOpenDropdown)}
-                className="cursor-pointer relative p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-600"
+                className="cursor-pointer relative p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-600 active:scale-95"
             >
                 <Bell className="w-[18px] h-[18px]" />
                 {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center bg-red-600 text-white text-[10px] font-bold rounded-full border border-stone-50 animate-pulse">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center bg-red-600 text-white text-[10px] font-bold rounded-full border border-stone-50 animate-pulse ">
                         {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                 )}
