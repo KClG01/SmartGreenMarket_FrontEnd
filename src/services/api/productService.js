@@ -67,6 +67,11 @@ export const productService = {
   //   ]
   // }
 
+  getById: async (id) => {
+    const res = await axiosClient.get(`/supplier-products/${id}/`);
+    return res.data;
+  },
+
   addProduct: async (formData) => {
     // Sửa lại thành:
     const res = await axiosClient.post("/supplier-products/", formData); 
@@ -103,12 +108,13 @@ export const productService = {
   //     "status": "approved / rejected",
   //     "rejection_reason": "string"
   //   }
-  
+    },
   remove: (id) => {
     return axiosClient
       .delete(`/supplier-products/${id}/`)
       .then((res) => res.data);
   },
+
 };
 
 // Xử lý bug
@@ -118,3 +124,4 @@ export const handleApiError = (error, defaultMessage = "Có lỗi xảy ra") => 
   console.error("API Error:", error);
   return message;
 };
+
