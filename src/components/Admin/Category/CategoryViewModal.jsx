@@ -3,6 +3,8 @@ import { useState } from "react";
 import { X } from "lucide-react";
 
 import ConfirmModal from "../../common/ConfirmModal";
+import DateField from "../../common/DateField";
+import InfoField from "../../common/InfoField";
 
 export default function CategoryViewModal({
     isOpen,
@@ -23,6 +25,8 @@ export default function CategoryViewModal({
     const isActive = category.status === "active";
 
     const isInactive = category.status === "inactive";
+
+    const isRejected = category.status === "rejected";
 
     // ── OPEN CONFIRM ─────────────────────
     const openConfirm = ({
@@ -59,7 +63,12 @@ export default function CategoryViewModal({
                 {/* MODAL */}
                 <div className="w-full max-w-[620px] bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden flex flex-col">
                 {/* HEADER */}
-                <div className="px-6 py-4 border-b border-neutral-200 flex justify-end">
+                <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between shrink-0">
+                    <div>
+                            <h2 className="text-lg font-bold text-neutral-900">
+                                Danh mục sản phẩm
+                            </h2>
+                        </div>
                     <button
                         disabled={loading}
                         onClick={onClose}
@@ -85,26 +94,11 @@ export default function CategoryViewModal({
                             }
                         />
 
-                        <InfoField
-                            label="Trạng thái"
-                            value={
-                                category.status
-                            }
-                        />
-
-                        <InfoField
-                            label="Ngày tạo"
-                            value={
-                                category.created_at
-                            }
-                        />
-
-                        <InfoField
-                            label="Ngày duyệt"
-                            value={
-                                category.verified_at
-                            }
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                                                        <DateField label="Ngày đăng ký" value={category.created_at} />
+                                                        <DateField label="Ngày được duyệt" value={category?.verified_at} />
+                                                    </div>
+                        
                     </div>
 
                     {/* FOOTER */}
@@ -232,6 +226,36 @@ export default function CategoryViewModal({
                                 Mở khóa
                             </button>
                         )}
+                        {/* REJECTED */}
+                        {isRejected && (
+                            <button
+                                onClick={() =>
+                                    openConfirm(
+                                        {
+                                            title:
+                                                "Duyệt danh mục",
+
+                                            message: `Bạn có chắc chắn muốn duyệt lại "${category.name}" không?`,
+
+                                            confirmText:
+                                                "Duyệt",
+
+                                            variant:
+                                                "success",
+
+                                            action:
+                                                () =>
+                                                    onApprove(
+                                                        category
+                                                    ),
+                                        }
+                                    )
+                                }
+                                className="px-6 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-semibold transition-colors"
+                            >
+                                Duyệt
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -265,22 +289,5 @@ export default function CategoryViewModal({
                 }
             />
         </>
-    );
-}
-
-function InfoField({
-    label,
-    value,
-}) {
-    return (
-        <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                {label}
-            </label>
-
-            <div className="px-4 py-3 rounded-xl border border-neutral-200 bg-stone-100 text-sm text-neutral-800">
-                {value || "-"}
-            </div>
-        </div>
     );
 }

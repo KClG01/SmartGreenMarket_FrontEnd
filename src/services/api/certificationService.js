@@ -50,11 +50,13 @@ export const certificationService = {
 
   // --- SUPPLIER
   create: (data) =>
-    axiosClient.post("/certifications/", data, {
+    axiosClient
+      .post("/certifications/", data, {
         headers: {
-            "Content-Type": "multipart/form-data",
+          "Content-Type": "multipart/form-data",
         },
-    }).then((res) => res.data), // <-- CHÚ Ý: Tuyệt đối không để res.data.data
+      })
+      .then((res) => res.data), // <-- CHÚ Ý: Tuyệt đối không để res.data.data
 
   //   {
   //     "name": "string",
@@ -84,10 +86,19 @@ export const certificationService = {
   //     }
 
   // --- ADMIN
-  verify: (id, data) =>
-    axiosClient
-      .post(`/certifications/${id}/verify/`, data)
-      .then((res) => res.data),
+  verify: (id, data) => {
+    const formData = new FormData();
+    formData.append("status", data.status);
+    formData.append("rejection_reason", data.rejection_reason || "");
+
+    return axiosClient
+      .post(`/certifications/${id}/verify/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => res.data);
+  },
 
   //   {
   //     "status": "approved / rejected",

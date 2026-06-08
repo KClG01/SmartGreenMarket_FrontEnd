@@ -1,9 +1,8 @@
 import axiosClient from "./axiosClient";
 
-export const settingService = {
-  // GET /system-config/ trả về object phẳng (không bọc trong "results")
-  get: () => axiosClient.get("/system-config/").then((res) => res.data),
-
+export const webService = {
+  getAll: () => axiosClient.get("/system-config/").then((res) => res.data.results),
+    
   // Dung lượng upload ảnh (<5MB)
     // Số danh mục / sản phẩm / ảnh tối đa
     // Định dạng ảnh cho phép
