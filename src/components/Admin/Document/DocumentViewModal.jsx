@@ -55,8 +55,7 @@ export default function DocumentViewModal({
                             <h2 className="text-lg font-bold text-neutral-900">
                                 {
                                     DOCUMENT_TYPE_LABELS[
-                                        document
-                                            .document_type
+                                        document.document_type
                                     ]
                                 }
                             </h2>
@@ -86,9 +85,7 @@ export default function DocumentViewModal({
                                 <InfoField
                                     label="Nhà cung cấp"
                                     value={
-                                        document
-                                            .supplier
-                                            ?.full_name
+                                        document.supplier?.company_name
                                     }
                                 />
                             </div>
@@ -147,7 +144,7 @@ export default function DocumentViewModal({
                 }
                 onConfirm={handleApprove}
                 title="Duyệt giấy tờ"
-                message={`Bạn có chắc chắn muốn duyệt giấy tờ "${document.code}" không?`}
+                message={`Bạn có chắc chắn muốn duyệt giấy tờ này không?`}
                 confirmText="Duyệt"
                 cancelText="Hủy"
                 variant="success"
@@ -163,7 +160,7 @@ export default function DocumentViewModal({
                 }
                 onConfirm={handleReject}
                 title="Từ chối giấy tờ"
-                message={`Bạn có chắc chắn muốn từ chối giấy tờ "${document.code}" không?`}
+                message={`Bạn có chắc chắn muốn từ chối giấy tờ này không?`}
                 confirmText="Từ chối"
                 cancelText="Hủy"
                 variant="danger"

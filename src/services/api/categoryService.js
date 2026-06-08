@@ -2,7 +2,7 @@ import axiosClient from "./axiosClient";
 
 export const categoryService = {
   // USER
-  getAll: () => axiosClient.get("/categories/").then((res) => res.data),
+  getAll: () => axiosClient.get("/categories/").then((res) => res.data.results),
 
   // [
   //   {

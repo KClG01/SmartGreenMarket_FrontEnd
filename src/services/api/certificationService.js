@@ -2,7 +2,8 @@ import axiosClient from "./axiosClient";
 
 export const certificationService = {
   // --- ADMIN + SUPPLIER
-  getAll: () => axiosClient.get("/certifications").then((res) => res.data),
+  getAll: () =>
+    axiosClient.get("/certifications/").then((res) => res.data.results),
 
   //   [
   //     {
@@ -26,7 +27,7 @@ export const certificationService = {
   //     ]
 
   getById: (id) =>
-    axiosClient.get(`/certifications/${id}`).then((res) => res.data),
+    axiosClient.get(`/certifications/${id}/`).then((res) => res.data),
 
   //   {
   //     "id": 0,
@@ -49,7 +50,11 @@ export const certificationService = {
 
   // --- SUPPLIER
   create: (data) =>
-    axiosClient.post("/certifications/", data).then((res) => res.data.data),
+    axiosClient.post("/certifications/", data, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    }).then((res) => res.data), // <-- CHÚ Ý: Tuyệt đối không để res.data.data
 
   //   {
   //     "name": "string",
@@ -64,7 +69,7 @@ export const certificationService = {
   //     }
 
   update: (id, data) =>
-    axiosClient.put(`/certifications/${id}`, data).then((res) => res.data),
+    axiosClient.put(`/certifications/${id}/`, data).then((res) => res.data),
 
   //   {
   //     "name": "string",
@@ -80,15 +85,17 @@ export const certificationService = {
 
   // --- ADMIN
   verify: (id, data) =>
-    axiosClient.put(`/suppliers/${id}`, data).then((res) => res.data),
+    axiosClient
+      .post(`/certifications/${id}/verify/`, data)
+      .then((res) => res.data),
 
   //   {
-  //     "status": "approved",
+  //     "status": "approved / rejected",
   //     "rejection_reason": "string"
   //     }
 
   delete: (id) =>
-    axiosClient.delete(`/certifications/${id}`).then((res) => res.data),
+    axiosClient.delete(`/certifications/${id}/`).then((res) => res.data),
 };
 
 // Xử lý bug

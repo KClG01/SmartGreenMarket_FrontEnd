@@ -1,8 +1,15 @@
 const OPTIONS = [
     { label: "TẤT CẢ",         value: "" },
-    { label: "ĐÃ DUYỆT", value: "approved" },
-    { label: "TỪ CHỐI",        value: "rejected" },
-    { label: "ĐĂNG KÝ",      value: "pending" },
+    { label: "ĐÃ ĐỌC", value: "active" },
+    { label: "CHƯA ĐỌC",        value: "rejected" },
+    { label: "THÔNG BÁO",        value: "info" },
+    { label: "CẢNH BÁO",        value: "warning" },
+    { label: "THÀNH CÔNG",        value: "success" },
+    { label: "THẤT BẠI",        value: "error" },
+    { label: "GIẤY TỜ",        value: "supplier_document" },
+    { label: "CHỨNG CHỈ",        value: "certification" },
+    { label: "DANH MỤC",        value: "category" },
+    { label: "NHÀ CUNG CẤP",        value: "supplier" },
 ];
 
 export default function Filter({ value, onChange }) {

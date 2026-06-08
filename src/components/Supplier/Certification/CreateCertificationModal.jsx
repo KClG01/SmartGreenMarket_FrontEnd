@@ -178,64 +178,55 @@ export default function AddCertificationModal({ isOpen, onClose, onSuccess }) {
 
   // ── submit ──
   // ── submit ──
-const handleSubmit = async () => {
-  if (!form.name || !form.certificate_code || !form.issued_by || !form.issue_date || !form.expiry_date) {
-    setError("Vui lòng điền đầy đủ các trường bắt buộc (*)");
-    return;
-  }
-
-  setError(null);
-  setSaving(true);
-
-  try {
-    const formData = new FormData();
-    formData.append("name", form.name);
-    formData.append("certificate_code", form.certificate_code);
-    formData.append("issued_by", form.issued_by);
-    formData.append("issue_date", form.issue_date);
-    formData.append("expiry_date", form.expiry_date);
-    formData.append("description", form.description ?? "");
+// ── submit ──
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
     
-    // Nếu API backend cần thêm product (trong schema không thấy nhưng giao diện có)
-    if (form.product) formData.append("product", form.product); 
+    try {
+        const formData = new FormData();
+        
+        // 1. Lấy dữ liệu từ state 'form' của bạn
+        formData.append("name", form.name); 
+        formData.append("certificate_code", form.certificate_code); 
+        formData.append("issued_by", form.issued_by); 
+        formData.append("issue_date", form.issue_date); 
+        formData.append("expiry_date", form.expiry_date); 
+        formData.append("description", form.description);
+        
+        // Nếu backend có yêu cầu gửi tên sản phẩm thì bật dòng này lên:
+        // if (form.product) formData.append("product", form.product);
 
-    // 1. ĐỔI TÊN KEY ẢNH Ở ĐÂY
-    if (imageFile) {
-      formData.append("uploaded_images", imageFile); // Hoặc thử đổi thành "images" nếu API báo lỗi
-    }
-
-    // 2. TẠM THỜI GỬI KÈM ID SUPPLIER (Ví dụ ID = 1, bạn đổi theo ID thật nhé)
-    // Nếu Backend tự lấy từ Token rồi thì bạn có thể xóa dòng này
-    formData.append("supplier", 1); 
-
-    // Nhớ đảm bảo trong certificationService.js đã có dấu "/" ở cuối url: axiosClient.post("/certifications/", data)
-    const result = await certificationService.create(formData);
-    
-    setSaved(true);
-    onSuccess?.(result);
-    setTimeout(() => {
-      setSaved(false);
-      onClose();
-    }, 1200);
-
-  } catch (err) {
-    // DRF thường trả về lỗi rất chi tiết trong err.response.data
-    // Ví dụ: { "certificate_code": ["Mã này đã tồn tại."] }
-    console.log("Chi tiết lỗi từ Backend:", err.response?.data);
-    
-    let serverMessage = "Có lỗi xảy ra, vui lòng thử lại.";
-    if (err.response?.data) {
-        // Lấy value đầu tiên của object lỗi để hiển thị lên UI
-        const firstErrorKey = Object.keys(err.response.data)[0];
-        if (firstErrorKey) {
-            serverMessage = `${firstErrorKey}: ${err.response.data[firstErrorKey][0]}`;
+        // 2. Lấy file ảnh từ state 'imageFile' của bạn
+        if (imageFile) {
+            formData.append("images", imageFile); 
         }
+
+        // 3. GỌI API
+        const response = await certificationService.create(formData);
+        
+        console.log("Tạo chứng nhận thành công:", response);
+        
+        // Cập nhật UI thành công, đóng modal và báo lại cho bảng
+        setSaved(true);
+        setTimeout(() => {
+            onSuccess(response); 
+            onClose();
+        }, 500); // Đợi nửa giây cho đẹp UI rồi mới đóng
+
+    } catch (error) {
+        console.error("CHI TIẾT LỖI HOÀN CHỈNH:", error);
+        if (error.response) {
+             console.error("Lỗi từ Backend (Data):", error.response.data);
+             alert("Lỗi Backend: " + JSON.stringify(error.response.data));
+        } else {
+             console.error("Lỗi Code hoặc Mạng:", error.message);
+             alert("Lỗi hệ thống: " + error.message);
+        }
+    } finally {
+        setSaving(false);
     }
-    setError(serverMessage);
-  } finally {
-    setSaving(false);
-  }
-};
+  };
 
   // ── image preview area ──
   const isImage = imageFile?.type?.startsWith("image/");

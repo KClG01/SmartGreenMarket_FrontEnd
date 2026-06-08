@@ -26,7 +26,7 @@ export const supplierService = {
   // }
 
   // --- ADMIN
-  getAll: () => axiosClient.get("/suppliers/").then((res) => res.data),
+  getAll: () => axiosClient.get("/suppliers/").then((res) => res.data.results),
 
   //[
   //   {

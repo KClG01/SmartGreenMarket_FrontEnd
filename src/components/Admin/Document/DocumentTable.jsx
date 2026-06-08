@@ -3,7 +3,7 @@ import { tableStyles, paginationVi } from "../../common/tableStyles";
 
 // ── Status ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-    active:  { label: "ĐÃ DUYỆT", bg: "bg-green-200",   text: "text-green-800"  },
+    approved:  { label: "ĐÃ DUYỆT", bg: "bg-green-200",   text: "text-green-800"  },
     rejected:  { label: "TỪ CHỐI",        bg: "bg-red-200",     text: "text-red-700"   },
     pending: { label: "CHỜ DUYỆT",        bg: "bg-amber-200",  text: "text-amber-700" },
 };
@@ -17,15 +17,6 @@ const DOCUMENT_TYPE_LABELS = {
 
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView) => [
-    {
-        name: "CODE",
-        selector: (row) => row.code,
-        sortable: true,
-        width: '100px',
-        cell: (row) => (
-            <span className="text-sm font-semibold font-['Geist',sans-serif]">{row.code}</span>
-        ),
-    },
     {
         name: "Hình ảnh",
         width: "110px",
@@ -56,12 +47,12 @@ const buildColumns = (onView) => [
     },
     {
         name: "Nhà cung cấp",
-        selector: (row) => row.supplier,
+        selector: (row) => row.supplier?.company_name,
         sortable: true,
         center: true,
         grow: 1,
         cell: (row) => (
-            <span className="text-sm font-semibold font-['Geist',sans-serif]">{row.supplier}</span>
+            <span className="text-sm font-semibold font-['Geist',sans-serif]">{row.supplier?.company_name}</span>
         ),
     },
     {
@@ -102,7 +93,7 @@ const buildColumns = (onView) => [
 export default function DocumentTable({ data, search, statusFilter, onView }) {
     const filtered = data.filter((row) => {
         const matchName   = row.document_type.toLowerCase().includes(search.toLowerCase()) ||
-                            row.supplier.toLowerCase().includes(search.toLowerCase()) ||
+                            row.supplier?.company_name.toLowerCase().includes(search.toLowerCase()) ||
                             row.status.toLowerCase().includes(search.toLowerCase());
 
         const matchStatus = statusFilter ? row.status === statusFilter : true;
@@ -118,8 +109,9 @@ export default function DocumentTable({ data, search, statusFilter, onView }) {
                 columns={columns}
                 data={filtered}
                 pagination
-                paginationPerPage={6}
-                paginationRowsPerPageOptions={[6, 12, 20]}
+                paginationServer
+                paginationTotalRows={data?.count}
+                paginationPerPage={data?.page_size }
                 paginationComponentOptions={paginationVi}
                 customStyles={tableStyles}
                 noDataComponent={

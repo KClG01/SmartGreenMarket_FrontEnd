@@ -3,23 +3,24 @@ import { tableStyles, paginationVi } from "../../common/tableStyles";
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-    approved:  { label: "ĐANG HOẠT ĐỘNG", bg: "bg-green-200",   text: "text-green-800"  },
-    rejected:  { label: "TỪ CHỐI",      bg: "bg-red-200",    text: "text-red-700"   },
+    active:  { label: "ĐANG HOẠT ĐỘNG", bg: "bg-green-200",   text: "text-green-800"  },
+    rejected:  { label: "TẠM NGƯNG",      bg: "bg-red-200",    text: "text-red-700"   },
     pending: { label: "CHỜ DUYỆT",        bg: "bg-amber-200",  text: "text-amber-800" },
+    inactive: { label: "CHỜ DUYỆT",        bg: "bg-blue-200",  text: "text-blue-800" },
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView) => [
     {
         id: 1,
-        name: "NHÀ CUNG CẤP",
-        selector: (row) => row.company_name,
+        name: "NGƯỜI DÙNG",
+        selector: (row) => row.name,
         sortable: true,
         grow: 2,
 
         cell: (row) => (
             <span className="text-sm font-semibold font-['Geist',sans-serif]">
-                {row.company_name}
+                {row.name}
             </span>
         ),
     },
@@ -52,14 +53,13 @@ const buildColumns = (onView) => [
 
     {
         name: "Trạng thái",
-        selector: (row) => row.verification_status,
+        selector: (row) => row.verify,
         sortable: true,
-        center:true,
         width: "200px",
 
         cell: (row) => {
             const st =
-                STATUS_CONFIG[row.verification_status] ?? STATUS_CONFIG.pending;
+                STATUS_CONFIG[row.verify] ?? STATUS_CONFIG.pending;
             return (
                 <span className={`px-2.5 py-1 rounded-full text-sm font-semibold font-['Geist',sans-serif] uppercase tracking-wide ${st.bg} ${st.text}`}>
                     {st.label}
@@ -89,12 +89,12 @@ const buildColumns = (onView) => [
     },
 ];
 
-export default function SupplierTable({ data, search, statusFilter, onView,}) {
+export default function UserTable({ data, search, statusFilter, onView,}) {
     const filtered = data.filter((row) => {
         const keyword = (search ?? "").toLowerCase();
 
         const matchName =
-            (row.company_name  ?? "")
+            (row.name ?? "")
                 .toLowerCase()
                 .includes(keyword) ||
 
@@ -106,12 +106,12 @@ export default function SupplierTable({ data, search, statusFilter, onView,}) {
                 .toLowerCase()
                 .includes(keyword) ||
 
-            (row.verification_status ?? "")
+            (row.verify ?? "")
                 .toLowerCase()
                 .includes(keyword);
-        const matchStatus =
-            !statusFilter ||
-            row.verification_status === statusFilter;
+        const matchStatus = statusFilter
+            ? row.verify === statusFilter
+            : true;
 
         return matchName && matchStatus;
     });
@@ -122,13 +122,13 @@ export default function SupplierTable({ data, search, statusFilter, onView,}) {
                 columns={buildColumns(onView)}
                 data={filtered}
                 pagination
-                paginationTotalRows={data?.count}
-                paginationPerPage={data?.page_size }
+                paginationPerPage={6}
+                paginationRowsPerPageOptions={[6, 12, 20]}
                 paginationComponentOptions={paginationVi}
                 customStyles={tableStyles}
                 noDataComponent={
                     <div className="py-6 text-sm text-neutral-500">
-                        Không tìm thấy nhà cung cấp.
+                        Không tìm thấy người dùng.
                     </div>
                 }
                 defaultSortFieldId={1}

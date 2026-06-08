@@ -1,8 +1,9 @@
 const OPTIONS = [
     { label: "TẤT CẢ",         value: "" },
-    { label: "ĐÃ DUYỆT", value: "approved" },
-    { label: "TỪ CHỐI",        value: "rejected" },
-    { label: "ĐĂNG KÝ",      value: "pending" },
+    { label: "ĐANG HOẠT ĐỘNG", value: "active" },
+    { label: "TẠM KHÓA",      value: "inactive" },
+    { label: "VÔ HIỆU HÓA",        value: "banned" },
+    { label: "ĐĂNG KÝ",        value: "pending" },
 ];
 
 export default function Filter({ value, onChange }) {

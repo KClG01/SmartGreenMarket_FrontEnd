@@ -1,78 +1,103 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
+
 import SearchBar from "../../components/Admin/UI/SearchBar";
+
 import Filter from "../../components/Admin/Suppiler/SuppilerFilter";
+
 import SupplierTable from "../../components/Admin/Suppiler/SuppilerTable";
+
 import SupplierViewModal from "../../components/Admin/Suppiler/SupplierViewModal";
-import { supplierService, handleApiError} from "../../services/api/suppilerService";
+
+import {
+    handleApiError,
+    supplierService,
+} from "../../services/api/suppilerService";
 
 export default function SupplierPage() {
+    // ─────────────────────────────────────────
+    // STATES
+    // ─────────────────────────────────────────
     const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-    const [search, setSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState("pending");
-    const [viewRow, setViewRow] = useState(null);
-    const [actionLoading, setActionLoading] = useState(false);
 
-    // ── FETCH ALL SUPPLIERS ───────────────────────────────
-    const fetchSuppliers = useCallback(
-        async () => {
+    const [loading, setLoading] =
+        useState(false);
+
+    const [actionLoading, setActionLoading] =
+        useState(false);
+
+    const [error, setError] = useState("");
+
+    const [search, setSearch] = useState("");
+
+    const [statusFilter, setStatusFilter] =
+        useState("pending");
+
+    const [viewRow, setViewRow] =
+        useState(null);
+
+    // ─────────────────────────────────────────
+    // FETCH ALL
+    // ─────────────────────────────────────────
+    const fetchSuppliers =
+        useCallback(async () => {
             try {
                 setLoading(true);
+
+                setError("");
 
                 const response =
                     await supplierService.getAll();
 
-                // API trả về array
-                // normalize dữ liệu cho table + modal
-                const formattedData =
-                    response.map(
-                        (supplier) => ({
-                            id: supplier.id,
+                const formatted =
+                    response.map((supplier) => ({
+                        id: supplier.id,
 
-                            name:
-                                supplier.company_name,
+                        company_name:
+                            supplier.company_name,
 
-                            address:
-                                supplier.address,
+                        address:
+                            supplier.address,
 
-                            phone:
-                                supplier.phone,
+                        phone:
+                            supplier.phone,
 
-                            taxCode:
-                                supplier.tax_code,
+                        tax_code:
+                            supplier.tax_code,
 
-                            description:
-                                supplier.description,
+                        description:
+                            supplier.description,
 
-                            verification_status:
-                                supplier.verification_status,
+                        verification_status:
+                            supplier.verification_status,
 
-                            created_at:
-                                supplier.created_at,
+                        created_at:
+                            supplier.created_at,
 
-                            updated_at:
-                                supplier.updated_at,
-                        })
-                    );
+                        updated_at:
+                            supplier.updated_at,
+                    }));
 
-                setData(formattedData);
+                setData(formatted);
             } catch (error) {
-                const message =
+                setError(
                     handleApiError(
                         error,
                         "Không thể tải danh sách nhà cung cấp"
-                    );
-
-                setError(message);
+                    )
+                );
             } finally {
                 setLoading(false);
             }
-        },
-        []
-    );
+        }, []);
 
-    // ── FETCH DETAIL SUPPLIER ────────────────────────────
+    // ─────────────────────────────────────────
+    // FETCH DETAIL
+    // ─────────────────────────────────────────
     const handleViewSupplier =
         useCallback(async (row) => {
             try {
@@ -83,7 +108,6 @@ export default function SupplierPage() {
                         row.id
                     );
 
-                // normalize data cho modal
                 const formattedDetail = {
                     id: detail.id,
 
@@ -111,7 +135,10 @@ export default function SupplierPage() {
                     updated_at:
                         detail.updated_at,
 
-                    // account
+                    // ── ACCOUNT
+                    account_status:
+                        detail.account?.status,
+
                     first_name:
                         detail.account
                             ?.first_name,
@@ -125,16 +152,14 @@ export default function SupplierPage() {
                             ?.full_name,
 
                     email:
-                        detail.account
-                            ?.email,
+                        detail.account?.email,
 
                     avatar:
-                        detail.account
-                            ?.avatar,
+                        detail.account?.avatar,
 
+                    // ── RELATIONS
                     documents:
-                        detail.documents ||
-                        [],
+                        detail.documents || [],
 
                     certifications:
                         detail.certifications ||
@@ -148,152 +173,115 @@ export default function SupplierPage() {
                     formattedDetail
                 );
             } catch (error) {
-                handleApiError(
-                    error,
-                    "Không thể tải chi tiết nhà cung cấp"
+                setError(
+                    handleApiError(
+                        error,
+                        "Không thể tải chi tiết nhà cung cấp"
+                    )
                 );
             } finally {
                 setLoading(false);
             }
         }, []);
 
-    // ── INITIAL FETCH ────────────────────────────────────
-    useEffect(() => { fetchSuppliers(); }, [fetchSuppliers]);
+    // ─────────────────────────────────────────
+    // INITIAL FETCH
+    // ─────────────────────────────────────────
+    useEffect(() => {
+        fetchSuppliers();
+    }, [fetchSuppliers]);
 
-    // ── APPROVE ──────────────────────────────────────────
-    const handleApprove = async (supplier) => {
-        try {
-            setActionLoading(true);
-
-            await supplierService.verify(
-                supplier.id,
-                {
-                    status: "active",
-                }
-            );
-
-            setViewRow(null);
-            await fetchSuppliers();
-        } catch (error) {
-            console.error(
-                handleApiError(
-                    error,
-                    "Không thể duyệt nhà cung cấp"
-                )
-            );
-        } finally {
-            setActionLoading(false);
+    const handleApprove = useCallback(async (supplier) => {
+    try {
+        setActionLoading(true);
+        setError(""); // Clear lỗi cũ nếu có
+        
+        // Gọi API duyệt supplier
+        await supplierService.verify(supplier.id, { verification_status: "approved" });
+        
+        // Thông báo thành công và tải lại danh sách
+        fetchSuppliers(); 
+    } catch (error) {
+        // ─────────────────────────────────────────────────────────
+        // NÂNG CẤP THÔNG BÁO LỖI TẠI ĐÂY
+        // ─────────────────────────────────────────────────────────
+        let customMessage = "Không thể duyệt nhà cung cấp";
+        
+        if (error.response && error.response.status === 400) {
+            // Ép thông báo ngắn gọn như bạn yêu cầu
+            customMessage = "Vui lòng duyệt đủ 3 loại giấy tờ";
+        } else {
+            customMessage = handleApiError(error, customMessage);
         }
-    };
 
-    // ── REJECT ───────────────────────────────────────────
-    const handleReject = async (supplier) => {
-        try {
-            setActionLoading(true);
+        // Vẫn lưu vào hệ thống chung
+        setError(customMessage);
+        
+        // Không gọi toast.error ở đây nữa.
+        // ném lỗi ra ngoài để hàm handleConfirm của Modal có thể bắt được và không đóng modal
+        throw new Error(customMessage);
+        
+    } finally {
+        setActionLoading(false);
+    }
+}, [fetchSuppliers]);
 
-            await supplierService.verify(
-                supplier.id,
-                {
-                    status: "rejected",
-                }
+// ─────────────────────────────────────────
+// REJECT (TỪ CHỐI NHÀ CUNG CẤP)
+// ─────────────────────────────────────────
+const handleReject = async (supplier) => {
+    console.log("Từ chối supplier ID:", supplier?.id);
+    try {
+        setActionLoading(true);
+        setError(""); // Clear lỗi cũ nếu có
+
+        // Đảm bảo payload nằm gọn gàng, đồng bộ chính xác key-value
+        await supplierService.verify(supplier.id, {
+            verification_status: "rejected"
+        });
+
+        setViewRow(null);
+        await fetchSuppliers();
+    } catch (error) {
+        setError(
+            handleApiError(error, "Không thể từ chối nhà cung cấp")
+        );
+    } finally {
+        setActionLoading(false);
+    }
+};
+    // ─────────────────────────────────────────
+    // FILTERED DATA
+    // ─────────────────────────────────────────
+    const filteredData = useMemo(() => {
+        return data.filter((item) => {
+            const keyword =
+                search.toLowerCase();
+
+            const matchSearch =
+                item.company_name
+                    ?.toLowerCase()
+                    .includes(keyword) ||
+                item.phone
+                    ?.toLowerCase()
+                    .includes(keyword) ||
+                item.tax_code
+                    ?.toLowerCase()
+                    .includes(keyword);
+
+            const matchStatus =
+                !statusFilter ||
+                item.verification_status === statusFilter;
+
+            return (
+                matchSearch &&
+                matchStatus
             );
-
-            setViewRow(null);
-            await fetchSuppliers();
-        } catch (error) {
-            console.error(
-                handleApiError(
-                    error,
-                    "Không thể từ chối nhà cung cấp"
-                )
-            );
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    // ── LOCK ─────────────────────────────────────────────
-    const handleLock = async (supplier) => {
-        try {
-            setActionLoading(true);
-
-            await supplierService.status(
-                supplier.id,
-                {
-                    status: "inactive",
-                    reason: "Tạm khóa bởi admin",
-                }
-            );
-            setViewRow(null);
-            await fetchSuppliers();
-        } catch (error) {
-            console.error(
-                handleApiError(
-                    error,
-                    "Không thể khóa nhà cung cấp"
-                )
-            );
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    // ── ACTIVE ───────────────────────────────────────────
-    const handleUnlock = async (supplier) => {
-        try {
-            setActionLoading(true);
-
-            await supplierService.status(
-                supplier.id,
-                {
-                    status: "active",
-                    reason: "Mở khóa",
-                }
-            );
-            setViewRow(null);
-            await fetchSuppliers();
-        } catch (error) {
-            console.error(
-                handleApiError(
-                    error,
-                    "Không thể mở khóa nhà cung cấp"
-                )
-            );
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    // ── BAN ──────────────────────────────────────────────
-    const handleBan = async (supplier) => {
-        try {
-            setActionLoading(true);
-
-            await supplierService.status(
-                supplier.id,
-                {
-                    status: "banned",
-                    reason: "Vi phạm chính sách",
-                }
-            );
-
-            setViewRow(null);
-            await fetchSuppliers();
-        } catch (error) {
-            console.error(
-                handleApiError(
-                    error,
-                    "Không thể vô hiệu hóa nhà cung cấp"
-                )
-            );
-        } finally {
-            setActionLoading(false);
-        }
-    };
+        });
+    }, [data, search, statusFilter]);
 
     return (
         <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
-
             {/* SEARCH */}
             <SearchBar
                 value={search}
@@ -303,8 +291,7 @@ export default function SupplierPage() {
 
             {/* FILTER */}
             <div className="flex items-center gap-3">
-
-                <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">
+                <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
                     Lọc:
                 </span>
 
@@ -325,23 +312,19 @@ export default function SupplierPage() {
 
             {/* TABLE */}
             <SupplierTable
-                data={data}
-                loading={loading}
-                search={search}
-                statusFilter={statusFilter}
-                onView={handleViewSupplier}
+                data={filteredData}
+                onView={
+                    handleViewSupplier
+                }
             />
 
-            {/* VIEW MODAL */}
+            {/* MODAL */}
             <SupplierViewModal
                 isOpen={viewRow !== null}
-                onClose={() =>setViewRow(null)}
+                onClose={() => setViewRow(null)}
                 supplier={viewRow}
                 onApprove={handleApprove}
                 onReject={handleReject}
-                onLock={handleLock}
-                onUnlock={handleUnlock}
-                onBan={handleBan}
                 loading={actionLoading}
             />
         </div>

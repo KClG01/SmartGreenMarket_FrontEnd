@@ -1,66 +1,77 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 // import Toolbar from "../../components/Admin/UI/Toolbar";
 import Filter  from "../../components/Admin/UI/Filter"; 
 import CertificationTable from "../../components/Supplier/Certification/CertificationTable";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 import CreateCertificationModal from "../../components/Supplier/Certification/CreateCertificationModal";
-
-// ── Mock data ─────────────────────────────────────────────────────────────────
-const INITIAL_DATA = [
-  { id: 1, code: "#GM-P-01", name: "Rau cải thìa",   price: 15000, unit: "kg", inventory: 100, status: "active",  image: "../public/images/rau.jpg" },
-  { id: 2, code: "#GM-P-02", name: "Cà chua bi",       price: 20000, unit: "kg", inventory: 50, status: "pending", image: "../public/images/rau.jpg" },
-  { id: 3, code: "#GM-P-03", name: "Táo hữu cơ",       price: 30000, unit: "kg", inventory: 75, status: "paused",  image: "../public/images/rau.jpg" },
-  { id: 4, code: "#GM-P-04", name: "Khoai tây Đà Lạt", price: 12000, unit: "kg", inventory: 120, status: "active",  image: "../public/images/rau.jpg" },
-  { id: 5, code: "#GM-P-05", name: "Dưa leo sạch",     price: 18000, unit: "kg", inventory: 80, status: "active",  image: "../public/images/rau.jpg" },
-  { id: 6, code: "#GM-P-06", name: "Bí đỏ hữu cơ",    price: 25000, unit: "kg", inventory: 60, status: "active",  image: "../public/images/rau.jpg" },
-  { id: 7, code: "#GM-P-07", name: "Ớt chuông đỏ",    price: 22000, unit: "kg", inventory: 90, status: "pending", image: "../public/images/rau.jpg" },
-];
+import { certificationService } from "../../services/api/certificationService"; 
+import DetailCertificationModal from "../../components/Supplier/Certification/DetailCertificationModal";
 
 export default function CertificationSupplierPage() {
-  const [data,         setData]         = useState(INITIAL_DATA);
-  const [search,       setSearch]       = useState("");
+  const [data, setData] = useState([]); // Khởi tạo mảng rỗng để chứa dữ liệu từ API
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
   // Modal states
   const [deleteRow, setDeleteRow] = useState(null); // row | null
   const [createRow, setCreateRow] = useState(null); // row | null
+  
+  // ĐỔI TỪ detailRow THÀNH viewRow TẠI ĐÂY ĐỂ ĐỒNG BỘ VỚI BÊN DƯỚI
+  const [viewRow, setViewRow] = useState(null); // row | null
 
-  // ── CRUD ──────────────────────────────────────────────────────────────────
-  const handleDelete = () => {
-    setData((prev) => prev.filter((row) => row.id !== deleteRow.id));
+  // ── HÀM TẢI DỮ LIỆU TỪ API ──────────────────────────────
+  const fetchCertifications = async () => {
+    try {
+      const response = await certificationService.getAll();
+      setData(response); // Lưu dữ liệu vào state bảng
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách chứng chỉ:", error);
+    }
   };
-  const handleCreate = () => {
-    if (!createRow) return;
-    const newItem = {
-      id: Date.now(), // simple unique ID
-      code: `#GM-P-${String(data.length + 1).padStart(2, "0")}`,
-      name: createRow.name,
-      price: createRow.price,
-      unit: createRow.unit,
-      inventory: createRow.inventory,
-      status: "pending",
-      image: createRow.image,
-    };
-    setData((prev) => [newItem, ...prev]);
-  }
+
+  // ── GỌI API KHI MỞ TRANG LẦN ĐẦU ───────────────────────
+  useEffect(() => {
+    fetchCertifications();
+  }, []);
+
+  // // ── CRUD ───────────────────────────────────────────────
+  // const handleDelete = () => {
+  //   // API xóa ở đây (bạn tự gọi thêm hàm API xóa nhé)
+  //   setData((prev) => prev.filter((row) => row.id !== deleteRow.id));
+  //   setDeleteRow(null);
+  // };
+
+  const handleCreate = (newCert) => {
+    // Tải lại dữ liệu bảng sau khi tạo mới thành công
+    fetchCertifications(); 
+  };
+
   return (
-    <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
-        <h1>Quản lý chứng nhận      </h1>
-      {/* Toolbar: search + filter button + add CTA */}
-      <div className="flex justify-between items-center">
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Tìm kiếm sản phẩm..."
-        className="px-4 py-2 border border-neutral-200 rounded-lg text-sm w-72 outline-none focus:border-emerald-600"
-      />
-      <button
-        onClick={() => setCreateRow({})}
-        className="px-4 py-2 bg-emerald-800 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700"
-      >
-        + Thêm chứng nhận mới
-      </button>
-    </div>
+    <div className="flex-1 w-full max-w-[1200px] flex flex-col mx-auto px-10 py-8 gap-6">
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div>
+        <h1 className="text-2xl font-bold text-neutral-800">Quản lý Chứng nhận</h1>
+        <p className="text-sm text-neutral-500 mt-1">
+          Theo dõi và quản lý các chứng nhận kiểm định chất lượng sản phẩm
+        </p>
+      </div>
+
+      {/* ── Actions bar ─────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between mt-2">
+        <input
+          type="text"
+          placeholder="Tìm kiếm mã hoặc tên chứng nhận..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="px-4 py-2 border border-neutral-200 rounded-lg text-sm w-72 outline-none focus:border-emerald-600"
+        />
+        <button
+          onClick={() => setCreateRow({})}
+          className="px-4 py-2 bg-emerald-800 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700"
+        >
+          + Thêm chứng nhận mới
+        </button>
+      </div>
 
       {/* Status filter chips */}
       <div className="flex items-center gap-3">
@@ -75,24 +86,32 @@ export default function CertificationSupplierPage() {
         data={data}
         search={search}
         statusFilter={statusFilter}
-        onView={(row) => {/* mở ProductDetailModal nếu có */}}
-        onDelete={(row) => setDeleteRow(row)}
+        onView={(row) => setViewRow(row)}
+        // onDelete={(row) => setDeleteRow(row)}
       />
 
       {/* ── Modals ──────────────────────────────────────────────────────── */}
-      <DeleteConfirmModal
+      {/* <DeleteConfirmModal
         isOpen={deleteRow !== null}
         onClose={() => setDeleteRow(null)}
         onConfirm={handleDelete}
         itemName={deleteRow?.name ?? ""}
-        itemType="sản phẩm"
-      />
+        itemType="chứng nhận"
+      /> */}
+      
       <CreateCertificationModal
         isOpen={createRow !== null}
         onClose={() => setCreateRow(null)}
-        onConfirm={handleCreate}
+        onSuccess={handleCreate}
         itemName={createRow?.name ?? ""}
-        itemType="sản phẩm"
+        itemType="chứng nhận"
+      />
+
+      {/* ── Detail Modal ── */}
+      <DetailCertificationModal
+        isOpen={viewRow !== null}
+        onClose={() => setViewRow(null)}
+        certification={viewRow}
       />
     </div>
   );
