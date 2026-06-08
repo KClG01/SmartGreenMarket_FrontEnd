@@ -51,25 +51,9 @@ export default function App() {
                     <Route path="/nha-cung-cap/login" element={<SupplierLoginPage />} />
                     <Route path="dang-ky-nha-cung-cap" element={<RegisterPage />} />
 
-                    <Route path="/admin/login" element={<AdminLoginPage />} />
-
-                    {/* User */}
-                    <Route path="/" element={<UserLayout />}>
-                        <Route index element={<HomePage />} />
-                        <Route path="trang-chu" element={<HomePage />} />
-                    </Route>
 
                     {/* Admin */}
-                    {/* <Route element={<AdminProtectedRoute />}> */}
-                    <Route path="/quan-tri" element={<AdminLayout />}>
-                        <Route path="cau-hinh" element={<SettingPage />} />
-                        <Route path="nha-cung-cap" element={<SupplierPage />} />
-                        <Route path="danh-muc" element={<CategoryPage />} />
-                        <Route path="san-pham" element={<ProductPage />} />
-                        <Route path="chung-chi" element={<CertificationPage />} />
-                        <Route path="giay-to" element={<DocumentPage />} />
-                    </Route>
-                    {/* </Route> */}
+                    <Route path="/admin/login" element={<AdminLoginPage />} />
                     <Route element={<AdminProtectedRoute />}>
                         <Route path="/quan-tri" element={<AdminLayout />}>
                             <Route path="cau-hinh" element={<SettingPage />} />
