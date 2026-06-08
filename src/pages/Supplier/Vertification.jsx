@@ -1,9 +1,9 @@
 import { useState } from "react";
 // import Toolbar from "../../components/Admin/UI/Toolbar";
-import Filter  from "../../components/Admin/UI/Filter";
-import ProductTable from "../../components/Supplier/Product/ProductTable";
+import Filter  from "../../components/Admin/UI/Filter"; 
+import CertificationTable from "../../components/Supplier/Certification/CertificationTable";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
-import CreateProductModal from "../../components/Supplier/Product/CreateProductModal";
+import CreateCertificationModal from "../../components/Supplier/Certification/CreateCertificationModal";
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 const INITIAL_DATA = [
@@ -16,7 +16,7 @@ const INITIAL_DATA = [
   { id: 7, code: "#GM-P-07", name: "Ớt chuông đỏ",    price: 22000, unit: "kg", inventory: 90, status: "pending", image: "../public/images/rau.jpg" },
 ];
 
-export default function ProductSupplierPage() {
+export default function CertificationSupplierPage() {
   const [data,         setData]         = useState(INITIAL_DATA);
   const [search,       setSearch]       = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -45,7 +45,7 @@ export default function ProductSupplierPage() {
   }
   return (
     <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
-        <h1>Quản lý sản phẩm</h1>
+        <h1>Quản lý chứng nhận      </h1>
       {/* Toolbar: search + filter button + add CTA */}
       <div className="flex justify-between items-center">
       <input
@@ -58,7 +58,7 @@ export default function ProductSupplierPage() {
         onClick={() => setCreateRow({})}
         className="px-4 py-2 bg-emerald-800 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700"
       >
-        + Thêm sản phẩm
+        + Thêm chứng nhận mới
       </button>
     </div>
 
@@ -71,7 +71,7 @@ export default function ProductSupplierPage() {
       </div>
 
       {/* Data table — pagination & sort built-in */}
-      <ProductTable
+      <CertificationTable
         data={data}
         search={search}
         statusFilter={statusFilter}
@@ -87,7 +87,7 @@ export default function ProductSupplierPage() {
         itemName={deleteRow?.name ?? ""}
         itemType="sản phẩm"
       />
-      <CreateProductModal
+      <CreateCertificationModal
         isOpen={createRow !== null}
         onClose={() => setCreateRow(null)}
         onConfirm={handleCreate}

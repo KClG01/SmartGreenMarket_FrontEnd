@@ -49,7 +49,7 @@ export const certificationService = {
 
   // --- SUPPLIER
   create: (data) =>
-    axiosClient.post("/certifications", data).then((res) => res.data.data),
+    axiosClient.post("/certifications/", data).then((res) => res.data.data),
 
   //   {
   //     "name": "string",

@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 import { X, RefreshCw, Info, Tag, ToggleLeft, ImageIcon, Lightbulb, Plus, CloudUpload } from "lucide-react";
 
-
-export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
+/**
+ * CreateInventoryModal — Standalone modal, không cần import Modal base
+ * Props:
+ *   isOpen    : boolean
+ *   onClose   : () => void
+ *   onConfirm : (formData) => void
+ */
+export default function CreateInventoryModal({ isOpen, onClose, onConfirm }) {
   const [status, setStatus] = useState("active");
   const [images, setImages] = useState([]);
   const [form, setForm] = useState({
@@ -84,7 +90,7 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
         <div className="flex items-center justify-between px-6 pt-5 pb-4 flex-shrink-0">
           <div>
             <h2 className="text-emerald-950 text-lg font-bold font-['Geist',sans-serif]">
-              Thêm Sản Phẩm Mới
+              Thêm Lô Hàng Mới
             </h2>
             <p className="text-xs text-zinc-400 mt-0.5">
               Vui lòng điền đầy đủ các thông tin bắt buộc để niêm yết sản phẩm lên hệ thống.
@@ -127,7 +133,7 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
                 </div>
 
                 {/* Nhóm + SKU */}
-                <div className="mb-3">
+                <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className={labelClass}>Nhóm rau (*)</label>
                     <select
@@ -141,6 +147,24 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
                       <option>Rau quả</option>
                       <option>Rau thơm</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>SKU (Mã lô)</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={form.sku}
+                        onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                        className={inputClass}
+                      />
+                      <button
+                        onClick={generateSku}
+                        title="Tạo SKU mới"
+                        className="px-2.5 border border-zinc-200 rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-zinc-700 transition-colors flex-shrink-0"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -164,7 +188,20 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
                   <span className="text-sm font-semibold text-zinc-800">Phân loại &amp; Giá</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-3 gap-3 mb-3">
+                  <div>
+                    <label className={labelClass}>Số lượng (*)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        value={form.Count}
+                        onChange={(e) => setForm({ ...form, Count: e.target.value })}
+                        className={`${inputClass} pr-7`}
+                      />
+                    </div>
+                  </div>
                   <div>
                     <label className={labelClass}>Đơn vị tính (*)</label>
                     <select
@@ -195,7 +232,21 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Giá bán (*)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        value={form.wholesalePrice}
+                        onChange={(e) => setForm({ ...form, wholesalePrice: e.target.value })}
+                        className={`${inputClass} pr-7`}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400">đ</span>
+                    </div>
+                  </div>
                   <div>
                     <label className={labelClass}>Chứng nhận/Quy trình</label>
                     <select
@@ -282,7 +333,7 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
               </div>
 
               {/* Hình ảnh */}
-              <div className="border border-zinc-200 rounded-xl p-3">
+              {/* <div className="border border-zinc-200 rounded-xl p-3">
                 <div className="flex items-center justify-between mb-3 pb-2 border-b border-zinc-100">
                   <div className="flex items-center gap-2">
                     <ImageIcon className="w-4 h-4 text-green-700 flex-shrink-0" />
@@ -291,7 +342,6 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
                   <span className="text-xs text-zinc-400">Tối đa 3 ảnh</span>
                 </div>
 
-                {/* Drop zone */}
                 <label className="border-2 border-dashed border-zinc-200 rounded-lg p-4 text-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition-colors block mb-3 group">
                   <input
                     type="file"
@@ -308,7 +358,6 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
                   <div className="text-xs text-zinc-400 mt-0.5">PNG, JPG tối đa 2MB</div>
                 </label>
 
-                {/* Preview grid */}
                 <div className="grid grid-cols-3 gap-2">
                   {images.map((src, i) => (
                     <div key={i} className="aspect-square rounded-lg overflow-hidden bg-zinc-100 relative group">
@@ -328,7 +377,7 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
                     </label>
                   )}
                 </div>
-              </div>
+              </div> */}
 
               {/* Mẹo tối ưu */}
               <div className="bg-green-50 border border-green-200 rounded-xl p-3">

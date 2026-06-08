@@ -12,7 +12,7 @@ const STATUS_CONFIG = {
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView, onDelete) => [
   {
-    name: "Mã sản phẩm",
+    name: "Mã lô",
     selector: (row) => row.code,
     sortable: true,
     width: "100px",
@@ -57,7 +57,18 @@ const buildColumns = (onView, onDelete) => [
     ),
   },
   {
-    name: "Ngày tạo",
+    name: "Tồn kho",
+    selector: (row) => row.inventory,
+    sortable: true,
+    width: "100px",
+    cell: (row) => (
+      <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
+        {row.inventory} {row.unit}
+      </span>
+    ),
+  },
+  {
+    name: "Ngày nhập",
     selector: (row) => row.unit,
     sortable: true,
     width: "150px",
@@ -68,13 +79,13 @@ const buildColumns = (onView, onDelete) => [
     ),
   },
   {
-    name: "Đơn vị",
+    name: "Ngày hết hạn ",
     selector: (row) => row.unit,
     sortable: true,
     width: "150px",
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {row.unit}
+        {new Date(row.createdAt).toLocaleDateString("vi-VN")}
       </span>
     ),
   },
@@ -118,16 +129,7 @@ const buildColumns = (onView, onDelete) => [
   },
 ];
 
-/**
- * ProductTable
- * Props:
- *   data         : Product[]
- *   search       : string
- *   statusFilter : string  — "" | "active" | "paused" | "pending"
- *   onView       : (row) => void
- *   onDelete     : (row) => void
- */
-export default function ProductTable({ data, search, statusFilter, onView, onDelete }) {
+export default function InventoryTable({ data, search, statusFilter, onView, onDelete }) {
   const filtered = data.filter((row) => {
     const matchName = row.name.toLowerCase().includes((search ?? "").toLowerCase());
     const matchStatus = statusFilter ? row.status === statusFilter : true;

@@ -12,10 +12,10 @@ const STATUS_CONFIG = {
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView, onDelete) => [
   {
-    name: "Mã sản phẩm",
+    name: "Mã chứng nhận",
     selector: (row) => row.code,
     sortable: true,
-    width: "100px",
+    width: "200px",
     cell: (row) => (
       <span className="text-emerald-800 text-xs font-semibold font-mono">
         {row.code}
@@ -46,18 +46,7 @@ const buildColumns = (onView, onDelete) => [
     ),
   },
   {
-    name: "Giá bán",
-    selector: (row) => row.price,
-    sortable: true,
-    width: "120px",
-    cell: (row) => (
-      <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {Number(row.price).toLocaleString("vi-VN")} VNĐ
-      </span>
-    ),
-  },
-  {
-    name: "Ngày tạo",
+    name: "Ngày cấp",
     selector: (row) => row.unit,
     sortable: true,
     width: "150px",
@@ -68,13 +57,13 @@ const buildColumns = (onView, onDelete) => [
     ),
   },
   {
-    name: "Đơn vị",
+    name: "Ngày hết hạn ",
     selector: (row) => row.unit,
     sortable: true,
     width: "150px",
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {row.unit}
+        {new Date(row.createdAt).toLocaleDateString("vi-VN")}
       </span>
     ),
   },
@@ -118,16 +107,7 @@ const buildColumns = (onView, onDelete) => [
   },
 ];
 
-/**
- * ProductTable
- * Props:
- *   data         : Product[]
- *   search       : string
- *   statusFilter : string  — "" | "active" | "paused" | "pending"
- *   onView       : (row) => void
- *   onDelete     : (row) => void
- */
-export default function ProductTable({ data, search, statusFilter, onView, onDelete }) {
+export default function CertificationTable({ data, search, statusFilter, onView, onDelete }) {
   const filtered = data.filter((row) => {
     const matchName = row.name.toLowerCase().includes((search ?? "").toLowerCase());
     const matchStatus = statusFilter ? row.status === statusFilter : true;
@@ -146,7 +126,7 @@ export default function ProductTable({ data, search, statusFilter, onView, onDel
         customStyles={tableStyles}
         noDataComponent={
           <div className="py-16 text-sm text-neutral-400 font-['Geist']">
-            Không tìm thấy sản phẩm phù hợp.
+            Không tìm thấy danh sách chứng nhận.
           </div>
         }
         defaultSortFieldId={1}
