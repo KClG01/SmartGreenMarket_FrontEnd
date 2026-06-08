@@ -50,7 +50,11 @@ export const certificationService = {
 
   // --- SUPPLIER
   create: (data) =>
-    axiosClient.post("/certifications/", data).then((res) => res.data.data),
+    axiosClient.post("/certifications/", data, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    }).then((res) => res.data), // <-- CHÚ Ý: Tuyệt đối không để res.data.data
 
   //   {
   //     "name": "string",

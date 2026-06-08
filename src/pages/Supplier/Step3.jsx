@@ -1,56 +1,61 @@
 import React, { useRef, useState } from "react";
+import { supplierDocumentService } from "../../services/api/supplierdocumentService";
 
 const DOC_TYPES = [
   {
-    key: "cccd",
+    key: "id_card",           // ← đổi key khớp với field API
     name: "CCCD / Hộ chiếu",
     desc: "Căn cước công dân hoặc hộ chiếu còn hạn",
     icon: "🪪",
-    document_type: "identity",
   },
   {
-    key: "business_license",
+    key: "business_license",  // ← giữ nguyên
     name: "Giấy phép kinh doanh",
     desc: "Đăng ký doanh nghiệp / hộ kinh doanh",
     icon: "📋",
-    document_type: "business_license",
   },
   {
-    key: "certificate",
+    key: "tax_certificate",   // ← đổi key
     name: "Chứng nhận sản phẩm",
     desc: "VietGAP, GlobalGAP, hữu cơ hoặc tương đương",
     icon: "🏅",
-    document_type: "product_certificate",
   },
 ];
 
-export default function Step3({ onNext, onBack }) {
-  const [uploaded, setUploaded] = useState({});
-  const [dragging, setDragging] = useState(false);
-  const fileInputRef = useRef(null);
 
-  const handleFile = (file, docKey) => {
+export default function Step3({ onNext, onBack }) {
+  // Lưu File object thực tế, chưa upload
+  const [selectedFiles, setSelectedFiles] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Chỉ lưu file vào state, chưa gọi API
+  const handleFileSelect = (file, docKey) => {
     if (!file) return;
-    // TODO: POST /documents/upload with FormData { file, document_type }
-    console.log("Upload doc:", docKey, file.name);
-    setUploaded((prev) => ({
+    setSelectedFiles((prev) => ({
       ...prev,
-      [docKey]: { status: "pending", name: file.name },
+      [docKey]: file,
     }));
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleFile(file, "business_license"); // fallback: assign to first unuploaded
-  };
+  // Nhấn "Hoàn tất" mới gửi tất cả lên API
+  const handleSubmit = async () => {
+  try {
+    setError("");
+    setLoading(true);
 
-  const handleSubmit = () => {
-    // TODO: finalize registration
-    console.log("All uploaded docs:", uploaded);
+    await supplierDocumentService.upload(selectedFiles);
+
     onNext();
-  };
+  } catch (err) {
+    console.error("Upload lỗi DATA:", err.response?.data);
+    setError(
+      JSON.stringify(err.response?.data) || "Có lỗi khi tải lên giấy tờ."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="animate-[fadeSlide_0.28s_ease]">
@@ -62,63 +67,44 @@ export default function Step3({ onNext, onBack }) {
         <strong className="text-[#141b2b]">1–3 ngày làm việc</strong>.
       </p>
 
-      {/* Drop zone */}
-      {/* <div
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-2xl p-7 text-center cursor-pointer transition-all mb-5
-          ${dragging
-            ? "border-[#006c49] bg-[#e6f4ec]"
-            : "border-[#b0d4be] bg-[#f6fbf8] hover:border-[#006c49] hover:bg-[#eef8f2]"
-          }`}
-      >
-        <div className="text-4xl mb-2">📁</div>
-        <div className="text-[14px] font-bold text-[#141b2b] mb-1">
-          Kéo thả tệp hoặc nhấn để chọn
+      {error && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
+          {error}
         </div>
-        <div className="text-[12px] text-[#7a8f7e]">
-          Hỗ trợ JPG, PNG, PDF — tối đa 10MB/file
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".jpg,.jpeg,.png,.pdf"
-          className="hidden"
-          onChange={(e) => handleFile(e.target.files?.[0], "business_license")}
-        />
-      </div> */}
+      )}
 
-      {/* Document type list */}
       <div className="flex flex-col gap-2.5 mb-6">
         {DOC_TYPES.map((doc) => {
-          const isUploaded = !!uploaded[doc.key];
+          const file = selectedFiles[doc.key];
           return (
             <DocCard
               key={doc.key}
               doc={doc}
-              isUploaded={isUploaded}
-              uploadedName={uploaded[doc.key]?.name}
-              onUpload={(file) => handleFile(file, doc.key)}
+              selectedFile={file}
+              onSelect={(f) => handleFileSelect(f, doc.key)}
             />
           );
         })}
       </div>
 
-      {/* Actions */}
       <div className="flex gap-3">
         <button
           onClick={onBack}
+          disabled={loading}
           className="px-5 py-3 bg-white text-[#006c49] border border-[#d1e5d9] rounded-xl text-[14px] font-semibold hover:border-[#006c49] hover:bg-[#f0faf4] transition-all"
         >
           ← Quay lại
         </button>
         <button
           onClick={handleSubmit}
-          className="flex-1 py-3 bg-[#006c49] hover:bg-[#005038] text-white rounded-xl text-[15px] font-bold flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
+          disabled={loading}
+          className={`flex-1 py-3 text-white rounded-xl text-[15px] font-bold flex items-center justify-center gap-2 transition-all
+            ${loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-[#006c49] hover:bg-[#005038] hover:-translate-y-0.5"
+            }`}
         >
-          Hoàn tất đăng ký ✓
+          {loading ? "Đang tải lên..." : "Hoàn tất đăng ký ✓"}
         </button>
       </div>
 
@@ -129,47 +115,46 @@ export default function Step3({ onNext, onBack }) {
   );
 }
 
-function DocCard({ doc, isUploaded, uploadedName, onUpload }) {
+function DocCard({ doc, selectedFile, onSelect }) {
   const inputRef = useRef(null);
 
   return (
     <div
       className={`flex items-center gap-4 p-4 rounded-xl border transition-all
-        ${isUploaded
-          ? "border-emerald-400 bg-[#f0fdf8]"
-          : "border-[#d1e5d9] bg-white"
-        }`}
+        ${selectedFile ? "border-emerald-400 bg-[#f0fdf8]" : "border-[#d1e5d9] bg-white"}`}
     >
       <span className="text-2xl flex-shrink-0">{doc.icon}</span>
 
       <div className="flex-1 min-w-0">
         <div className="text-[13px] font-bold text-[#141b2b]">{doc.name}</div>
         <div className="text-[11.5px] text-[#7a8f7e] truncate">
-          {isUploaded ? uploadedName : doc.desc}
+          {selectedFile ? selectedFile.name : doc.desc}
         </div>
       </div>
 
-      {isUploaded ? (
-        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-600 whitespace-nowrap">
-          ✓ Đã tải
-        </span>
+      {selectedFile ? (
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-600 whitespace-nowrap hover:bg-emerald-200 transition-all"
+        >
+          ✓ Đã chọn
+        </button>
       ) : (
-        <>
-          <button
-            onClick={() => inputRef.current?.click()}
-            className="px-3 py-1.5 bg-[#f1f5f2] border border-[#d1e5d9] rounded-lg text-[12px] font-semibold text-[#006c49] hover:bg-[#006c49] hover:text-white hover:border-[#006c49] transition-all whitespace-nowrap"
-          >
-            Tải lên
-          </button>
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".jpg,.jpeg,.png,.pdf"
-            className="hidden"
-            onChange={(e) => onUpload(e.target.files?.[0])}
-          />
-        </>
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="px-3 py-1.5 bg-[#f1f5f2] border border-[#d1e5d9] rounded-lg text-[12px] font-semibold text-[#006c49] hover:bg-[#006c49] hover:text-white hover:border-[#006c49] transition-all whitespace-nowrap"
+        >
+          Chọn file
+        </button>
       )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".jpg,.jpeg,.png,.pdf"
+        className="hidden"
+        onChange={(e) => onSelect(e.target.files?.[0])}
+      />
     </div>
   );
 }

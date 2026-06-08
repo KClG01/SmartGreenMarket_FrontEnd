@@ -8,7 +8,7 @@ export default function LeftPanel() {
         className="absolute inset-0 bg-cover bg-center opacity-50"
         style={{
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800')",
+            "url('https://vietpatservice.com/wp-content/uploads/2015/01/rau-cu-sach.jpg')",
           mixBlendMode: "overlay",
         }}
       />
