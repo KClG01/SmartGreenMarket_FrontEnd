@@ -1,67 +1,215 @@
+
 import { useState, useEffect } from "react";
-import { X, RefreshCw, Info, Tag, ToggleLeft, ImageIcon, Lightbulb, Plus, CloudUpload } from "lucide-react";
+import {
+  X, Info, Tag, ToggleLeft, ImageIcon, Lightbulb,
+  Plus, CloudUpload, Loader2, Thermometer, Star,
+} from "lucide-react";
 
+// ─────────────────────────────────────────────────────────────
+// Import service  ← điều chỉnh đường dẫn nếu cần
+// ─────────────────────────────────────────────────────────────
+import { categoryService } from "../../../services/api/categoryService";
+import { productService } from "../../../services/api/productService";
+// ─────────────────────────────────────────────────────────────
+// API response schema (để tham khảo, không cần sửa)
+// POST /supplier-products/  →  multipart/form-data
+// {
+//   id, status, name, slug, unit, description,
+//   storage_duration_days, min_storage_temp, max_storage_temp,
+//   verified_at, rejection_reason, created_at, updated_at,
+//   supplier, category, verified_by,
+//   images: [{ id, supplier_product, image_url, is_thumbnail, sort_order, created_at }]
+// }
+// ─────────────────────────────────────────────────────────────
 
-export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
-  const [status, setStatus] = useState("active");
-  const [images, setImages] = useState([]);
+// ─────────────────────────────────────────────────────────────
+// Shared style tokens
+// ─────────────────────────────────────────────────────────────
+const inputCls =
+  "w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-colors placeholder:text-zinc-300 disabled:bg-zinc-50 disabled:text-zinc-400";
+const selectCls =
+  "w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-colors bg-white disabled:bg-zinc-50 disabled:text-zinc-400";
+const labelCls = "text-xs text-zinc-500 block mb-1";
+
+// ─────────────────────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────────────────────
+/**
+ * Props:
+ *   isOpen    : boolean
+ *   onClose   : () => void
+ *   onSuccess : (createdProduct) => void   ← nhận object từ API để parent reload list
+ */
+export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
+  // ── form state — key = tên field API ──────────────────────
   const [form, setForm] = useState({
-    name: "",
-    group: "",
-    sku: "AG-12345-LEAF",
-    description: "",
-    certification: "VietGAP",
-    unit: "kg",
-    shelfLife: "",
-    wholesalePrice: "",
-    retailPrice: "",
+    name: "",                  // API: name
+    category: "",              // API: category (integer ID)
+    unit: "kg",                // API: unit
+    description: "",           // API: description
+    storage_duration_days: "", // API: storage_duration_days
+    min_storage_temp: "",      // API: min_storage_temp  (decimal string)
+    max_storage_temp: "",      // API: max_storage_temp  (decimal string)
   });
 
-  // Close on Escape
+  // ── images: [{ file: File, preview: string }] — tối đa 3 ──
+  const [images, setImages] = useState([]);
+  const [thumbnailIdx, setThumbnailIdx] = useState(0); // index ảnh thumbnail
+
+  // ── misc ──
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [categories, setCategories] = useState([]); // fetch từ GET /categories/
+
+  // Escape key
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [isOpen, onClose]);
+    const h = (e) => { if (e.key === "Escape" && !saving) onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [isOpen, onClose, saving]);
 
-  // Lock body scroll
+  // Body scroll lock
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = isOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
+
+  // Cleanup object URLs
+  useEffect(() => {
+    return () => { images.forEach((img) => URL.revokeObjectURL(img.preview)); };
+  }, [images]);
+
+  // Fetch danh sách categories khi modal mở — dùng categoryService.getsupplierCategories()
+  // GET /categories/ → res.data.results → [{ id, name, status }]
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    categoryService
+      .getsupplierCategories()
+      .then((list) => {
+        if (!cancelled) setCategories(list ?? []);
+      })
+      .catch((err) => {
+        console.error("[CreateProductModal] fetch categories error:", err);
+        if (!cancelled) setCategories([]);
+      });
+    return () => { cancelled = true; };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const generateSku = () => {
-    const rand = Math.random().toString(36).substring(2, 7).toUpperCase();
-    setForm((f) => ({ ...f, sku: `SU-${rand}-LEAF` }));
-  };
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
+  // ── image handlers ──────────────────────────────────────────
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    const previews = files.map((f) => URL.createObjectURL(f));
-    setImages((prev) => [...prev, ...previews].slice(0, 3));
+    const toAdd = files.map((file) => ({ file, preview: URL.createObjectURL(file) }));
+    setImages((prev) => {
+      const next = [...prev, ...toAdd].slice(0, 3);
+      return next;
+    });
   };
 
   const removeImage = (idx) => {
-    setImages((prev) => prev.filter((_, i) => i !== idx));
+    URL.revokeObjectURL(images[idx].preview);
+    setImages((prev) => {
+      const next = prev.filter((_, i) => i !== idx);
+      if (thumbnailIdx >= next.length) setThumbnailIdx(Math.max(0, next.length - 1));
+      return next;
+    });
   };
 
-  const handleConfirm = () => {
-    onConfirm?.({ ...form, status, images });
-    onClose();
-  };
+  // ── submit ──────────────────────────────────────────────────
+  // ── submit ──────────────────────────────────────────────────
+  const handleSubmit = async () => {
+    setError(null);
 
-  const inputClass =
-    "w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-colors placeholder:text-zinc-300";
-  const selectClass =
-    "w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-colors bg-white";
-  const labelClass = "text-xs text-zinc-500 block mb-1";
+    // Validate bắt buộc
+    if (!form.name.trim() || !form.category || !form.unit) {
+      setError("Vui lòng điền đầy đủ các trường bắt buộc (*).");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // =========================================================
+      // BƯỚC 1: GỬI THÔNG TIN SẢN PHẨM (TEXT) TRƯỚC
+      // =========================================================
+      const productFd = new FormData();
+      const name = form.name.trim();
+      const slug = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+
+      productFd.append("name", name);
+      productFd.append("slug", slug);
+      productFd.append("category", parseInt(form.category, 10));
+      productFd.append("unit", form.unit);
+      if (form.description.trim()) productFd.append("description", form.description.trim());
+      if (form.storage_duration_days !== "") productFd.append("storage_duration_days", parseInt(form.storage_duration_days, 10));
+      if (form.min_storage_temp !== "") productFd.append("min_storage_temp", form.min_storage_temp);
+      if (form.max_storage_temp !== "") productFd.append("max_storage_temp", form.max_storage_temp);
+
+      // Gọi API tạo sản phẩm
+      const newProduct = await productService.addProduct(productFd);
+
+      // Lấy ID của sản phẩm vừa tạo thành công
+      // (Tùy thuộc vào Backend trả về, thường sẽ nằm ở newProduct.id hoặc newProduct.data.id)
+      const productId = newProduct?.id;
+
+      if (!productId) {
+        throw new Error("Tạo sản phẩm thành công nhưng không lấy được ID để upload ảnh.");
+      }
+
+      // =========================================================
+      // BƯỚC 2: DÙNG ID SẢN PHẨM ĐỂ UPLOAD LẦN LƯỢT CÁC ẢNH
+      // =========================================================
+      if (images.length > 0) {
+        // Tạo ra một mảng chứa các Promise upload ảnh
+        const uploadPromises = images.map((img, index) => {
+          const imageFd = new FormData();
+
+          // Gắn ID sản phẩm vào ảnh (Tên key 'supplier_product' phải khớp với Backend)
+          imageFd.append("supplier_product", productId);
+
+          // Gắn file ảnh (Tên key 'image' phải khớp với Backend)
+          imageFd.append("images", img.file);
+
+          // Đánh dấu ảnh nào là thumbnail (nếu BE có hỗ trợ trường này)
+          imageFd.append("is_thumbnail", index === thumbnailIdx ? "true" : "false");
+          imageFd.append("sort_order", index);
+
+          // Trả về request upload (chưa chạy ngay)
+          return productService.addImageProduct(imageFd);
+        });
+
+        // Chạy song song tất cả các request upload ảnh
+        await Promise.all(uploadPromises);
+      }
+
+      // Báo về Component cha (Product.jsx) để load lại danh sách mới
+      onSuccess?.(newProduct);
+      onClose();
+
+    } catch (err) {
+      console.error("[CreateProductModal] submit error:", err);
+      const data = err?.response?.data;
+      let msg = "Lưu sản phẩm thất bại, vui lòng thử lại!";
+
+      if (data && typeof data === "object" && !Array.isArray(data)) {
+        const fieldErrors = Object.entries(data)
+          .filter(([k]) => k !== "detail" && k !== "message")
+          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+          .join(" | ");
+        msg = fieldErrors || data?.detail || data?.message || msg;
+      } else {
+        msg = data?.detail || data?.message || err?.message || msg;
+      }
+
+      setError(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div
@@ -70,29 +218,26 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
       role="dialog"
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={() => !saving && onClose()} />
 
       {/* Panel */}
       <div
         className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
         style={{ animation: "modalIn 0.18s ease-out both", maxHeight: "92vh" }}
       >
-        {/* Header */}
+
+        {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4 flex-shrink-0">
           <div>
-            <h2 className="text-emerald-950 text-lg font-bold font-['Geist',sans-serif]">
-              Thêm Sản Phẩm Mới
-            </h2>
+            <h2 className="text-emerald-950 text-lg font-bold">Thêm Sản Phẩm Mới</h2>
             <p className="text-xs text-zinc-400 mt-0.5">
               Vui lòng điền đầy đủ các thông tin bắt buộc để niêm yết sản phẩm lên hệ thống.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors flex-shrink-0 ml-4"
+            disabled={saving}
+            className="w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors flex-shrink-0 ml-4 disabled:opacity-50"
           >
             <X className="w-4 h-4" />
           </button>
@@ -100,234 +245,249 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
 
         <div className="h-px bg-neutral-100 mx-6 flex-shrink-0" />
 
-        {/* Body — scrollable */}
+        {/* ── Body ── */}
         <div className="overflow-y-auto flex-1 px-6 py-5">
+
+          {/* Error banner */}
+          {error && (
+            <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-xs text-red-700 flex items-start gap-2">
+              <X className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+              {error}
+            </div>
+          )}
+
           <div className="grid grid-cols-[1fr_236px] gap-4">
 
             {/* ── Cột trái ── */}
             <div className="flex flex-col gap-4">
 
               {/* Thông tin cơ bản */}
-              <div className="border border-zinc-200 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-100">
-                  <Info className="w-4 h-4 text-green-700 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-zinc-800">Thông tin cơ bản</span>
-                </div>
+              <Section icon={<Info className="w-4 h-4 text-green-700" />} title="Thông tin cơ bản">
 
-                {/* Tên rau */}
+                {/* name */}
                 <div className="mb-3">
-                  <label className={labelClass}>Tên rau (*)</label>
+                  <label className={labelCls}>Tên sản phẩm (*)</label>
                   <input
                     type="text"
                     placeholder="Nhập tên sản phẩm (VD: Xà lách lụa)"
                     value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className={inputClass}
+                    onChange={(e) => set("name", e.target.value)}
+                    className={inputCls}
+                    disabled={saving}
                   />
                 </div>
 
-                {/* Nhóm + SKU */}
+                {/* category */}
                 <div className="mb-3">
-                  <div>
-                    <label className={labelClass}>Nhóm rau (*)</label>
-                    <select
-                      value={form.group}
-                      onChange={(e) => setForm({ ...form, group: e.target.value })}
-                      className={selectClass}
-                    >
-                      <option value="">Chọn nhóm rau</option>
-                      <option>Rau lá</option>
-                      <option>Rau củ</option>
-                      <option>Rau quả</option>
-                      <option>Rau thơm</option>
-                    </select>
-                  </div>
+                  <label className={labelCls}>Nhóm rau — danh mục (*)</label>
+                  <select
+                    value={form.category}
+                    onChange={(e) => set("category", e.target.value)}
+                    className={selectCls}
+                    disabled={saving}
+                  >
+                    <option value="">
+                      {categories.length === 0 ? "Đang tải danh mục..." : "Chọn nhóm rau"}
+                    </option>
+                    {categories
+                      .filter((c) => c.status === "active")
+                      .map((c) => (
+                        <option key={c.id} value={String(c.id)}>
+                          {c.name}
+                        </option>
+                      ))}
+                  </select>
                 </div>
 
-                {/* Mô tả */}
+                {/* description */}
                 <div>
-                  <label className={labelClass}>Mô tả chi tiết</label>
+                  <label className={labelCls}>Mô tả chi tiết</label>
                   <textarea
                     placeholder="Thông tin về đặc điểm, công dụng, cách bảo quản..."
                     value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    onChange={(e) => set("description", e.target.value)}
                     rows={3}
-                    className={`${inputClass} resize-none`}
+                    className={`${inputCls} resize-none`}
+                    disabled={saving}
                   />
                 </div>
-              </div>
+              </Section>
 
-              {/* Phân loại & Giá */}
-              <div className="border border-zinc-200 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-100">
-                  <Tag className="w-4 h-4 text-green-700 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-zinc-800">Phân loại &amp; Giá</span>
-                </div>
+              {/* Phân loại */}
+              <Section icon={<Tag className="w-4 h-4 text-green-700" />} title="Phân loại & Đơn vị">
+                <div className="grid grid-cols-2 gap-3">
 
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                  {/* unit */}
                   <div>
-                    <label className={labelClass}>Đơn vị tính (*)</label>
+                    <label className={labelCls}>Đơn vị tính (*)</label>
                     <select
                       value={form.unit}
-                      onChange={(e) => setForm({ ...form, unit: e.target.value })}
-                      className={selectClass}
+                      onChange={(e) => set("unit", e.target.value)}
+                      className={selectCls}
+                      disabled={saving}
                     >
                       <option>kg</option>
                       <option>bó</option>
                       <option>cái</option>
                       <option>túi</option>
                       <option>hộp</option>
+                      <option>thùng</option>
                     </select>
                   </div>
+
+                  {/* storage_duration_days */}
                   <div>
-                    <label className={labelClass}>Thời hạn bảo quản</label>
+                    <label className={labelCls}>Thời hạn bảo quản</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
                         min="0"
                         placeholder="Số ngày"
-                        value={form.shelfLife}
-                        onChange={(e) => setForm({ ...form, shelfLife: e.target.value })}
-                        className={inputClass}
+                        value={form.storage_duration_days}
+                        onChange={(e) => set("storage_duration_days", e.target.value)}
+                        className={inputCls}
+                        disabled={saving}
                       />
                       <span className="text-xs text-zinc-400 whitespace-nowrap">ngày</span>
                     </div>
                   </div>
                 </div>
+              </Section>
 
-                <div className="grid grid-cols-1 gap-3">
+              {/* Nhiệt độ bảo quản */}
+              <Section icon={<Thermometer className="w-4 h-4 text-green-700" />} title="Nhiệt độ bảo quản">
+                <div className="grid grid-cols-2 gap-3">
+
+                  {/* min_storage_temp */}
                   <div>
-                    <label className={labelClass}>Chứng nhận/Quy trình</label>
-                    <select
-                      value={form.certification}
-                      onChange={(e) => setForm({ ...form, certification: e.target.value })}
-                      className={selectClass}
-                    >
-                      <option>VietGAP</option>
-                      <option>Organic</option>
-                      <option>GlobalGAP</option>
-                      <option>Hữu cơ</option>
-                      <option>Bình thường</option>
-                    </select>
-                  </div>
-                  {/* <div>
-                    <label className={labelClass}>Giá bán lẻ</label>
+                    <label className={labelCls}>Nhiệt độ tối thiểu</label>
                     <div className="relative">
                       <input
                         type="number"
-                        min="0"
-                        placeholder="0"
-                        value={form.retailPrice}
-                        onChange={(e) => setForm({ ...form, retailPrice: e.target.value })}
-                        className={`${inputClass} pr-7`}
+                        step="0.1"
+                        placeholder="VD: 2"
+                        value={form.min_storage_temp}
+                        onChange={(e) => set("min_storage_temp", e.target.value)}
+                        className={`${inputCls} pr-8`}
+                        disabled={saving}
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400">đ</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400">°C</span>
                     </div>
-                  </div> */}
+                  </div>
+
+                  {/* max_storage_temp */}
+                  <div>
+                    <label className={labelCls}>Nhiệt độ tối đa</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="VD: 8"
+                        value={form.max_storage_temp}
+                        onChange={(e) => set("max_storage_temp", e.target.value)}
+                        className={`${inputCls} pr-8`}
+                        disabled={saving}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400">°C</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
+                <p className="text-xs text-zinc-400 mt-2">
+                  Để trống nếu không có yêu cầu nhiệt độ bảo quản cụ thể.
+                </p>
+              </Section>
             </div>
 
             {/* ── Cột phải ── */}
             <div className="flex flex-col gap-3">
 
-              {/* Trạng thái */}
-              <div className="border border-zinc-200 rounded-xl p-3">
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-100">
-                  <ToggleLeft className="w-4 h-4 text-green-700 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-zinc-800">Trạng thái</span>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label
-                    className={`flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors ${
-                      status === "active"
-                        ? "border-green-600 bg-green-50"
-                        : "border-zinc-200 hover:bg-zinc-50"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="modal-status"
-                      value="active"
-                      checked={status === "active"}
-                      onChange={() => setStatus("active")}
-                      className="mt-0.5 accent-green-700"
-                    />
-                    <div>
-                      <div className="text-xs font-semibold text-green-900">Đang kinh doanh</div>
-                      <div className="text-xs text-green-700 mt-0.5">Sản phẩm sẽ hiển thị trên hệ thống</div>
-                    </div>
-                  </label>
-                  <label
-                    className={`flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors ${
-                      status === "paused"
-                        ? "border-green-600 bg-green-50"
-                        : "border-zinc-200 hover:bg-zinc-50"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="modal-status"
-                      value="paused"
-                      checked={status === "paused"}
-                      onChange={() => setStatus("paused")}
-                      className="mt-0.5 accent-green-700"
-                    />
-                    <div>
-                      <div className="text-xs font-semibold text-zinc-700">Tạm ngừng</div>
-                      <div className="text-xs text-zinc-400 mt-0.5">Tạm thời ẩn khỏi danh sách bán</div>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Hình ảnh */}
+              {/* Hình ảnh — tối đa 3, chọn thumbnail */}
               <div className="border border-zinc-200 rounded-xl p-3">
                 <div className="flex items-center justify-between mb-3 pb-2 border-b border-zinc-100">
                   <div className="flex items-center gap-2">
                     <ImageIcon className="w-4 h-4 text-green-700 flex-shrink-0" />
                     <span className="text-sm font-semibold text-zinc-800">Hình ảnh</span>
                   </div>
-                  <span className="text-xs text-zinc-400">Tối đa 3 ảnh</span>
+                  <span className="text-xs text-zinc-400">{images.length}/3 ảnh</span>
                 </div>
 
                 {/* Drop zone */}
-                <label className="border-2 border-dashed border-zinc-200 rounded-lg p-4 text-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition-colors block mb-3 group">
+                <label
+                  className={`border-2 border-dashed border-zinc-200 rounded-lg p-4 text-center cursor-pointer
+                    hover:border-green-400 hover:bg-green-50 transition-colors block mb-3 group
+                    ${saving || images.length >= 3 ? "opacity-50 pointer-events-none" : ""}`}
+                >
                   <input
                     type="file"
-                    accept="image/png,image/jpeg"
+                    accept="image/png,image/jpeg,image/webp"
                     multiple
                     className="hidden"
                     onChange={handleImageUpload}
-                    disabled={images.length >= 3}
+                    disabled={saving || images.length >= 3}
                   />
                   <CloudUpload className="w-6 h-6 text-zinc-400 group-hover:text-green-600 mx-auto mb-1.5 transition-colors" />
                   <div className="text-xs font-medium text-zinc-600 group-hover:text-green-700 transition-colors">
                     Kéo thả hoặc Click để tải lên
                   </div>
-                  <div className="text-xs text-zinc-400 mt-0.5">PNG, JPG tối đa 2MB</div>
+                  <div className="text-xs text-zinc-400 mt-0.5">PNG, JPG — tối đa 2MB/ảnh</div>
                 </label>
 
                 {/* Preview grid */}
                 <div className="grid grid-cols-3 gap-2">
-                  {images.map((src, i) => (
-                    <div key={i} className="aspect-square rounded-lg overflow-hidden bg-zinc-100 relative group">
-                      <img src={src} alt="" className="w-full h-full object-cover" />
+                  {images.map((img, i) => (
+                    <div key={i} className="relative group">
+                      <div
+                        className={`aspect-square rounded-lg overflow-hidden bg-zinc-100 border-2 transition-colors cursor-pointer
+                          ${thumbnailIdx === i ? "border-green-500" : "border-transparent"}`}
+                        onClick={() => setThumbnailIdx(i)}
+                        title="Đặt làm ảnh đại diện"
+                      >
+                        <img src={img.preview} alt="" className="w-full h-full object-cover" />
+                      </div>
+
+                      {/* Thumbnail star badge */}
+                      {thumbnailIdx === i && (
+                        <div className="absolute top-1 left-1 w-4 h-4 bg-green-600 rounded-full flex items-center justify-center">
+                          <Star className="w-2.5 h-2.5 text-white fill-white" />
+                        </div>
+                      )}
+
+                      {/* Remove button */}
                       <button
                         onClick={() => removeImage(i)}
-                        className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        disabled={saving}
+                        className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center
+                          opacity-0 group-hover:opacity-100 transition-opacity disabled:hidden"
                       >
                         <X className="w-3 h-3 text-white" />
                       </button>
                     </div>
                   ))}
+
+                  {/* Add slot */}
                   {images.length < 3 && (
-                    <label className="aspect-square rounded-lg border-2 border-dashed border-zinc-200 flex items-center justify-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition-colors">
-                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                    <label
+                      className={`aspect-square rounded-lg border-2 border-dashed border-zinc-200 flex items-center justify-center
+                        cursor-pointer hover:border-green-400 hover:bg-green-50 transition-colors
+                        ${saving ? "opacity-50 pointer-events-none" : ""}`}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                        disabled={saving}
+                      />
                       <Plus className="w-5 h-5 text-zinc-400" />
                     </label>
                   )}
                 </div>
+
+                {images.length > 0 && (
+                  <p className="text-xs text-zinc-400 mt-2 text-center">
+                    Click ảnh để đặt làm <span className="text-green-700 font-medium">ảnh đại diện</span>
+                  </p>
+                )}
               </div>
 
               {/* Mẹo tối ưu */}
@@ -337,29 +497,46 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
                   <div>
                     <div className="text-xs font-semibold text-green-900 mb-1">Mẹo tối ưu</div>
                     <p className="text-xs text-green-700 leading-relaxed">
-                      Sản phẩm có ảnh nền trắng và đầy đủ chứng nhận VietGAP thường có tỉ lệ chốt đơn cao hơn 45% so với sản phẩm thông thường.
+                      Sản phẩm có ảnh nền trắng và đầy đủ thông tin nhiệt độ bảo quản thường được duyệt nhanh hơn.
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* Ghi chú trạng thái */}
+              <div className="border border-zinc-200 rounded-xl p-3 bg-zinc-50">
+                <div className="flex items-center gap-2 mb-1">
+                  <ToggleLeft className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                  <span className="text-xs font-semibold text-zinc-600">Trạng thái sau khi tạo</span>
+                </div>
+                <p className="text-xs text-zinc-500 leading-relaxed">
+                  Sản phẩm mới sẽ ở trạng thái <span className="font-semibold text-amber-600">Chờ duyệt</span> và hiển thị sau khi admin phê duyệt.
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
+        {/* ── Footer ── */}
         <div className="h-px bg-neutral-100 mx-6 flex-shrink-0" />
         <div className="px-6 py-4 flex justify-end gap-3 bg-stone-50 rounded-b-2xl flex-shrink-0">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-zinc-700 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors"
+            disabled={saving}
+            className="px-4 py-2 text-sm font-medium text-zinc-700 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors disabled:opacity-50"
           >
             Hủy
           </button>
           <button
-            onClick={handleConfirm}
-            className="px-4 py-2 text-sm font-semibold text-white bg-green-700 hover:bg-green-800 rounded-lg transition-colors"
+            onClick={handleSubmit}
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-green-700 hover:bg-green-800 rounded-lg transition-colors disabled:opacity-70 min-w-[130px] justify-center"
           >
-            Lưu sản phẩm
+            {saving ? (
+              <><Loader2 className="w-4 h-4 animate-spin" />Đang lưu...</>
+            ) : (
+              "Lưu sản phẩm"
+            )}
           </button>
         </div>
       </div>
@@ -370,6 +547,21 @@ export default function CreateProductModal({ isOpen, onClose, onConfirm }) {
           to   { opacity: 1; transform: scale(1)    translateY(0); }
         }
       `}</style>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Section wrapper
+// ─────────────────────────────────────────────────────────────
+function Section({ icon, title, children }) {
+  return (
+    <div className="border border-zinc-200 rounded-xl p-4">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-100">
+        {icon}
+        <span className="text-sm font-semibold text-zinc-800">{title}</span>
+      </div>
+      {children}
     </div>
   );
 }

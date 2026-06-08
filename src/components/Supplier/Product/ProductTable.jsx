@@ -4,16 +4,38 @@ import DataTable from "react-data-table-component";
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-  active: { label: "ĐANG HOẠT ĐỘNG", bg: "bg-teal-800/10", text: "text-teal-800" },
-  paused: { label: "TẠM NGƯNG", bg: "bg-red-700/10", text: "text-red-700" },
-  pending: { label: "ĐĂNG KÝ", bg: "bg-amber-500/10", text: "text-amber-500" },
+  pending: { 
+    label: "Chờ duyệt", 
+    bg: "bg-amber-100", 
+    text: "text-amber-700" 
+  },
+  active: { 
+    label: "Đang hoạt động", 
+    bg: "bg-emerald-100", 
+    text: "text-emerald-700" 
+  },
+  inactive: { 
+    label: "Ngưng hoạt động", 
+    bg: "bg-neutral-100", 
+    text: "text-neutral-600" 
+  },
+  rejected: { 
+    label: "Bị từ chối", 
+    bg: "bg-rose-100", 
+    text: "text-rose-700" 
+  },
+  deleted: { 
+    label: "Đã xóa", 
+    bg: "bg-stone-100", 
+    text: "text-stone-500" 
+  },
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView, onDelete) => [
   {
     name: "Mã sản phẩm",
-    selector: (row) => row.code,
+    selector: (row) => row.id,
     sortable: true,
     width: "100px",
     cell: (row) => (
@@ -27,7 +49,7 @@ const buildColumns = (onView, onDelete) => [
     width: "100px",
     cell: (row) => (
       <img
-        src={row.image || "https://placehold.co/48x48"}
+        src={(row.images.find(img => img.is_thumbnail) || row.images[0])?.image_url }
         alt={row.name}
         className="w-12 h-12 rounded-lg border border-stone-300 object-cover"
       />
@@ -46,24 +68,24 @@ const buildColumns = (onView, onDelete) => [
     ),
   },
   {
-    name: "Giá bán",
+    name: "Loại sản phẩm",
     selector: (row) => row.price,
     sortable: true,
     width: "120px",
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {Number(row.price).toLocaleString("vi-VN")} VNĐ
+        {row.category.name}
       </span>
     ),
   },
   {
     name: "Ngày tạo",
-    selector: (row) => row.unit,
+    selector: (row) => row.created_at,
     sortable: true,
     width: "150px",
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {new Date(row.createdAt).toLocaleDateString("vi-VN")}
+        {new Date(row.created_at).toLocaleDateString("vi-VN")}
       </span>
     ),
   },

@@ -1,25 +1,26 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  X, Edit3, Check, ChevronLeft, ChevronRight, ZoomIn,
-  Package, Tag, Clock, Thermometer, ShieldCheck, Building2,
-  User, Phone, MapPin, Calendar, Hash, AlertCircle, CheckCircle,
-  XCircle, Loader2, Pencil, Save, Ban
+  X, Check, ChevronLeft, ChevronRight, ZoomIn,
+  Package, Tag, Thermometer, ShieldCheck,
+  Calendar, Hash, AlertCircle, CheckCircle,
+  XCircle, Loader2, Pencil, Save, Ban, DollarSign, Lock,
 } from "lucide-react";
+import { productService } from "../../../services/api/productService";
 
-/** ─── helpers ─── */
+/* ─── Status helpers ─── */
 const STATUS_MAP = {
-  pending:  { label: "Chờ duyệt",    color: "bg-amber-100 text-amber-700 border-amber-200" },
-  approved: { label: "Đã duyệt",     color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  rejected: { label: "Từ chối",      color: "bg-red-100 text-red-700 border-red-200" },
-  active:   { label: "Đang bán",     color: "bg-green-100 text-green-700 border-green-200" },
-  inactive: { label: "Tạm ngừng",    color: "bg-zinc-100 text-zinc-500 border-zinc-200" },
+  pending:  { label: "Chờ duyệt",   color: "bg-amber-100 text-amber-700 border-amber-200" },
+  approved: { label: "Đã duyệt",    color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  rejected: { label: "Từ chối",     color: "bg-red-100 text-red-700 border-red-200" },
+  active:   { label: "Đang bán",    color: "bg-green-100 text-green-700 border-green-200" },
+  inactive: { label: "Tạm ngừng",   color: "bg-zinc-100 text-zinc-500 border-zinc-200" },
 };
 
 const StatusBadge = ({ status }) => {
   const s = STATUS_MAP[status] ?? { label: status, color: "bg-zinc-100 text-zinc-500 border-zinc-200" };
   return (
     <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${s.color}`}>
-      {status === "pending" && <Loader2 className="w-3 h-3 animate-spin" />}
+      {status === "pending"  && <Loader2 className="w-3 h-3 animate-spin" />}
       {status === "approved" && <CheckCircle className="w-3 h-3" />}
       {status === "rejected" && <XCircle className="w-3 h-3" />}
       {s.label}
@@ -27,16 +28,55 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-/** Inline editable field */
+/* ─── Read-only field (locked) ─── */
+function LockedField({ label, value, children }) {
+  return (
+    <div className="group relative">
+      <div className="text-xs text-zinc-400 mb-0.5 flex items-center gap-1">
+        <Lock className="w-3 h-3" />
+        {label}
+      </div>
+      <div className="flex items-center gap-2 min-h-[28px]">
+        {children ?? (
+          <span className="text-sm font-mono font-semibold text-zinc-500 flex-1 leading-snug bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5">
+            {value || "—"}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LockedStatusField({ label, status }) {
+  return (
+    <LockedField label={label}>
+      <div className="flex items-center flex-1 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5">
+        <StatusBadge status={status} />
+      </div>
+    </LockedField>
+  );
+}
+
+/* ─── Inline editable field ─── */
 function EditableField({ label, value, onSave, type = "text", options, suffix, multiline }) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value ?? "");
+  const [draft, setDraft]     = useState(value ?? "");
   const ref = useRef(null);
 
+  useEffect(() => { setDraft(value ?? ""); }, [value]);
   useEffect(() => { if (editing) ref.current?.focus(); }, [editing]);
 
-  const commit = () => { onSave(draft); setEditing(false); };
-  const cancel = () => { setDraft(value ?? ""); setEditing(false); };
+  const commit = () => {
+    onSave(draft);
+    setEditing(false);
+  };
+  const cancel = () => {
+    setDraft(value ?? "");
+    setEditing(false);
+  };
+  const handleBlur = () => {
+    if (editing) commit();
+  };
 
   const inputClass =
     "w-full text-sm border border-green-400 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white transition-all";
@@ -48,15 +88,16 @@ function EditableField({ label, value, onSave, type = "text", options, suffix, m
         <div className="flex items-start gap-2">
           <div className="flex-1">
             {options ? (
-              <select ref={ref} value={draft} onChange={e => setDraft(e.target.value)} className={inputClass}>
+              <select ref={ref} value={draft} onChange={e => setDraft(e.target.value)} onBlur={handleBlur} className={inputClass}>
                 {options.map(o => <option key={o.value ?? o} value={o.value ?? o}>{o.label ?? o}</option>)}
               </select>
             ) : multiline ? (
-              <textarea ref={ref} value={draft} onChange={e => setDraft(e.target.value)} rows={3}
+              <textarea ref={ref} value={draft} onChange={e => setDraft(e.target.value)} onBlur={handleBlur} rows={3}
                 className={`${inputClass} resize-none`} />
             ) : (
               <div className="relative">
                 <input ref={ref} type={type} value={draft} onChange={e => setDraft(e.target.value)}
+                  onBlur={handleBlur}
                   onKeyDown={e => { if (e.key === "Enter") commit(); if (e.key === "Escape") cancel(); }}
                   className={`${inputClass} ${suffix ? "pr-8" : ""}`} />
                 {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400">{suffix}</span>}
@@ -64,10 +105,10 @@ function EditableField({ label, value, onSave, type = "text", options, suffix, m
             )}
           </div>
           <div className="flex gap-1 pt-0.5">
-            <button onClick={commit} className="w-7 h-7 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center justify-center transition-colors">
+            <button type="button" onMouseDown={e => e.preventDefault()} onClick={commit} className="w-7 h-7 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center justify-center transition-colors">
               <Check className="w-3.5 h-3.5" />
             </button>
-            <button onClick={cancel} className="w-7 h-7 bg-zinc-200 hover:bg-zinc-300 text-zinc-600 rounded-lg flex items-center justify-center transition-colors">
+            <button type="button" onMouseDown={e => e.preventDefault()} onClick={cancel} className="w-7 h-7 bg-zinc-200 hover:bg-zinc-300 text-zinc-600 rounded-lg flex items-center justify-center transition-colors">
               <Ban className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -87,18 +128,23 @@ function EditableField({ label, value, onSave, type = "text", options, suffix, m
   );
 }
 
-/** Image lightbox strip */
+/* ─── Image gallery lightbox ─── */
 function ImageGallery({ images }) {
   const [active, setActive] = useState(0);
-  const [zoom, setZoom] = useState(false);
+  const [zoom,   setZoom]   = useState(false);
+
+  useEffect(() => { setActive(0); }, [images]);
+
   if (!images?.length) return (
     <div className="aspect-[4/3] bg-zinc-100 rounded-xl flex flex-col items-center justify-center gap-2">
       <Package className="w-10 h-10 text-zinc-300" />
       <span className="text-xs text-zinc-400">Chưa có hình ảnh</span>
     </div>
   );
-  const thumb = images.find(i => i.is_thumbnail) ?? images[0];
+
+  const thumb   = images.find(i => i.is_thumbnail) ?? images[0];
   const current = images[active] ?? thumb;
+
   return (
     <div>
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-zinc-100 cursor-zoom-in group"
@@ -120,8 +166,9 @@ function ImageGallery({ images }) {
           </>
         )}
       </div>
+
       {images.length > 1 && (
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-2 flex-wrap">
           {images.map((img, i) => (
             <button key={img.id ?? i} onClick={() => setActive(i)}
               className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${i === active ? "border-green-600 scale-105" : "border-transparent opacity-60 hover:opacity-100"}`}>
@@ -144,13 +191,38 @@ function ImageGallery({ images }) {
   );
 }
 
-/** ─── Main modal ─── */
-export default function ProductDetailModal({ isOpen, onClose, product: initialProduct, onUpdate }) {
-  const [product, setProduct] = useState(initialProduct);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+/* ─── Section wrapper ─── */
+function Section({ icon, title, children }) {
+  return (
+    <div className="border border-zinc-200 rounded-xl p-4">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-100">
+        {icon}
+        <span className="text-sm font-semibold text-zinc-800">{title}</span>
+      </div>
+      {children}
+    </div>
+  );
+}
 
-  useEffect(() => { setProduct(initialProduct); }, [initialProduct]);
+function InfoRow({ icon, label, value }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-center gap-1 text-xs text-zinc-400">
+        {icon}{label}
+      </div>
+      <div className="text-sm font-medium text-zinc-800">{value || "—"}</div>
+    </div>
+  );
+}
+
+/* ─── Main modal ─── */
+export default function DetailProductModal({ isOpen, onClose, product: initialProduct, onUpdate }) {
+  const [product, setProduct] = useState(initialProduct);
+  const [saving,  setSaving]  = useState(false);
+  const [saved,   setSaved]   = useState(false);
+  const [error,   setError]   = useState("");
+
+  useEffect(() => { setProduct(initialProduct); setSaved(false); setError(""); }, [initialProduct]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -166,31 +238,83 @@ export default function ProductDetailModal({ isOpen, onClose, product: initialPr
 
   if (!isOpen || !product) return null;
 
-  const field = (key, subkey) => subkey
-    ? product[key]?.[subkey] ?? ""
-    : product[key] ?? "";
-
+  const field  = (key) => product[key] ?? "";
   const update = (key, val) => setProduct(p => ({ ...p, [key]: val }));
+
+  const buildUpdatePayload = () => {
+    const payload = {
+      name: product.name?.trim() ?? "",
+      slug: product.slug ?? "",
+      unit: product.unit ?? "",
+      description: product.description ?? "",
+    };
+
+    const catId = product.category?.id ?? product.category;
+    if (catId != null && catId !== "") {
+      payload.category = Number(catId);
+    }
+
+    if (product.storage_duration_days != null && product.storage_duration_days !== "") {
+      payload.storage_duration_days = Number(product.storage_duration_days);
+    }
+
+    if (product.min_storage_temp != null && product.min_storage_temp !== "" && product.min_storage_temp !== "-") {
+      payload.min_storage_temp = product.min_storage_temp;
+    }
+
+    if (product.max_storage_temp != null && product.max_storage_temp !== "" && product.max_storage_temp !== "-") {
+      payload.max_storage_temp = product.max_storage_temp;
+    }
+
+    return payload;
+  };
 
   const handleSave = async () => {
     setSaving(true);
+    setError("");
     try {
-      // TODO: PATCH /supplier-products/{id}/
-      await new Promise(r => setTimeout(r, 800)); // mock
-      onUpdate?.(product);
+      const payload = buildUpdatePayload();
+      const updated = await productService.updateProduct(product.id, payload);
+
+      // Ưu tiên state local (đã chỉnh sửa) — tránh API trả dữ liệu cũ ghi đè lên UI
+      const mergedProduct = {
+        ...(updated && typeof updated === "object" ? updated : {}),
+        ...product,
+        category: (updated?.category && typeof updated.category === "object") ? updated.category : product.category,
+        images: (updated?.images?.length > 0) ? updated.images : product.images,
+        supplier: (updated?.supplier && typeof updated.supplier === "object") ? updated.supplier : product.supplier,
+        updated_at: updated?.updated_at ?? product.updated_at,
+      };
+
+      setProduct(mergedProduct);
+      onUpdate?.(mergedProduct);
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error("Lỗi cập nhật sản phẩm:", err);
+      const data = err?.response?.data;
+      let msg = "Cập nhật thất bại. Vui lòng thử lại.";
+      if (data && typeof data === "object" && !Array.isArray(data)) {
+        const fieldErrors = Object.entries(data)
+          .filter(([k]) => k !== "detail" && k !== "message")
+          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+          .join(" | ");
+        msg = fieldErrors || data?.detail || data?.message || msg;
+      } else {
+        msg = data?.detail || data?.message || err?.message || msg;
+      }
+      setError(msg);
     } finally {
       setSaving(false);
     }
   };
 
-  const supplier = product.supplier ?? {};
   const category = product.category ?? {};
 
-  const fmt = (dateStr) => dateStr
-    ? new Date(dateStr).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
-    : "—";
+  const fmt = (dateStr) =>
+    dateStr
+      ? new Date(dateStr).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+      : "—";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
@@ -209,19 +333,18 @@ export default function ProductDetailModal({ isOpen, onClose, product: initialPr
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg font-bold text-emerald-950">{product.name || "Chi tiết lô hàng"}</h2>
+                <h2 className="text-lg font-bold text-emerald-950">{product.name || "Chi tiết sản phẩm"}</h2>
                 <StatusBadge status={product.status} />
               </div>
               <div className="flex items-center gap-3 mt-0.5 text-xs text-zinc-400">
                 <span className="flex items-center gap-1"><Hash className="w-3 h-3" />ID: {product.id}</span>
-                <span className="flex items-center gap-1"><Tag className="w-3 h-3" />{product.slug}</span>
+                {product.slug && <span className="flex items-center gap-1"><Tag className="w-3 h-3" />{product.slug}</span>}
                 <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />Tạo: {fmt(product.created_at)}</span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-            {/* Save button */}
             <button onClick={handleSave} disabled={saving}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all ${
                 saved
@@ -229,7 +352,7 @@ export default function ProductDetailModal({ isOpen, onClose, product: initialPr
                   : "bg-green-700 hover:bg-green-800 text-white shadow-sm"
               } disabled:opacity-60`}>
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-              {saving ? "Đang lưu…" : saved ? "Đã lưu" : "Lưu thay đổi"}
+              {saving ? "Đang lưu…" : saved ? "Đã lưu!" : "Lưu thay đổi"}
             </button>
             <button onClick={onClose}
               className="w-8 h-8 flex items-center justify-center rounded-full text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors">
@@ -237,6 +360,13 @@ export default function ProductDetailModal({ isOpen, onClose, product: initialPr
             </button>
           </div>
         </div>
+
+        {/* Error banner */}
+        {error && (
+          <div className="mx-6 mb-3 flex-shrink-0 px-4 py-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
+            <XCircle className="w-4 h-4 flex-shrink-0" />{error}
+          </div>
+        )}
 
         <div className="h-px bg-zinc-100 mx-6 flex-shrink-0" />
 
@@ -247,55 +377,63 @@ export default function ProductDetailModal({ isOpen, onClose, product: initialPr
             {/* ── Left ── */}
             <div className="flex flex-col gap-4">
 
-              {/* Thông tin chính */}
-              <Section icon={<Package className="w-4 h-4 text-green-700" />} title="Thông tin lô hàng">
+              {/* Thông tin sản phẩm */}
+              <Section icon={<Package className="w-4 h-4 text-green-700" />} title="Thông tin sản phẩm">
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                  <EditableField label="Tên lô hàng (*)" value={field("name")}
+                  {/* Mã sản phẩm — READ ONLY */}
+                  <LockedField label="Mã sản phẩm (không thể thay đổi)" value={product.code || `#${product.id}`} />
+
+                  <EditableField label="Tên sản phẩm"
+                    value={field("name")}
                     onSave={v => update("name", v)} />
-                  <EditableField label="Đơn vị tính" value={field("unit")}
+
+                  <EditableField label="Đơn vị tính"
+                    value={field("unit")}
                     onSave={v => update("unit", v)}
-                    options={["kg","bó","cái","túi","hộp","thùng"]} />
+                    options={["kg", "bó", "cái", "túi", "hộp", "thùng"]} />
+
                   <div className="col-span-2">
-                    <EditableField label="Mô tả chi tiết" value={field("description")}
-                      onSave={v => update("description", v)} multiline />
+                    <EditableField label="Mô tả chi tiết"
+                      value={field("description")}
+                      onSave={v => update("description", v)}
+                      multiline />
                   </div>
                 </div>
               </Section>
 
-              {/* Bảo quản */}
+              {/* Thông tin bảo quản */}
               <Section icon={<Thermometer className="w-4 h-4 text-green-700" />} title="Thông tin bảo quản">
                 <div className="grid grid-cols-3 gap-x-6 gap-y-4">
-                  <EditableField label="Thời hạn bảo quản" value={field("storage_duration_days")}
+                  <EditableField label="Thời hạn bảo quản"
+                    value={field("storage_duration_days")}
                     onSave={v => update("storage_duration_days", parseInt(v) || 0)}
                     type="number" suffix="ngày" />
-                  <EditableField label="Nhiệt độ tối thiểu" value={field("min_storage_temp")}
+                  <EditableField label="Nhiệt độ tối thiểu"
+                    value={field("min_storage_temp")}
                     onSave={v => update("min_storage_temp", v)}
                     type="number" suffix="°C" />
-                  <EditableField label="Nhiệt độ tối đa" value={field("max_storage_temp")}
+                  <EditableField label="Nhiệt độ tối đa"
+                    value={field("max_storage_temp")}
                     onSave={v => update("max_storage_temp", v)}
                     type="number" suffix="°C" />
                 </div>
               </Section>
 
-              {/* Trạng thái & phê duyệt */}
+              {/* Trạng thái */}
               <Section icon={<ShieldCheck className="w-4 h-4 text-green-700" />} title="Trạng thái & Phê duyệt">
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                  <EditableField label="Trạng thái" value={field("status")}
-                    onSave={v => update("status", v)}
-                    options={[
-                      { value: "pending",  label: "Chờ duyệt" },
-                      { value: "approved", label: "Đã duyệt" },
-                      { value: "rejected", label: "Từ chối" },
-                      { value: "active",   label: "Đang bán" },
-                      { value: "inactive", label: "Tạm ngừng" },
-                    ]} />
+                  <LockedStatusField
+                    label="Trạng thái (không thể thay đổi)"
+                    status={product.status}
+                  />
                   <div>
                     <div className="text-xs text-zinc-400 mb-0.5">Người duyệt</div>
                     <div className="text-sm font-medium text-zinc-700">{product.verified_by_username ?? "—"}</div>
                   </div>
                   {product.rejection_reason && (
                     <div className="col-span-2">
-                      <EditableField label="Lý do từ chối" value={field("rejection_reason")}
+                      <EditableField label="Lý do từ chối"
+                        value={field("rejection_reason")}
                         onSave={v => update("rejection_reason", v)} multiline />
                     </div>
                   )}
@@ -308,7 +446,7 @@ export default function ProductDetailModal({ isOpen, onClose, product: initialPr
                     <div className="text-sm font-medium text-zinc-700">{fmt(product.updated_at)}</div>
                   </div>
                 </div>
-              </Section>            
+              </Section>
             </div>
 
             {/* ── Right ── */}
@@ -342,13 +480,15 @@ export default function ProductDetailModal({ isOpen, onClose, product: initialPr
                 <div className="text-xs font-semibold text-green-900 mb-2">Thông tin nhanh</div>
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between text-xs">
-                    <span className="text-zinc-500">ID sản phẩm</span>
-                    <span className="font-mono font-semibold text-zinc-800">#{product.id}</span>
+                    <span className="text-zinc-500">Mã sản phẩm</span>
+                    <span className="font-mono font-semibold text-zinc-800">{product.code || `#${product.id}`}</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-zinc-500">Slug</span>
-                    <span className="font-mono text-zinc-600 truncate ml-2">{product.slug}</span>
-                  </div>
+                  {product.slug && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-zinc-500">Slug</span>
+                      <span className="font-mono text-zinc-600 truncate ml-2 max-w-[120px]" title={product.slug}>{product.slug}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-xs">
                     <span className="text-zinc-500">Ngày tạo</span>
                     <span className="text-zinc-700">{fmt(product.created_at)}</span>
@@ -360,7 +500,7 @@ export default function ProductDetailModal({ isOpen, onClose, product: initialPr
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-amber-700 leading-relaxed">
-                  Hover vào từng trường để chỉnh sửa. Nhấn <strong>Lưu thay đổi</strong> để cập nhật lên hệ thống.
+                  Hover vào từng trường để chỉnh sửa. Nhấn <strong>Lưu thay đổi</strong> để cập nhật lên hệ thống. Mã sản phẩm <strong>không thể thay đổi</strong>.
                 </p>
               </div>
             </div>
@@ -393,30 +533,6 @@ export default function ProductDetailModal({ isOpen, onClose, product: initialPr
           to   { opacity: 1; transform: scale(1)    translateY(0); }
         }
       `}</style>
-    </div>
-  );
-}
-
-/** ─── Small helpers ─── */
-function Section({ icon, title, children }) {
-  return (
-    <div className="border border-zinc-200 rounded-xl p-4">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-100">
-        {icon}
-        <span className="text-sm font-semibold text-zinc-800">{title}</span>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function InfoRow({ icon, label, value }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <div className="flex items-center gap-1 text-xs text-zinc-400">
-        {icon}{label}
-      </div>
-      <div className="text-sm font-medium text-zinc-800">{value || "—"}</div>
     </div>
   );
 }

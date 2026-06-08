@@ -41,22 +41,27 @@ export const productService = {
   },
 
   // SUPPLIER
-  AddProduct: async (formData) => {
-    const res = await axiosClient.post(`/admin/products`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+  getAll: async (formData) => {
+    const res = await axiosClient.get(`/supplier-products`);
     return res.data;
   },
-
-  updateProduct: async (id, formData) => {
-    const res = await axiosClient.put(`/admin/products/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+  addProduct: async (formData) => {
+    // Sửa lại thành:
+    const res = await axiosClient.post("/supplier-products/", formData); 
+    // Đã xóa bỏ { headers: { "Content-Type": "multipart/form-data" } }
     return res.data;
   },
-
+  addImageProduct: async (formData) =>{
+    const res = await axiosClient.post("/supplier-product-images/",formData)
+    return res.data;
+  },
+  updateProduct: async (id, payload) => {
+    const res = await axiosClient.patch(`/supplier-products/${id}/`, payload);
+    return res.data;
+  },
+  
   deleteProduct: async (id) => {
-    const res = await axiosClient.delete(`/admin/products/${id}`);
+    const res = await axiosClient.delete(`/supplier-products/${id}`);
     return res.data;
   },
 
