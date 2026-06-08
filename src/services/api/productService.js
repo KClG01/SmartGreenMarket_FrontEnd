@@ -6,6 +6,7 @@ export const productService = {
     const res = await axiosClient.get("/supplier-products/");
     return res.data;
   },
+
   // {
   //   "count": 123,
   //   "next": "http://api.example.org/accounts/?page=4",
@@ -65,54 +66,27 @@ export const productService = {
   //     }
   //   ]
   // }
-  getById: async (id) => {
-    const res = await axiosClient.get(`/supplier-products/${id}`);
+
+  addProduct: async (formData) => {
+    // Sửa lại thành:
+    const res = await axiosClient.post("/supplier-products/", formData); 
+    // Đã xóa bỏ { headers: { "Content-Type": "multipart/form-data" } }
     return res.data;
   },
-
-  // {
-  //   "id": 0,
-  //   "name": "string",
-  //   "slug": "MsUSD",
-  //   "unit": "string",
-  //   "description": "string",
-  //   "storage_duration_days": 2147483647,
-  //   "min_storage_temp": "4.73",
-  //   "max_storage_temp": "-3",
-  //   "status": "pending",
-  //   "verified_by": 0,
-  //   "verified_by_username": "string",
-  //   "verified_at": "2026-06-08T05:32:02.878Z",
-  //   "rejection_reason": "string",
-  //   "created_at": "2026-06-08T05:32:02.878Z",
-  //   "updated_at": "2026-06-08T05:32:02.878Z",
-  //   "images": [
-  //     {
-  //       "id": 0,
-  //       "supplier_product": 0,
-  //       "image_url": "string",
-  //       "is_thumbnail": true,
-  //       "sort_order": 2147483647,
-  //       "created_at": "2026-06-08T05:32:02.878Z"
-  //     }
-  //   ],
-  //   "supplier": {
-  //     "id": 0,
-  //     "company_name": "string",
-  //     "tax_code": "string",
-  //     "phone": "string",
-  //     "address": "string",
-  //     "verification_status": "pending",
-  //     "account_username": "string",
-  //     "account_full_name": "string"
-  //   },
-  //   "category": {
-  //     "id": 0,
-  //     "name": "string",
-  //     "status": "pending"
-  //   }
-  // }
-
+  addImageProduct: async (formData) =>{
+    const res = await axiosClient.post("/supplier-product-images/",formData)
+    return res.data;
+  },
+  updateProduct: async (id, payload) => {
+    const res = await axiosClient.patch(`/supplier-products/${id}/`, payload);
+    return res.data;
+  },
+  
+  deleteProduct: async (id) => {
+    const res = await axiosClient.delete(`/supplier-products/${id}`);
+    return res.data;
+  },
+  
   verify: (id, data) => {
     const formData = new FormData();
     formData.append("status", data.status);
@@ -125,13 +99,11 @@ export const productService = {
         },
       })
       .then((res) => res.data);
-  },
-
   //   {
   //     "status": "approved / rejected",
   //     "rejection_reason": "string"
   //   }
-
+  
   remove: (id) => {
     return axiosClient
       .delete(`/supplier-products/${id}/`)

@@ -1,66 +1,89 @@
-import { useState } from "react";
-// import Toolbar from "../../components/Admin/UI/Toolbar";
-import Filter  from "../../components/Admin/UI/Filter";
+import { useState, useEffect } from "react";
+import Filter from "../../components/Admin/UI/Filter";
 import ProductTable from "../../components/Supplier/Product/ProductTable";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 import CreateProductModal from "../../components/Supplier/Product/CreateProductModal";
-
-// ── Mock data ─────────────────────────────────────────────────────────────────
-const INITIAL_DATA = [
-  { id: 1, code: "#GM-P-01", name: "Rau cải thìa",   price: 15000, unit: "kg", inventory: 100, status: "active",  image: "../public/images/rau.jpg" },
-  { id: 2, code: "#GM-P-02", name: "Cà chua bi",       price: 20000, unit: "kg", inventory: 50, status: "pending", image: "../public/images/rau.jpg" },
-  { id: 3, code: "#GM-P-03", name: "Táo hữu cơ",       price: 30000, unit: "kg", inventory: 75, status: "paused",  image: "../public/images/rau.jpg" },
-  { id: 4, code: "#GM-P-04", name: "Khoai tây Đà Lạt", price: 12000, unit: "kg", inventory: 120, status: "active",  image: "../public/images/rau.jpg" },
-  { id: 5, code: "#GM-P-05", name: "Dưa leo sạch",     price: 18000, unit: "kg", inventory: 80, status: "active",  image: "../public/images/rau.jpg" },
-  { id: 6, code: "#GM-P-06", name: "Bí đỏ hữu cơ",    price: 25000, unit: "kg", inventory: 60, status: "active",  image: "../public/images/rau.jpg" },
-  { id: 7, code: "#GM-P-07", name: "Ớt chuông đỏ",    price: 22000, unit: "kg", inventory: 90, status: "pending", image: "../public/images/rau.jpg" },
-];
+import DetailProductModal from "../../components/Supplier/Product/DetailProductModal";
+import { productService } from "../../services/api/productService";
 
 export default function ProductSupplierPage() {
-  const [data,         setData]         = useState(INITIAL_DATA);
+  const [data,         setData]         = useState([]);
   const [search,       setSearch]       = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
   // Modal states
   const [deleteRow, setDeleteRow] = useState(null); // row | null
   const [createRow, setCreateRow] = useState(null); // row | null
+  const [detailRow, setDetailRow] = useState(null); // row | null
 
-  // ── CRUD ──────────────────────────────────────────────────────────────────
-  const handleDelete = () => {
-    setData((prev) => prev.filter((row) => row.id !== deleteRow.id));
+  /* ── Fetch ── */
+  const fetchProducts = async () => {
+    try {
+      const response    = await productService.getAll();
+      const productList = Array.isArray(response) ? response : (response?.results || []);
+      setData(productList);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách sản phẩm:", error);
+    }
   };
-  const handleCreate = () => {
-    if (!createRow) return;
-    const newItem = {
-      id: Date.now(), // simple unique ID
-      code: `#GM-P-${String(data.length + 1).padStart(2, "0")}`,
-      name: createRow.name,
-      price: createRow.price,
-      unit: createRow.unit,
-      inventory: createRow.inventory,
-      status: "pending",
-      image: createRow.image,
-    };
-    setData((prev) => [newItem, ...prev]);
-  }
+
+  useEffect(() => { fetchProducts(); }, []);
+
+  /* ── Delete ── */
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteRow) return;
+    try {
+      setDeleting(true);
+      await productService.deleteProduct(deleteRow.id);
+      setData(prev => prev.filter(row => row.id !== deleteRow.id));
+      setDeleteRow(null);
+    } catch (error) {
+      console.error("Lỗi khi xoá sản phẩm:", error);
+      alert("Xoá sản phẩm thất bại. Vui lòng thử lại!");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  /* ── Update (từ DetailModal) ── */
+  const handleUpdate = async (updated) => {
+    setData(prev =>
+      prev.map(row => (row.id === updated.id ? { ...row, ...updated } : row))
+    );
+    setDetailRow(prev => (prev ? { ...prev, ...updated } : prev));
+
+    try {
+      const response = await productService.getAll();
+      const productList = Array.isArray(response) ? response : (response?.results || []);
+      setData(productList);
+      const fresh = productList.find((p) => p.id === updated.id);
+      if (fresh) setDetailRow((prev) => (prev ? { ...prev, ...fresh } : prev));
+    } catch (error) {
+      console.error("Lỗi khi đồng bộ danh sách sau cập nhật:", error);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
-        <h1>Quản lý sản phẩm</h1>
-      {/* Toolbar: search + filter button + add CTA */}
+      <h1>Quản lý sản phẩm</h1>
+
+      {/* Toolbar */}
       <div className="flex justify-between items-center">
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Tìm kiếm sản phẩm..."
-        className="px-4 py-2 border border-neutral-200 rounded-lg text-sm w-72 outline-none focus:border-emerald-600"
-      />
-      <button
-        onClick={() => setCreateRow({})}
-        className="px-4 py-2 bg-emerald-800 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700"
-      >
-        + Thêm sản phẩm
-      </button>
-    </div>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Tìm kiếm sản phẩm..."
+          className="px-4 py-2 border border-neutral-200 rounded-lg text-sm w-72 outline-none focus:border-emerald-600"
+        />
+        <button
+          onClick={() => setCreateRow({})}
+          className="px-4 py-2 bg-emerald-800 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700"
+        >
+          + Thêm sản phẩm
+        </button>
+      </div>
 
       {/* Status filter chips */}
       <div className="flex items-center gap-3">
@@ -70,29 +93,39 @@ export default function ProductSupplierPage() {
         <Filter value={statusFilter} onChange={setStatusFilter} />
       </div>
 
-      {/* Data table — pagination & sort built-in */}
+      {/* Data table */}
       <ProductTable
         data={data}
         search={search}
         statusFilter={statusFilter}
-        onView={(row) => {/* mở ProductDetailModal nếu có */}}
-        onDelete={(row) => setDeleteRow(row)}
+        onView={row => setDetailRow(row)}
+        onDelete={row => setDeleteRow(row)}
       />
 
-      {/* ── Modals ──────────────────────────────────────────────────────── */}
+      {/* ── Modals ── */}
       <DeleteConfirmModal
         isOpen={deleteRow !== null}
-        onClose={() => setDeleteRow(null)}
+        onClose={() => !deleting && setDeleteRow(null)}
         onConfirm={handleDelete}
         itemName={deleteRow?.name ?? ""}
         itemType="sản phẩm"
+        loading={deleting}
       />
+
       <CreateProductModal
         isOpen={createRow !== null}
         onClose={() => setCreateRow(null)}
-        onConfirm={handleCreate}
-        itemName={createRow?.name ?? ""}
-        itemType="sản phẩm"
+        onSuccess={() => {
+          setCreateRow(null);
+          fetchProducts();
+        }}
+      />
+
+      <DetailProductModal
+        isOpen={detailRow !== null}
+        onClose={() => setDetailRow(null)}
+        product={detailRow}
+        onUpdate={handleUpdate}
       />
     </div>
   );

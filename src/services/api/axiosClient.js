@@ -2,9 +2,9 @@ import axios from "axios";
 
 const axiosClient = axios.create({
   baseURL: "https://smart-green-market-api.onrender.com/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // Không đặt Content-Type mặc định:
+  // - Axios tự set "application/json" cho plain object
+  // - Axios tự set "multipart/form-data; boundary=..." cho FormData
   withCredentials: true,
 });
 
@@ -15,6 +15,12 @@ axiosClient.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Nếu body là FormData → xóa Content-Type để axios/browser
+    // tự động set "multipart/form-data; boundary=..." (bắt buộc khi upload file)
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
     }
 
     return config;
