@@ -5,6 +5,10 @@ import AdminLayout from "./layouts/AdminLayout";
 import SupplierLayout from "./layouts/SupplierLayout";
 
 import  {HomePage}  from "./pages/User/Home";
+import CartPage from "./pages/User/Cart";
+import OrderPage from "./pages/User/Order";
+import PaymentPage from "./pages/User/Payment";
+import OrderStatusPage from "./pages/user/OrderStatus";
 
 import InventorySupplierPage from "./pages/Supplier/Inventory";
 import ProductSupplierPage from "./pages/Supplier/Product";
@@ -34,6 +38,11 @@ export default function App() {
                 <Routes>
                     <Route path="/" element={<UserLayout />}>
                         <Route index element={<HomePage />} />
+                        <Route path="trang-chu" element={<HomePage />} />
+                        <Route path="gio-hang" element={<CartPage />} />
+                        <Route path="dat-hang" element={<OrderPage />} />
+                        <Route path="thanh-toan" element={<PaymentPage />} />
+                        <Route path="theo-doi-don-hang" element={<OrderStatusPage />} />
                     </Route>
                     {/* Supplier */}
                     <Route element={<SupplierProtectedRoute />}>
