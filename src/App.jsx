@@ -12,7 +12,8 @@ import CertificationSupplierPage from "./pages/Supplier/Vertification";
 import RegisterPage from "./pages/Supplier/RegisterPage";
 import SupplierLoginPage from "./pages/Supplier/SupplierLogin";
 import SupplierProtectedRoute from "./contexts/supplierProtectedRoute";
-
+import SupplierInfoPage from "./pages/Supplier/SupplierInfoPage";
+import CategorySupplierPage from "./pages/Supplier/Category";
 import {
   AdminLoginPage,
   SettingPage,
@@ -46,6 +47,8 @@ export default function App() {
                             <Route path="san-pham" element={<ProductSupplierPage />} />
                             <Route path="ton-kho" element={<InventorySupplierPage/>} />
                             <Route path="chung-nhan" element={<CertificationSupplierPage />} />
+                            <Route path="thong-tin-ca-nhan" element={<SupplierInfoPage />} />
+                            <Route path="danh-muc" element={<CategorySupplierPage />} />
                         </Route>
                     </Route>
                     <Route path="/nha-cung-cap/login" element={<SupplierLoginPage />} />

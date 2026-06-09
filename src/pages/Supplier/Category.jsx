@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import Filter from "../../components/Admin/UI/Filter";
-import ProductTable from "../../components/Supplier/Product/ProductTable";
+import CategoryTable from "../../components/Supplier/Category/CategoryTable";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
-import CreateProductModal from "../../components/Supplier/Product/CreateProductModal";
-import DetailProductModal from "../../components/Supplier/Product/DetailProductModal";
-import { productService } from "../../services/api/productService";
-
-export default function ProductSupplierPage() {
+import AddCategoryModal from "../../components/Supplier/Category/CreateCategoryModal";
+import { categoryService } from "../../services/api/categoryService";
+export default function CategorySupplierPage() {
   const [data,         setData]         = useState([]);
   const [search,       setSearch]       = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -20,7 +18,7 @@ export default function ProductSupplierPage() {
   /* ── Fetch ── */
   const fetchProducts = async () => {
     try {
-      const response    = await productService.getAll();
+      const response    = await categoryService.getAll();
       const productList = Array.isArray(response) ? response : (response?.results || []);
       setData(productList);
     } catch (error) {
@@ -68,28 +66,29 @@ export default function ProductSupplierPage() {
 
   return (
     <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Quản lý sản phẩm</h1>
-      <p className="text-sm text-gray-500">Theo dõi và quản lý các sản phẩm đã và đang niêm yết trên hệ thống</p>
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">Quản lý danh mục</h1>
+      <p className="text-sm text-gray-500">Theo dõi và quản lý các danh mục sản phẩm đã và đang niêm yết trên hệ thống</p>
 
       {/* Toolbar */}
       <div className="flex justify-between items-center">
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Tìm kiếm sản phẩm..."
+          placeholder="Tìm kiếm danh mục"
           className="px-4 py-2 border border-neutral-200 rounded-lg text-sm w-72 outline-none focus:border-emerald-600"
         />
 
         {/* Action buttons */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setCreateRow({})}
-            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-800 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
+            onClick={() => setShowAddCategory(true)}
+            className="flex items-center gap-1.5 px-4 py-2 border border-emerald-700 text-emerald-700 text-sm font-semibold rounded-lg hover:bg-emerald-50 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a2 2 0 012-2z" />
             </svg>
-            Thêm sản phẩm
+            Thêm danh mục
           </button>
         </div>
       </div>
@@ -103,7 +102,7 @@ export default function ProductSupplierPage() {
       </div>
 
       {/* Data table */}
-      <ProductTable
+      <CategoryTable
         data={data}
         search={search}
         statusFilter={statusFilter}
@@ -120,22 +119,13 @@ export default function ProductSupplierPage() {
         itemType="sản phẩm"
         loading={deleting}
       />
-
-      <CreateProductModal
-        isOpen={createRow !== null}
-        onClose={() => setCreateRow(null)}
-        onSuccess={() => {
-          setCreateRow(null);
-          fetchProducts();
-        }}
-      />
-
+{/* 
       <DetailProductModal
         isOpen={detailRow !== null}
         onClose={() => setDetailRow(null)}
         product={detailRow}
         onUpdate={handleUpdate}
-      />
+      /> */}
 
       {showAddCategory && (
         <AddCategoryModal
