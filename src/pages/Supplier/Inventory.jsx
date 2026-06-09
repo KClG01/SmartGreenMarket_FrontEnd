@@ -47,7 +47,9 @@ export default function InventorySupplierPage() {
   }
   return (
     <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
-      <h1>Quản lý tồn kho</h1>
+     <h1 className="text-2xl font-bold text-gray-900 mb-1">Quản lý tồn kho</h1>
+      <p className="text-sm text-gray-500">Theo dõi và quản lý các sản phẩm hiện tại trong kho</p>
+
       {/* Toolbar: search + filter button + add CTA */}
       <div className="flex justify-between items-center">
         <input

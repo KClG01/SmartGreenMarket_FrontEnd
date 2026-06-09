@@ -2,42 +2,19 @@ import { Eye, Trash2 } from "lucide-react";
 import { tableStyles, paginationVi } from "../../common/tableStyles";
 import DataTable from "react-data-table-component";
 
-// ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-  pending: { 
-    label: "Chờ duyệt", 
-    bg: "bg-amber-100", 
-    text: "text-amber-700" 
-  },
-  active: { 
-    label: "Đang hoạt động", 
-    bg: "bg-emerald-100", 
-    text: "text-emerald-700" 
-  },
-  inactive: { 
-    label: "Ngưng hoạt động", 
-    bg: "bg-neutral-100", 
-    text: "text-neutral-600" 
-  },
-  rejected: { 
-    label: "Bị từ chối", 
-    bg: "bg-rose-100", 
-    text: "text-rose-700" 
-  },
-  deleted: { 
-    label: "Đã xóa", 
-    bg: "bg-stone-100", 
-    text: "text-stone-500" 
-  },
+  active:  { label: "Hoạt động",    bg: "bg-emerald-100", text: "text-emerald-700" },
+  pending: { label: "Chờ duyệt",    bg: "bg-yellow-100",  text: "text-yellow-700" },
+  rejected:{ label: "Từ chối",      bg: "bg-red-100",     text: "text-red-600"    },
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView, onDelete) => [
   {
-    name: "Mã sản phẩm",
+    name: "ID",
     selector: (row) => row.id,
     sortable: true,
-    width: "140px",
+    width: "70px",
     cell: (row) => (
       <span className="text-emerald-800 text-xs font-semibold font-mono">
         {row.id}
@@ -45,21 +22,9 @@ const buildColumns = (onView, onDelete) => [
     ),
   },
   {
-    name: "Hình ảnh",
-    width: "140px",
-    cell: (row) => (
-      <img
-        src={(row.images.find(img => img.is_thumbnail) || row.images[0])?.image_url }
-        alt={row.name}
-        className="w-20 h-20 rounded-lg border border-stone-300 object-cover"
-      />
-    ),
-  },
-  {
-    name: "Tên sản phẩm",
+    name: "Tên danh mục",
     selector: (row) => row.name,
     sortable: true,
-    width: "150px",
     grow: 2,
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
@@ -68,13 +33,35 @@ const buildColumns = (onView, onDelete) => [
     ),
   },
   {
-    name: "Loại sản phẩm",
-    selector: (row) => row.price,
+    name: "Mô tả",
+    selector: (row) => row.description,
+    grow: 3,
+    cell: (row) => (
+      <span className="text-zinc-500 text-sm font-['Geist',sans-serif] line-clamp-2">
+        {row.description || "—"}
+      </span>
+    ),
+  },
+  {
+    name: "Thứ tự",
+    selector: (row) => row.sort_order,
     sortable: true,
-    width: "150px",
+    width: "100px",
+    center: true,
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {row.category.name}
+        {row.sort_order}
+      </span>
+    ),
+  },
+  {
+    name: "Xác minh bởi",
+    selector: (row) => row.verified_by_username,
+    sortable: true,
+    width: "140px",
+    cell: (row) => (
+      <span className="text-emerald-950 text-sm font-['Geist',sans-serif]">
+        {row.verified_by_username ? `${row.verified_by_username}` : "—"}
       </span>
     ),
   },
@@ -82,21 +69,10 @@ const buildColumns = (onView, onDelete) => [
     name: "Ngày tạo",
     selector: (row) => row.created_at,
     sortable: true,
-    width: "150px",
+    width: "130px",
     cell: (row) => (
-      <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
+      <span className="text-emerald-950 text-sm font-['Geist',sans-serif]">
         {new Date(row.created_at).toLocaleDateString("vi-VN")}
-      </span>
-    ),
-  },
-  {
-    name: "Đơn vị",
-    selector: (row) => row.unit,
-    sortable: true,
-    width: "150px",
-    cell: (row) => (
-      <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {row.unit}
       </span>
     ),
   },
@@ -104,7 +80,7 @@ const buildColumns = (onView, onDelete) => [
     name: "Trạng thái",
     selector: (row) => row.status,
     sortable: true,
-    width: "150px",
+    width: "130px",
     cell: (row) => {
       const st = STATUS_CONFIG[row.status] ?? STATUS_CONFIG.pending;
       return (
@@ -116,7 +92,7 @@ const buildColumns = (onView, onDelete) => [
   },
   {
     name: "Thao tác",
-    width: "130px",
+    width: "100px",
     right: true,
     cell: (row) => (
       <div className="flex items-center gap-1 pr-2">
@@ -141,15 +117,15 @@ const buildColumns = (onView, onDelete) => [
 ];
 
 /**
- * ProductTable
+ * CategoryTable
  * Props:
- *   data         : Product[]
+ *   data         : Category[]
  *   search       : string
- *   statusFilter : string  — "" | "active" | "paused" | "pending"
+ *   statusFilter : string  — "" | "active" | "pending" | "rejected"
  *   onView       : (row) => void
  *   onDelete     : (row) => void
  */
-export default function ProductTable({ data, search, statusFilter, onView, onDelete }) {
+export default function CategoryTable({ data, search, statusFilter, onView, onDelete }) {
   const filtered = data.filter((row) => {
     const matchName = row.name.toLowerCase().includes((search ?? "").toLowerCase());
     const matchStatus = statusFilter ? row.status === statusFilter : true;
@@ -168,7 +144,7 @@ export default function ProductTable({ data, search, statusFilter, onView, onDel
         customStyles={tableStyles}
         noDataComponent={
           <div className="py-16 text-sm text-neutral-400 font-['Geist']">
-            Không tìm thấy sản phẩm phù hợp.
+            Không tìm thấy danh mục phù hợp.
           </div>
         }
         defaultSortFieldId={1}
