@@ -3,12 +3,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import UserLayout from "./layouts/UserLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import SupplierLayout from "./layouts/SupplierLayout";
+import UserProfileLayout from "./layouts/UserProfileLayout";
 
 import  {HomePage}  from "./pages/User/Home";
 import CartPage from "./pages/User/Cart";
 import OrderPage from "./pages/User/Order";
 import PaymentPage from "./pages/User/Payment";
 import OrderStatusPage from "./pages/user/OrderStatus";
+import UserProfilePage from "./pages/user/Profile/Profile";
 
 import InventorySupplierPage from "./pages/Supplier/Inventory";
 import ProductSupplierPage from "./pages/Supplier/Product";
@@ -44,6 +46,9 @@ export default function App() {
                         <Route path="dat-hang" element={<OrderPage />} />
                         <Route path="thanh-toan" element={<PaymentPage />} />
                         <Route path="theo-doi-don-hang" element={<OrderStatusPage />} />
+                        <Route path="tai-khoan" element={<UserProfileLayout />}>
+                            <Route path="" element={<UserProfilePage />} />
+                        </Route>
                     </Route>
                     {/* Supplier */}
                     <Route element={<SupplierProtectedRoute />}>
