@@ -1,9 +1,9 @@
 import axiosClient from "./axiosClient";
 
-export const supplierDocumentService = {
+export const accountDocumentService = {
   // --- ADMIN + SUPPLIER
   getAll: () =>
-    axiosClient.get("/supplier-documents/").then((res) => res.data.results),
+    axiosClient.get("/account-documents/").then((res) => res.data.results),
 
   // [
   //   {
@@ -19,7 +19,7 @@ export const supplierDocumentService = {
   // ]
 
   getById: (id) =>
-    axiosClient.get(`/supplier-documents/${id}/`).then((res) => res.data),
+    axiosClient.get(`/account-documents/${id}/`).then((res) => res.data),
 
   // {
   //   "id": 0,
@@ -34,7 +34,7 @@ export const supplierDocumentService = {
 
   // --- SUPPLIER
   create: (data) =>
-    axiosClient.post("/supplier-documents/", data).then((res) => res.data.data),
+    axiosClient.post("/account-documents/", data).then((res) => res.data.data),
 
   // business_license (file)
   // id_card (file)
@@ -54,13 +54,18 @@ export const supplierDocumentService = {
   // ]
 
   // --- ADMIN
-  verify: (id, status) => {
+  verify: (id, payload) => {
     const formData = new FormData();
+    const status = typeof payload === "string" ? payload : payload.status;
 
     formData.append("status", status);
 
+    if (typeof payload === "object" && payload.rejection_reason) {
+      formData.append("rejection_reason", payload.rejection_reason);
+    }
+
     return axiosClient
-      .post(`/supplier-documents/${id}/verify/`, formData, {
+      .post(`/account-documents/${id}/verify/`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -70,6 +75,7 @@ export const supplierDocumentService = {
 
   //   {
   //     "status": "approved / rejected",
+  //     "rejection_reason": "string"
   //     }
 };
 
