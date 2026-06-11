@@ -13,13 +13,14 @@ import PaymentPage from "./pages/User/Payment";
 import OrderStatusPage from "./pages/user/OrderStatus";
 import UserProfilePage from "./pages/user/Profile/Profile";
 
-import InventorySupplierPage from "./pages/Supplier/Inventory";
+import OrderSupplierPage from "./pages/Supplier/Order";
 import ProductSupplierPage from "./pages/Supplier/Product";
 import CertificationSupplierPage from "./pages/Supplier/Vertification";
 import RegisterPage from "./pages/Supplier/RegisterPage";
 import SupplierLoginPage from "./pages/Supplier/SupplierLogin";
 import SupplierInfoPage from "./pages/Supplier/SupplierInfoPage";
 import CategorySupplierPage from "./pages/Supplier/Category";
+import CultivationSupplierPage from "./pages/Supplier/Cultivation"
 import {
   AdminLoginPage,
   SettingPage,
@@ -62,11 +63,12 @@ export default function App() {
                                 </div>
                             } />
                             <Route path="san-pham" element={<ProductSupplierPage />} />
-                            <Route path="ton-kho" element={<InventorySupplierPage/>} />
+                            <Route path="don-hang" element={<OrderSupplierPage/>} />
                             <Route path="chung-nhan" element={<CertificationSupplierPage />} />
                             <Route path="thong-tin-ca-nhan" element={<SupplierInfoPage />} />
                             <Route path="danh-muc" element={<CategorySupplierPage />} />
                             <Route path="tat-ca-thong-bao" element={<NotificationPage />} />
+                            <Route path="canh-tac" element={<CultivationSupplierPage />} />
                         </Route>
                     </Route>
                     <Route path="/nha-cung-cap/dang-nhap" element={<SupplierLoginPage />} />
