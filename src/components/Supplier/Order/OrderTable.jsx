@@ -4,54 +4,32 @@ import DataTable from "react-data-table-component";
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-  pending: { 
-    label: "Chờ duyệt", 
-    bg: "bg-amber-100", 
-    text: "text-amber-700" 
-  },
-  active: { 
-    label: "Đang hoạt động", 
-    bg: "bg-emerald-100", 
-    text: "text-emerald-700" 
-  },
-  inactive: { 
-    label: "Ngưng hoạt động", 
-    bg: "bg-neutral-100", 
-    text: "text-neutral-600" 
-  },
-  rejected: { 
-    label: "Bị từ chối", 
-    bg: "bg-rose-100", 
-    text: "text-rose-700" 
-  },
-  deleted: { 
-    label: "Đã xóa", 
-    bg: "bg-stone-100", 
-    text: "text-stone-500" 
-  },
+  active: { label: "ĐANG HOẠT ĐỘNG", bg: "bg-teal-800/10", text: "text-teal-800" },
+  paused: { label: "TẠM NGƯNG", bg: "bg-red-700/10", text: "text-red-700" },
+  pending: { label: "ĐĂNG KÝ", bg: "bg-amber-500/10", text: "text-amber-500" },
 };
 
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView, onDelete) => [
   {
-    name: "Mã sản phẩm",
-    selector: (row) => row.id,
+    name: "Mã lô",
+    selector: (row) => row.code,
     sortable: true,
-    width: "140px",
+    width: "100px",
     cell: (row) => (
       <span className="text-emerald-800 text-xs font-semibold font-mono">
-        {row.id}
+        {row.code}
       </span>
     ),
   },
   {
     name: "Hình ảnh",
-    width: "140px",
+    width: "100px",
     cell: (row) => (
       <img
-        src={(row.images.find(img => img.is_thumbnail) || row.images[0])?.image_url }
+        src={row.image || "https://placehold.co/48x48"}
         alt={row.name}
-        className="w-20 h-20 rounded-lg border border-stone-300 object-cover"
+        className="w-12 h-12 rounded-lg border border-stone-300 object-cover"
       />
     ),
   },
@@ -68,35 +46,46 @@ const buildColumns = (onView, onDelete) => [
     ),
   },
   {
-    name: "Loại sản phẩm",
+    name: "Giá bán",
     selector: (row) => row.price,
-    sortable: true,
-    width: "150px",
-    cell: (row) => (
-      <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {row.category.name}
-      </span>
-    ),
-  },
-  {
-    name: "Ngày tạo",
-    selector: (row) => row.created_at,
     sortable: true,
     width: "120px",
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {new Date(row.created_at).toLocaleDateString("vi-VN")}
+        {Number(row.price).toLocaleString("vi-VN")} VNĐ
       </span>
     ),
   },
   {
-    name: "Đơn vị",
-    selector: (row) => row.unit,
+    name: "Tồn kho",
+    selector: (row) => row.inventory,
     sortable: true,
     width: "100px",
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {row.unit}
+        {row.inventory} {row.unit}
+      </span>
+    ),
+  },
+  {
+    name: "Ngày nhập",
+    selector: (row) => row.unit,
+    sortable: true,
+    width: "150px",
+    cell: (row) => (
+      <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
+        {new Date(row.createdAt).toLocaleDateString("vi-VN")}
+      </span>
+    ),
+  },
+  {
+    name: "Ngày hết hạn ",
+    selector: (row) => row.unit,
+    sortable: true,
+    width: "150px",
+    cell: (row) => (
+      <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
+        {new Date(row.createdAt).toLocaleDateString("vi-VN")}
       </span>
     ),
   },
@@ -116,27 +105,23 @@ const buildColumns = (onView, onDelete) => [
   },
   {
     name: "Thao tác",
-    width: "170px",
+    width: "130px",
     right: true,
     cell: (row) => (
-      <div className="flex items-center divide-x divide-zinc-200 border border-zinc-200 rounded-lg overflow-hidden">
+      <div className="flex items-center gap-1">
         <button
           onClick={() => onView(row)}
           title="Xem chi tiết"
-          className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-zinc-500
-                     hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+          className="p-1.5 rounded-lg text-zinc-500 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
         >
-          <Eye className="w-3.5 h-3.5" />
-          Xem
+          <Eye className="w-4 h-4" />
         </button>
         <button
           onClick={() => onDelete(row)}
-          title="Xóa sản phẩm"
-          className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-zinc-500
-                     hover:text-red-600 hover:bg-red-50 transition-colors"
+          title="Xóa"
+          className="p-1.5 rounded-lg text-zinc-500 hover:text-red-600 hover:bg-red-50 transition-colors"
         >
-          <Trash2 className="w-3.5 h-3.5" />
-          Xóa
+          <Trash2 className="w-4 h-4" />
         </button>
       </div>
     ),
@@ -144,16 +129,7 @@ const buildColumns = (onView, onDelete) => [
   },
 ];
 
-/**
- * ProductTable
- * Props:
- *   data         : Product[]
- *   search       : string
- *   statusFilter : string  — "" | "active" | "paused" | "pending"
- *   onView       : (row) => void
- *   onDelete     : (row) => void
- */
-export default function ProductTable({ data, search, statusFilter, onView, onDelete }) {
+export default function InventoryTable({ data, search, statusFilter, onView, onDelete }) {
   const filtered = data.filter((row) => {
     const matchName = row.name.toLowerCase().includes((search ?? "").toLowerCase());
     const matchStatus = statusFilter ? row.status === statusFilter : true;
