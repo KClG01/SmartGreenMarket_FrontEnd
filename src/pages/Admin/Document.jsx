@@ -6,9 +6,9 @@ import DocumentTable from "../../components/Admin/Document/DocumentTable";
 import DocumentViewModal from "../../components/Admin/Document/DocumentViewModal";
 
 import {
-    supplierDocumentService,
+    accountDocumentService,
     handleApiError,
-} from "../../services/api/supplierDocumentService";
+} from "../../services/api/accountDocumentService";
 
 export default function DocumentPage() {
     // ── STATES ─────────────────────────────────────────────
@@ -41,7 +41,7 @@ export default function DocumentPage() {
                 setLoading(true);
 
                 const response =
-                    await supplierDocumentService.getAll();
+                    await accountDocumentService.getAll();
 
                 // normalize data cho table
                 const formattedData =
@@ -104,7 +104,7 @@ export default function DocumentPage() {
                 setLoading(true);
 
                 const detail =
-                    await supplierDocumentService.getById(
+                    await accountDocumentService.getById(
                         row.id
                     );
 
@@ -162,7 +162,7 @@ export default function DocumentPage() {
         try {
             setActionLoading(true);
 
-            await supplierDocumentService.verify(
+            await accountDocumentService.verify(
                 document.id,
                 "approved"
             );
@@ -187,7 +187,7 @@ export default function DocumentPage() {
         try {
             setActionLoading(true);
 
-            await supplierDocumentService.verify(document.id, {
+            await accountDocumentService.verify(document.id, {
                 status: "rejected",
                 rejection_reason: rejectionReason,
             });
