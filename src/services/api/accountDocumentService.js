@@ -36,6 +36,16 @@ export const accountDocumentService = {
   create: (data) =>
     axiosClient.post("/account-documents/", data).then((res) => res.data.data),
 
+  upload: (filesMap) => {
+    const formData = new FormData();
+
+    Object.entries(filesMap).forEach(([documentType, file]) => {
+      if (file) formData.append(documentType, file);
+    });
+
+    return axiosClient.post("/account-documents/", formData).then((res) => res.data);
+  },
+
   // business_license (file)
   // id_card (file)
   // tax_certificate (file)

@@ -1,7 +1,24 @@
 import axiosClient from "./axiosClient";
+import { accountDocumentService } from "./accountDocumentService";
+import { extractApiError } from "../../utils/extractApiError";
+
+const DEALER_PROFILE_ID_KEY = "dealer_profile_id";
+
+function persistProfileId(id) {
+  if (id != null) {
+    localStorage.setItem(DEALER_PROFILE_ID_KEY, String(id));
+  }
+}
+
+function readCachedProfileId() {
+  return localStorage.getItem(DEALER_PROFILE_ID_KEY);
+}
 
 export const dealerService = {
-  getAll: () => axiosClient.get("/dealers/").then((res) => res.data.result),
+  getAll: () =>
+    axiosClient.get("/dealers/").then(
+      (res) => res.data.results ?? res.data.result ?? [],
+    ),
   // "results": [
   //       {
   //         "id": 0,
@@ -32,7 +49,88 @@ export const dealerService = {
   //       }
   //     ]
   getById: (id) => axiosClient.get(`/dealers/${id}/`).then((res) => res.data),
+  // --- DEALER (đăng ký / tự quản lý hồ sơ)
+  getMine: () => axiosClient.get("/dealers/me/").then((res) => res.data),
+
+  create: (data) =>
+    axiosClient.post("/dealers/", data).then((res) => res.data.data ?? res.data),
+
+  resolveMyProfile: async () => {
+    try {
+      const profile = await axiosClient.get("/dealers/me/").then((res) => res.data);
+      if (profile?.id) {
+        persistProfileId(profile.id);
+        return profile;
+      }
+    } catch (err) {
+      if (err.response?.status !== 404) {
+        throw err;
+      }
+    }
+
+    const cachedId = readCachedProfileId();
+    if (cachedId) {
+      try {
+        const profile = await axiosClient
+          .get(`/dealers/${cachedId}/`)
+          .then((res) => res.data);
+        if (profile?.id) {
+          return profile;
+        }
+      } catch (err) {
+        if (err.response?.status === 404) {
+          localStorage.removeItem(DEALER_PROFILE_ID_KEY);
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    return null;
+  },
+
+  update: (id, data) =>
+    axiosClient.put(`/dealers/${id}/`, data).then((res) => res.data),
+
   // {
+  //   "store_name": "string",
+  //   "store_address": "string",
+  //   "description": "string"
+  // }
+
+  completeRegistration: async (profile, files) => {
+    const payload = {
+      store_name: profile.store_name,
+      store_address: profile.store_address,
+      description: profile.description,
+    };
+
+    let dealerProfile = await dealerService.resolveMyProfile();
+
+    if (dealerProfile?.id) {
+      await dealerService.update(dealerProfile.id, payload);
+      persistProfileId(dealerProfile.id);
+    } else {
+      try {
+        const created = await dealerService.create(payload);
+        const id = created?.id;
+        if (!id) {
+          throw new Error("Không thể tạo hồ sơ đại lý.");
+        }
+        persistProfileId(id);
+      } catch (createErr) {
+        dealerProfile = await dealerService.resolveMyProfile();
+        if (dealerProfile?.id) {
+          await dealerService.update(dealerProfile.id, payload);
+          persistProfileId(dealerProfile.id);
+        } else {
+          throw createErr;
+        }
+      }
+    }
+
+    return accountDocumentService.upload(files);
+  },
   //   "id": 0,
   //   "account": {
   //     "id": 0,
@@ -71,42 +169,25 @@ export const dealerService = {
   //       "created_at": "2026-06-11T03:15:47.393Z"
   //     }
   //   ],
-  //   "products": [
-  //     {
-  //       "id": 0,
-  //       "dealer_profile": 0,
-  //       "supplier_product": 0,
-  //       "supplier_product_name": "string",
-  //       "supplier_product_unit": "string",
-  //       "title": "string",
-  //       "description": "string",
-  //       "retail_price": "211",
-  //       "thumbnail": "string",
-  //       "status": "pending",
-  //       "created_at": "2026-06-11T03:15:47.393Z",
-  //       "updated_at": "2026-06-11T03:15:47.393Z",
-  //       "images": [
-  //         {
-  //           "id": 0,
-  //           "dealer_product": 0,
-  //           "image_url": "string",
-  //           "is_thumbnail": true,
-  //           "sort_order": 2147483647,
-  //           "created_at": "2026-06-11T03:15:47.393Z"
-  //         }
-  //       ]
-  //     }
-  //   ]
+  //   "products": [ ... ]
   // }
-  
+
+  statusUpdate: (id, data) =>
+    axiosClient.post(`/dealers/${id}/account-status/`, data).then((res) => res.data),
+  // {
+  //   "status": "active | inactive |  banned(rejected) | pending",
+  //   "reason": "string"
+  // }
+
   verify: (id, data) =>
     axiosClient.post(`/dealers/${id}/verify/`, data).then((res) => res.data),
+  // {
+  //   "status": "active | rejected",
+  //   "rejection_reason": "string"
+  // }
 };
 
-// Xử lý bug
 export const handleApiError = (error, defaultMessage = "Có lỗi xảy ra") => {
-  const message =
-    error.response?.data?.message || error.message || defaultMessage;
   console.error("API Error:", error);
-  return message;
+  return extractApiError(error, defaultMessage);
 };

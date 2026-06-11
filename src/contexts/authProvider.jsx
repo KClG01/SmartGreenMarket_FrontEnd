@@ -11,6 +11,19 @@ import { authService } from "../services/api/authAdminService";
 
 const AuthContext = createContext();
 
+function getAreaLabel(role) {
+    switch (role) {
+        case "supplier":
+            return "Nhà cung cấp";
+        case "dealer":
+            return "Đại lý";
+        case "admin":
+            return "Quản trị";
+        default:
+            return "hệ thống";
+    }
+}
+
 export function AuthProvider({ children }) {
     const navigate = useNavigate();
 
@@ -48,20 +61,21 @@ export function AuthProvider({ children }) {
                 localStorage.removeItem("access_token");
                 return {
                     success: false,
-                    message: `Tài khoản này không có quyền đăng nhập vào khu vực ${expectedRole === "supplier" ? "Nhà cung cấp" : "Quản trị"}`,
+                    message: `Tài khoản này không có quyền đăng nhập vào khu vực ${getAreaLabel(expectedRole)}`,
                 };
             }
 
             setUser(me);
             localStorage.setItem("user", JSON.stringify(me));
 
-            // ĐIỀU HƯỚNG TỰ ĐỘNG DỰA THEO ROLE
             if (me.role === "admin") {
                 navigate("/quan-tri");
             } else if (me.role === "supplier") {
                 navigate("/nha-cung-cap");
+            } else if (me.role === "dealer") {
+                navigate("/dai-ly");
             } else {
-                navigate("/"); // Mặc định cho User bình thường
+                navigate("/");
             }
 
             return { success: true };
@@ -102,6 +116,8 @@ export function AuthProvider({ children }) {
                 navigate("/nha-cung-cap/login");
             } else if (currentRole === "admin") {
                 navigate("/admin/login");
+            } else if (currentRole === "dealer") {
+                navigate("/dai-ly/dang-nhap");
             } else {
                 navigate("/");
             }
