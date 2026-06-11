@@ -1,5 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supplierService } from "../../services/api/suppilerService";
+import { accountService } from "../../services/api/accountService";
+import { bankService } from "../../services/api/bankService";
+import SupplierPageHeader, { SUPPLIER_PAGE_CLASS } from "../../components/Supplier/UI/SupplierPageHeader";
+import { extractSupplierApiMessage } from "../../utils/supplierValidation";
 // ---- Mock data ----
 const mockSupplierData = {
   id: 9,
@@ -22,6 +26,10 @@ const mockSupplierData = {
   phone: "0258974630",
   address: "65 Huỳnh Thúc Kháng, phường Sài Gòn",
   description: "Rau rất sạch",
+  bank_name: "Vietcombank",
+  bank_bin: "970436",
+  account_number: "26022005111",
+  account_name: "Nguyễn Văn A",
   verification_status: "approved",
   verified_by: 2,
   verified_by_username: "admin",
@@ -48,6 +56,56 @@ function formatDate(iso) {
 function formatPhone(phone) {
   if (!phone) return "—";
   return phone.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
+}
+
+function getChangedFields(initial, current) {
+  const changed = {};
+  Object.keys(initial).forEach((key) => {
+    if (current[key] !== initial[key]) {
+      changed[key] = current[key];
+    }
+  });
+  return changed;
+}
+
+const SUPPLIER_BANK_KEYS = ["bank_name", "bank_bin", "account_number", "account_name"];
+
+function normalizeSupplierForm(data = {}) {
+  return {
+    company_name: data.company_name || "",
+    tax_code: data.tax_code || "",
+    phone: data.phone || "",
+    address: data.address || "",
+    description: data.description || "",
+    bank_name: data.bank_name || "",
+    bank_bin: String(data.bank_bin || ""),
+    account_number: data.account_number || "",
+    account_name: data.account_name || "",
+  };
+}
+
+function buildSupplierUpdatePayload(supplier, form) {
+  const initial = normalizeSupplierForm(supplier);
+  const current = normalizeSupplierForm(form);
+  const changed = getChangedFields(initial, current);
+
+  const bankChanged = SUPPLIER_BANK_KEYS.some((key) => key in changed);
+  if (bankChanged) {
+    SUPPLIER_BANK_KEYS.forEach((key) => {
+      changed[key] = current[key];
+    });
+  }
+
+  return changed;
+}
+
+function extractSupplierErrorMessage(error, fallback = "Cập nhật thất bại. Vui lòng thử lại!") {
+  return extractSupplierApiMessage(error, fallback);
+}
+
+function toNumberOrNull(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 // ---- Sub-components ----
@@ -162,6 +220,20 @@ function PersonalSection({ supplier, onEdit, onPickAvatar }) {
           <p className="text-xs text-gray-400 mt-0.5">Thông tin tài khoản đăng nhập</p>
         </div>
         <div className="flex items-center gap-2">
+        <label className="flex items-center gap-2 px-4 py-2 border border-[#2D6A4F] text-[#2D6A4F] hover:bg-[#D8F3DC] text-sm font-medium rounded-lg transition-colors cursor-pointer">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Đổi mật khẩu
+            <input
+              type="password"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={onPickAvatar}
+            />
+          </label>
           <label className="flex items-center gap-2 px-4 py-2 border border-[#2D6A4F] text-[#2D6A4F] hover:bg-[#D8F3DC] text-sm font-medium rounded-lg transition-colors cursor-pointer">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -281,6 +353,15 @@ function CompanySection({ supplier, onEdit }) {
           <InfoField label="Mô tả" value={supplier.description} wide />
 
           <div className="col-span-2 border-t border-dashed border-gray-200 pt-1">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Thông tin ngân hàng</p>
+          </div>
+
+          <InfoField label="Tên ngân hàng" value={supplier.bank_name} />
+          <InfoField label="Mã BIN ngân hàng" value={supplier.bank_bin} />
+          <InfoField label="Số tài khoản" value={supplier.account_number} />
+          <InfoField label="Tên chủ tài khoản" value={supplier.account_name} />
+
+          <div className="col-span-2 border-t border-dashed border-gray-200 pt-1">
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Thông tin xác minh</p>
           </div>
 
@@ -312,7 +393,7 @@ function CompanySection({ supplier, onEdit }) {
 }
 
 // ---- Modal chỉnh sửa thông tin cá nhân ----
-function EditPersonalModal({ account, onClose, onSave }) {
+function EditPersonalModal({ account, onClose, onSave, isSaving }) {
   // Lưu giá trị gốc để so sánh dirty check
   const initial = {
     full_name: account.full_name,
@@ -333,7 +414,7 @@ function EditPersonalModal({ account, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40" onClick={!isSaving ? onClose : undefined} />
       <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md p-6 z-10">
         <h3 className="text-base font-semibold text-gray-900 mb-5">Chỉnh sửa thông tin cá nhân</h3>
         <div className="flex flex-col gap-4">
@@ -344,6 +425,7 @@ function EditPersonalModal({ account, onClose, onSave }) {
                 type={type}
                 value={form[key]}
                 onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                disabled={isSaving}
                 className={`w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-[#D8F3DC] transition-all ${
                   form[key] !== initial[key]
                     ? "border-[#2D6A4F] focus:border-[#2D6A4F]"
@@ -356,20 +438,33 @@ function EditPersonalModal({ account, onClose, onSave }) {
         <div className="flex gap-3 mt-6">
           <button
             onClick={onClose}
+            disabled={isSaving}
             className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all"
           >
             Hủy
           </button>
           <button
             onClick={() => onSave(form)}
-            disabled={!isDirty}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-medium transition-all ${
-              isDirty
+            disabled={isSaving || !isDirty}
+            className={`flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-medium transition-all flex items-center justify-center ${
+              isSaving
+                ? "bg-[#52B788] cursor-not-allowed"
+                : isDirty
                 ? "bg-[#2D6A4F] hover:bg-[#1B4332] cursor-pointer"
                 : "bg-[#B7E4C7] cursor-not-allowed opacity-70"
             }`}
           >
-            Lưu thay đổi
+            {isSaving ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Đang lưu...
+              </>
+            ) : (
+              "Lưu thay đổi"
+            )}
           </button>
         </div>
       </div>
@@ -379,18 +474,23 @@ function EditPersonalModal({ account, onClose, onSave }) {
 
 // ---- Modal chỉnh sửa thông tin doanh nghiệp ----
 function EditCompanyModal({ supplier, onClose, onSave, isSaving }) {
-  // Lưu giá trị gốc để so sánh dirty check
-  const initial = {
-    company_name: supplier.company_name,
-    tax_code: supplier.tax_code,
-    phone: supplier.phone,
-    address: supplier.address,
-    description: supplier.description,
-  };
+  const initial = normalizeSupplierForm(supplier);
 
   const [form, setForm] = useState(initial);
+  const [banks, setBanks] = useState([]);
 
-  // Có thay đổi so với dữ liệu gốc không?
+  useEffect(() => {
+    const fetchBanks = async () => {
+      try {
+        const response = await bankService.getAll();
+        setBanks(response);
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách ngân hàng:", error);
+      }
+    };
+    fetchBanks();
+  }, []);
+
   const isDirty = Object.keys(initial).some((key) => form[key] !== initial[key]);
 
   const fields = [
@@ -399,6 +499,27 @@ function EditCompanyModal({ supplier, onClose, onSave, isSaving }) {
     { label: "Số điện thoại doanh nghiệp", key: "phone", type: "tel" },
     { label: "Địa chỉ", key: "address", type: "text" },
   ];
+
+  const bankFields = [
+    { label: "Số tài khoản", key: "account_number", type: "text" },
+    { label: "Tên chủ tài khoản", key: "account_name", type: "text" },
+  ];
+
+  const handleBankChange = (bankBin) => {
+    const bank = banks.find((item) => String(item.bin) === String(bankBin));
+    setForm((prev) => ({
+      ...prev,
+      bank_bin: String(bank?.bin || bankBin),
+      bank_name: bank?.name || "",
+    }));
+  };
+
+  const inputClass = (key) =>
+    `w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-[#D8F3DC] transition-all disabled:bg-gray-100 disabled:text-gray-500 ${
+      form[key] !== initial[key]
+        ? "border-[#2D6A4F] focus:border-[#2D6A4F]"
+        : "border-gray-200 focus:border-[#52B788]"
+    }`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -414,11 +535,7 @@ function EditCompanyModal({ supplier, onClose, onSave, isSaving }) {
                 value={form[key]}
                 onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                 disabled={isSaving}
-                className={`w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-[#D8F3DC] transition-all disabled:bg-gray-100 disabled:text-gray-500 ${
-                  form[key] !== initial[key]
-                    ? "border-[#2D6A4F] focus:border-[#2D6A4F]"
-                    : "border-gray-200 focus:border-[#52B788]"
-                }`}
+                className={inputClass(key)}
               />
             </div>
           ))}
@@ -435,6 +552,40 @@ function EditCompanyModal({ supplier, onClose, onSave, isSaving }) {
                   : "border-gray-200 focus:border-[#52B788]"
               }`}
             />
+          </div>
+
+          <div className="border-t border-dashed border-gray-200 pt-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Thông tin ngân hàng</p>
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Ngân hàng</label>
+                <select
+                  value={form.bank_bin}
+                  onChange={(e) => handleBankChange(e.target.value)}
+                  disabled={isSaving}
+                  className={inputClass("bank_bin")}
+                >
+                  <option value="">-- Chọn ngân hàng --</option>
+                  {banks.map((bank) => (
+                    <option key={bank.bin} value={String(bank.bin)}>
+                      {bank.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {bankFields.map(({ label, key, type }) => (
+                <div key={key}>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">{label}</label>
+                  <input
+                    type={type}
+                    value={form[key]}
+                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                    disabled={isSaving}
+                    className={inputClass(key)}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
         <div className="flex gap-3 mt-6">
@@ -474,16 +625,98 @@ function EditCompanyModal({ supplier, onClose, onSave, isSaving }) {
   );
 }
 
-export function SupplierProfileContent({ supplierData = mockSupplierData }) {
-  const [supplier, setSupplier] = useState(supplierData);
+export default function SupplierProfileContent({ supplierData = mockSupplierData }) {
+  const [supplier, setSupplier] = useState(supplierData || null);
+  const [isLoadingSupplier, setIsLoadingSupplier] = useState(true);
+  const [supplierError, setSupplierError] = useState("");
   const [editingPersonal, setEditingPersonal] = useState(false);
   const [editingCompany, setEditingCompany] = useState(false);
+  const [isUpdatingPersonal, setIsUpdatingPersonal] = useState(false);
   const [isUpdatingCompany, setIsUpdatingCompany] = useState(false);
 
   // Avatar confirm flow
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  useEffect(() => {
+    const fetchSupplierProfile = async () => {
+      try {
+        setIsLoadingSupplier(true);
+        setSupplierError("");
+
+        const savedUser = localStorage.getItem("user");
+        const user = savedUser ? JSON.parse(savedUser) : null;
+        const userId = toNumberOrNull(user?.id);
+
+        if (!userId) {
+          throw new Error("Không tìm thấy thông tin tài khoản đăng nhập.");
+        }
+
+        const directSupplierId =
+          toNumberOrNull(user?.supplier_id) ??
+          toNumberOrNull(user?.supplier?.id) ??
+          toNumberOrNull(user?.supplier);
+
+        // Ưu tiên lấy theo supplier id đã có sẵn trong user (nếu backend trả về)
+        if (directSupplierId) {
+          const supplierDetail = await supplierService.getById(directSupplierId);
+          setSupplier(supplierDetail);
+          return;
+        }
+
+        // Fallback: quét từ danh sách và match linh hoạt account field
+        const suppliers = await supplierService.getAll();
+        const supplierSummary = suppliers.find((item) => {
+          const accountId =
+            toNumberOrNull(item?.account) ??
+            toNumberOrNull(item?.account_id) ??
+            toNumberOrNull(item?.account?.id);
+
+          if (accountId && accountId === userId) return true;
+
+          const usernameMatches =
+            item?.account?.username &&
+            user?.username &&
+            item.account.username === user.username;
+
+          const emailMatches =
+            item?.account?.email &&
+            user?.email &&
+            item.account.email === user.email;
+
+          return usernameMatches || emailMatches;
+        });
+
+        if (supplierSummary?.id) {
+          const supplierDetail = await supplierService.getById(supplierSummary.id);
+          setSupplier(supplierDetail);
+          return;
+        }
+
+        // Fallback: nếu API chỉ trả 1 supplier thì dùng luôn bản ghi đó
+        if (suppliers.length === 1 && suppliers[0]?.id) {
+          const supplierDetail = await supplierService.getById(suppliers[0].id);
+          setSupplier(supplierDetail);
+          return;
+        }
+
+        throw new Error("Không tìm thấy hồ sơ nhà cung cấp của tài khoản này.");
+      } catch (error) {
+        console.error("Lỗi tải thông tin nhà cung cấp:", error);
+        setSupplierError(
+          error?.response?.data?.message ||
+            error?.response?.data?.detail ||
+            error?.message ||
+            "Không thể tải thông tin nhà cung cấp."
+        );
+      } finally {
+        setIsLoadingSupplier(false);
+      }
+    };
+
+    fetchSupplierProfile();
+  }, []);
 
   const handlePickAvatar = (e) => {
     const file = e.target.files?.[0];
@@ -500,16 +733,17 @@ export function SupplierProfileContent({ supplierData = mockSupplierData }) {
       const formData = new FormData();
       formData.append("avatar", avatarFile);
 
-      // TODO: thay bằng API thực tế
-      // const data = await accountService.updateAvatar(formData);
-      await new Promise((r) => setTimeout(r, 1200));
+      const data = await accountService.updateAvatar(formData);
+      const nextAvatarUrl = data?.avatar_url || data?.data?.avatar_url || avatarPreview;
 
-      setSupplier((s) => ({ ...s, account: { ...s.account, avatar_url: avatarPreview } }));
+      setSupplier((s) => ({ ...s, account: { ...s.account, avatar_url: nextAvatarUrl } }));
+      URL.revokeObjectURL(avatarPreview);
       setAvatarPreview(null);
       setAvatarFile(null);
+      alert("Cập nhật ảnh đại diện thành công!");
     } catch (err) {
       console.error("Lỗi upload avatar:", err);
-      alert("Tải ảnh thất bại. Vui lòng thử lại!");
+      alert(extractSupplierErrorMessage(err, "Tải ảnh đại diện thất bại. Vui lòng chọn ảnh khác và thử lại."));
     } finally {
       setUploadingAvatar(false);
     }
@@ -521,32 +755,113 @@ export function SupplierProfileContent({ supplierData = mockSupplierData }) {
     setAvatarFile(null);
   };
 
-  const handleSavePersonal = (form) => {
-    setSupplier((s) => ({ ...s, account: { ...s.account, ...form } }));
-    setEditingPersonal(false);
+  const handleSavePersonal = async (form) => {
+    if (!supplier) return;
+
+    const changedFields = getChangedFields(
+      {
+        full_name: supplier.account.full_name,
+        email: supplier.account.email,
+        phone: supplier.account.phone,
+      },
+      form
+    );
+
+    if (!Object.keys(changedFields).length) {
+      setEditingPersonal(false);
+      return;
+    }
+
+    try {
+      setIsUpdatingPersonal(true);
+      await accountService.update(changedFields);
+      setSupplier((s) => ({ ...s, account: { ...s.account, ...changedFields } }));
+      setEditingPersonal(false);
+      alert("Cập nhật thông tin cá nhân thành công!");
+    } catch (error) {
+      console.error("Lỗi khi cập nhật tài khoản:", error);
+      alert(extractSupplierErrorMessage(error, "Cập nhật thông tin cá nhân thất bại. Vui lòng kiểm tra lại thông tin."));
+    } finally {
+      setIsUpdatingPersonal(false);
+    }
   };
 
   const handleSaveCompany = async (form) => {
+    if (!supplier) return;
+
+    const changedFields = buildSupplierUpdatePayload(supplier, form);
+
+    if (!Object.keys(changedFields).length) {
+      setEditingCompany(false);
+      return;
+    }
+
+    const bankTouched = SUPPLIER_BANK_KEYS.some((key) => key in changedFields);
+    if (bankTouched) {
+      const missingBankField = SUPPLIER_BANK_KEYS.find((key) => !String(changedFields[key] || "").trim());
+      if (missingBankField) {
+        const bankFieldLabels = {
+          bank_name: "Tên ngân hàng",
+          bank_bin: "Mã ngân hàng",
+          account_number: "Số tài khoản",
+          account_name: "Tên chủ tài khoản",
+        };
+        alert(`${bankFieldLabels[missingBankField] || "Thông tin ngân hàng"}: Không được để trống.`);
+        return;
+      }
+    }
+
     try {
       setIsUpdatingCompany(true);
-      await supplierService.update(supplier.id, form);
-      setSupplier((s) => ({ ...s, ...form }));
+      const updated = await supplierService.patch(supplier.id, changedFields);
+      setSupplier((s) => ({ ...s, ...changedFields, ...updated }));
       setEditingCompany(false);
       alert("Cập nhật thông tin doanh nghiệp thành công!");
     } catch (error) {
       console.error("Lỗi khi cập nhật thông tin:", error);
-      alert("Cập nhật thất bại. Vui lòng thử lại!");
+      console.log("DATA:", error?.response?.data);
+      alert(extractSupplierErrorMessage(error));
     } finally {
       setIsUpdatingCompany(false);
     }
   };
 
-  return (
-    <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Thông tin nhà cung cấp</h1>
-        <p className="text-sm text-gray-500 mt-1">Quản lý thông tin tài khoản và doanh nghiệp của bạn</p>
+  if (isLoadingSupplier) {
+    return (
+      <div className={SUPPLIER_PAGE_CLASS}>
+        <SupplierPageHeader
+          title="Thông tin nhà cung cấp"
+          description="Quản lý thông tin tài khoản và doanh nghiệp của bạn"
+        />
+        <div className="bg-white rounded-xl border border-gray-200 p-6 text-sm text-gray-500">
+          Đang tải thông tin nhà cung cấp...
+        </div>
       </div>
+    );
+  }
+
+  if (supplierError) {
+    return (
+      <div className={SUPPLIER_PAGE_CLASS}>
+        <SupplierPageHeader
+          title="Thông tin nhà cung cấp"
+          description="Quản lý thông tin tài khoản và doanh nghiệp của bạn"
+        />
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
+          {supplierError}
+        </div>
+      </div>
+    );
+  }
+
+  if (!supplier) return null;
+
+  return (
+    <div className={SUPPLIER_PAGE_CLASS}>
+      <SupplierPageHeader
+        title="Thông tin nhà cung cấp"
+        description="Quản lý thông tin tài khoản và doanh nghiệp của bạn"
+      />
 
       <div className="flex flex-col gap-4">
         <PersonalSection
@@ -562,6 +877,7 @@ export function SupplierProfileContent({ supplierData = mockSupplierData }) {
           account={supplier.account}
           onClose={() => setEditingPersonal(false)}
           onSave={handleSavePersonal}
+          isSaving={isUpdatingPersonal}
         />
       )}
 
@@ -582,7 +898,7 @@ export function SupplierProfileContent({ supplierData = mockSupplierData }) {
           isSaving={uploadingAvatar}
         />
       )}
-    </>
+    </div>
   );
 }
 
@@ -600,26 +916,30 @@ const NAV_ITEMS = [
   { key: "profile",  icon: "👤", label: "Thông tin nhà cung cấp" },
 ];
 
-export default function KamereoLayoutPreview() {
+export function KamereoLayoutPreview() {
   const [activeNav, setActiveNav] = useState("profile");
 
   return (
     <div className="flex h-screen bg-[#F5F5F0] font-sans text-sm overflow-hidden">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto">
           {activeNav === "profile" ? (
             <SupplierProfileContent />
           ) : activeNav === "certs" ? (
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Quản lý Chứng nhận</h1>
-              <p className="text-sm text-gray-500">Theo dõi và quản lý các chứng nhận kiểm định chất lượng sản phẩm</p>
-              <div className="mt-8 bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400">
+            <div className={SUPPLIER_PAGE_CLASS}>
+              <SupplierPageHeader
+                title="Quản lý chứng nhận"
+                description="Theo dõi và quản lý các chứng nhận kiểm định chất lượng sản phẩm"
+              />
+              <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400">
                 Nội dung trang chứng nhận...
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400">
-              Chọn "Thông tin nhà cung cấp" để xem demo
+            <div className={SUPPLIER_PAGE_CLASS}>
+              <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400">
+                Chọn "Thông tin nhà cung cấp" để xem demo
+              </div>
             </div>
           )}
         </main>
