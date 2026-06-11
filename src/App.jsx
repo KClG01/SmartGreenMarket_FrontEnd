@@ -4,6 +4,7 @@ import UserLayout from "./layouts/UserLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import SupplierLayout from "./layouts/SupplierLayout";
 import UserProfileLayout from "./layouts/UserProfileLayout";
+import DealerLayout from "./layouts/DealerLayout";
 
 import  {HomePage}  from "./pages/User/Home";
 import CartPage from "./pages/User/Cart";
@@ -29,10 +30,12 @@ import {
   CertificationPage,
   DocumentPage,
   NotificationPage,
+  DealerPage,
 } from "./pages/Admin";
-
+import { RegisterDealerPage, DealerLoginPage } from "./pages/Dealer";
 import { AuthProvider } from "./contexts/authProvider";
 import AdminProtectedRoute from "./contexts/adminProtectedRoute";
+import DealerProtectedRoute from "./contexts/dealerProtectedRoute";
 
 export default function App() {
     return (
@@ -63,6 +66,7 @@ export default function App() {
                             <Route path="chung-nhan" element={<CertificationSupplierPage />} />
                             <Route path="thong-tin-ca-nhan" element={<SupplierInfoPage />} />
                             <Route path="danh-muc" element={<CategorySupplierPage />} />
+                            <Route path="tat-ca-thong-bao" element={<NotificationPage />} />
                         </Route>
                     </Route>
                     <Route path="/nha-cung-cap/login" element={<SupplierLoginPage />} />
@@ -80,8 +84,18 @@ export default function App() {
                             <Route path="chung-chi" element={<CertificationPage />} />
                             <Route path="giay-to" element={<DocumentPage />} />
                             <Route path="tat-ca-thong-bao" element={<NotificationPage />} />
+                            <Route path="dai-ly" element={<DealerPage />} />
                         </Route>
                     </Route>
+
+                    {/* Dealer */}
+                    <Route element={<DealerProtectedRoute />}>
+                        <Route path="/dai-ly" element={<DealerLayout />}>
+                            <Route path="tat-ca-thong-bao" element={<NotificationPage />} />
+                        </Route>
+                    </Route>
+                    <Route path="dai-ly/dang-nhap" element={<DealerLoginPage />} />
+                    <Route path="dai-ly/dang-ky" element={<RegisterDealerPage />} />
                 </Routes>
             </AuthProvider>
         </BrowserRouter>

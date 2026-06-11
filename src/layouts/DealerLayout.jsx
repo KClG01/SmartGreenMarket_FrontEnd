@@ -1,9 +1,9 @@
 import { Outlet } from "react-router-dom";
 import AppToaster from "../components/common/AppToaster";
-import SideBar from "../components/Admin/UI/SideBar";
+import SideBar from "../components/Dealer/Ui/SideBar";
 import NotificationBell from "../components/common/NotificationBell";
 
-export default function AdminLayout() {
+export default function DealerLayout() {
     return (
         <div className="min-h-screen bg-neutral-50">
             {/* ── Top Bar ───────────────────────────────────────────────────── */}
@@ -17,7 +17,7 @@ export default function AdminLayout() {
 
                 {/* Right icons */}
                 <div className="flex items-center gap-3">
-                    <NotificationBell role="admin" />
+                    <NotificationBell role="dealer" />
 
                     <div className="pl-4 border-l border-neutral-200 flex items-center gap-2">
                         <button className="hover:scale-105 w-8 h-8 rounded-full bg-emerald-800 hover:bg-emerald-900 flex items-center justify-center text-white text-xs font-bold font-['Geist',sans-serif] cursor-pointer transition-all shadow-sm overflow-hidden">

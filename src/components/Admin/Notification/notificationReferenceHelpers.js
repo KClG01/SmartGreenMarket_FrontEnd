@@ -1,14 +1,14 @@
 import { categoryService } from "../../../services/api/categoryService";
 import { productService } from "../../../services/api/productService";
 import { supplierService } from "../../../services/api/suppilerService";
-import { supplierDocumentService } from "../../../services/api/supplierDocumentService";
+import { accountDocumentService } from "../../../services/api/accountDocumentService";
 import { certificationService } from "../../../services/api/certificationService";
 
 export const SUPPORTED_REFERENCE_TYPES = [
     "category",
     "supplier",
     "supplier_product",
-    "supplier_document",
+    "account_document",
     "certification",
 ];
 
@@ -170,10 +170,10 @@ const REFERENCE_FETCHERS = {
         format: formatSupplier,
         type: "supplier",
     },
-    supplier_document: {
+    account_document: {
         entityLabel: "Giấy tờ",
-        getById: (id) => supplierDocumentService.getById(id),
-        getAll: () => supplierDocumentService.getAll(),
+        getById: (id) => accountDocumentService.getById(id),
+        getAll: () => accountDocumentService.getAll(),
         format: formatDocument,
         type: "supplier_document",
     },

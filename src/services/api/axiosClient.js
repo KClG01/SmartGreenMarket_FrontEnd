@@ -8,6 +8,52 @@ const axiosClient = axios.create({
   withCredentials: true,
 });
 
+const AUTH_URLS_SKIP_REFRESH = ["/login/", "/register/", "/refresh/"];
+
+const PUBLIC_PATH_PREFIXES = [
+  "/dang-ky-dai-ly",
+  "/dang-ky-nha-cung-cap",
+  "/admin/login",
+  "/nha-cung-cap/login",
+  "/dai-ly/login",
+  "/trang-chu",
+  "/gio-hang",
+  "/dat-hang",
+];
+
+function shouldSkipAuthRefresh(config) {
+  const url = config?.url || "";
+  return AUTH_URLS_SKIP_REFRESH.some((path) => url.includes(path));
+}
+
+function shouldStayOnCurrentPage() {
+  const path = window.location.pathname;
+  return (
+    path === "/" ||
+    PUBLIC_PATH_PREFIXES.some(
+      (prefix) => path === prefix || path.startsWith(`${prefix}/`),
+    )
+  );
+}
+
+function redirectToLoginForCurrentArea() {
+  const path = window.location.pathname;
+
+  if (path.startsWith("/quan-tri")) {
+    window.location.href = "/admin/login";
+    return;
+  }
+
+  if (path.startsWith("/nha-cung-cap")) {
+    window.location.href = "/nha-cung-cap/login";
+    return;
+  }
+
+  if (path.startsWith("/dai-ly")) {
+    window.location.href = "/dai-ly/login";
+  }
+}
+
 // REQUEST
 axiosClient.interceptors.request.use(
   (config) => {
@@ -35,7 +81,11 @@ axiosClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !shouldSkipAuthRefresh(originalRequest)
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -59,7 +109,9 @@ axiosClient.interceptors.response.use(
 
         localStorage.removeItem("user");
 
-        window.location.href = "/admin/login";
+        if (!shouldStayOnCurrentPage()) {
+          redirectToLoginForCurrentArea();
+        }
 
         return Promise.reject(refreshError);
       }

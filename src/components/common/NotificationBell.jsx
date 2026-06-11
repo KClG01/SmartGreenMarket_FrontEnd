@@ -4,8 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { notificationService, handleApiError } from "../../services/api/notificationService";
 import NotificationDropdown from "./NotificationDropdown";
 import NotificationViewModal from "../Admin/Notification/NotificationViewModal";
+import { getNotificationSeeAllPath } from "./notificationRolePaths";
+import { useAuth } from "../../contexts/authProvider";
 
-export default function NotificationBell() {
+export default function NotificationBell({ role: roleProp }) {
+    const { user } = useAuth();
+    const role = roleProp ?? user?.role ?? "admin";
+    const seeAllPath = getNotificationSeeAllPath(role);
     const [unreadCount, setUnreadCount] = useState(0);
     const [notifications, setNotifications] = useState([]);
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
@@ -128,7 +133,7 @@ export default function NotificationBell() {
                     onItemClick={handleItemClick}
                     onSeeMore={() => {
                         setIsOpenDropdown(false);
-                        navigate("/quan-tri/tat-ca-thong-bao");
+                        navigate(seeAllPath);
                     }}
                 />
             )}
