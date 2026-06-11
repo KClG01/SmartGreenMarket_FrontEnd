@@ -23,6 +23,7 @@ import SupplierProtectedRoute from "./contexts/supplierProtectedRoute";
 import DealerLayout from "./layouts/DealerLayout";
 import DealerProtectedRoute from "./contexts/dealerProtectedRoute";
 import {
+    RegisterDealerPage,
     DealerLoginPage,
     DealerDashboardPage,
     DealerInventoryPage,
@@ -95,7 +96,8 @@ export default function App() {
                     </Route>
 
                     {/* Phân hệ Đại lý (Dealer) */}
-                    <Route path="/dai-ly/login" element={<DealerLoginPage />} />
+                    <Route path="/dai-ly/dang-nhap" element={<DealerLoginPage />} />
+                    <Route path="/dai-ly/dang-ky" element={<RegisterDealerPage />} />
                     <Route element={<DealerProtectedRoute />}>
                         <Route path="/dai-ly" element={<DealerLayout />}>
                             <Route index element={<DealerDashboardPage />} />

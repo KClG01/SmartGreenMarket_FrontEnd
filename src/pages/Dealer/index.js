@@ -8,5 +8,6 @@ export { default as DealerSalesOrderPage } from "./SalesOrder";
 
 export { default as DealerSupplierDetailPage } from "./SupplierDetail";
 export { default as DealerCategoryDetail } from "./CategeryDetail";
+export { default as RegisterDealerPage } from "./Register/RegisterDealerPage";
 
 
