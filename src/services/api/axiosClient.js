@@ -2,57 +2,11 @@ import axios from "axios";
 
 const axiosClient = axios.create({
   baseURL: "https://smart-green-market-api.onrender.com/api",
-  // Không đặt Content-Type mặc định:
-  // - Axios tự set "application/json" cho plain object
-  // - Axios tự set "multipart/form-data; boundary=..." cho FormData
+  headers: {
+    "Content-Type": "application/json",
+  },
   withCredentials: true,
 });
-
-const AUTH_URLS_SKIP_REFRESH = ["/login/", "/register/", "/refresh/"];
-
-const PUBLIC_PATH_PREFIXES = [
-  "/dang-ky-dai-ly",
-  "/dang-ky-nha-cung-cap",
-  "/admin/login",
-  "/nha-cung-cap/login",
-  "/dai-ly/login",
-  "/trang-chu",
-  "/gio-hang",
-  "/dat-hang",
-];
-
-function shouldSkipAuthRefresh(config) {
-  const url = config?.url || "";
-  return AUTH_URLS_SKIP_REFRESH.some((path) => url.includes(path));
-}
-
-function shouldStayOnCurrentPage() {
-  const path = window.location.pathname;
-  return (
-    path === "/" ||
-    PUBLIC_PATH_PREFIXES.some(
-      (prefix) => path === prefix || path.startsWith(`${prefix}/`),
-    )
-  );
-}
-
-function redirectToLoginForCurrentArea() {
-  const path = window.location.pathname;
-
-  if (path.startsWith("/quan-tri")) {
-    window.location.href = "/admin/login";
-    return;
-  }
-
-  if (path.startsWith("/nha-cung-cap")) {
-    window.location.href = "/nha-cung-cap/login";
-    return;
-  }
-
-  if (path.startsWith("/dai-ly")) {
-    window.location.href = "/dai-ly/login";
-  }
-}
 
 // REQUEST
 axiosClient.interceptors.request.use(
@@ -61,12 +15,6 @@ axiosClient.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    // Nếu body là FormData → xóa Content-Type để axios/browser
-    // tự động set "multipart/form-data; boundary=..." (bắt buộc khi upload file)
-    if (config.data instanceof FormData) {
-      delete config.headers["Content-Type"];
     }
 
     return config;
@@ -80,12 +28,11 @@ axiosClient.interceptors.response.use(
 
   async (error) => {
     const originalRequest = error.config;
+    
+    // Nếu là API đăng nhập thì không thực hiện refresh token hay redirect tự động
+    const isLoginRequest = originalRequest?.url?.endsWith("/login/");
 
-    if (
-      error.response?.status === 401 &&
-      !originalRequest._retry &&
-      !shouldSkipAuthRefresh(originalRequest)
-    ) {
+    if (error.response?.status === 401 && !isLoginRequest && !originalRequest?._retry) {
       originalRequest._retry = true;
 
       try {
@@ -106,11 +53,18 @@ axiosClient.interceptors.response.use(
         return axiosClient(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem("access_token");
-
         localStorage.removeItem("user");
 
-        if (!shouldStayOnCurrentPage()) {
-          redirectToLoginForCurrentArea();
+        // Điều hướng thông minh về trang đăng nhập tương ứng
+        const pathname = window.location.pathname;
+        if (pathname.startsWith("/quan-tri") || pathname.startsWith("/admin")) {
+          window.location.href = "/admin/login";
+        } else if (pathname.startsWith("/dai-ly")) {
+          window.location.href = "/dai-ly/login";
+        } else if (pathname.startsWith("/nha-cung-cap")) {
+          window.location.href = "/nha-cung-cap/login";
+        } else {
+          window.location.href = "/";
         }
 
         return Promise.reject(refreshError);

@@ -4,7 +4,7 @@ import Filter  from "../../components/Admin/UI/Filter";
 import CertificationTable from "../../components/Supplier/Certification/CertificationTable";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 import CreateCertificationModal from "../../components/Supplier/Certification/CreateCertificationModal";
-import { certificationService } from "../../services/api/CertificationService"; 
+import { certificationService } from "../../services/api/certificationService"; 
 import DetailCertificationModal from "../../components/Supplier/Certification/DetailCertificationModal";
 
 export default function CertificationSupplierPage() {
@@ -50,9 +50,10 @@ export default function CertificationSupplierPage() {
     <div className="flex-1 w-full max-w-[1200px] flex flex-col mx-auto px-10 py-8 gap-6">
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Quản lý chứng nhận</h1>
-      <p className="text-sm text-gray-500">Theo dõi và quản lý các chứng nhận sản phẩm đang gửi trên hệ thống</p>
-
+        <h1 className="text-2xl font-bold text-neutral-800">Quản lý Chứng nhận</h1>
+        <p className="text-sm text-neutral-500 mt-1">
+          Theo dõi và quản lý các chứng nhận kiểm định chất lượng sản phẩm
+        </p>
       </div>
 
       {/* ── Actions bar ─────────────────────────────────────────────────────── */}

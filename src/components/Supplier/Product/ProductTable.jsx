@@ -37,21 +37,21 @@ const buildColumns = (onView, onDelete) => [
     name: "Mã sản phẩm",
     selector: (row) => row.id,
     sortable: true,
-    width: "140px",
+    width: "100px",
     cell: (row) => (
       <span className="text-emerald-800 text-xs font-semibold font-mono">
-        {row.id}
+        {row.code}
       </span>
     ),
   },
   {
     name: "Hình ảnh",
-    width: "140px",
+    width: "100px",
     cell: (row) => (
       <img
         src={(row.images.find(img => img.is_thumbnail) || row.images[0])?.image_url }
         alt={row.name}
-        className="w-20 h-20 rounded-lg border border-stone-300 object-cover"
+        className="w-12 h-12 rounded-lg border border-stone-300 object-cover"
       />
     ),
   },
@@ -71,7 +71,7 @@ const buildColumns = (onView, onDelete) => [
     name: "Loại sản phẩm",
     selector: (row) => row.price,
     sortable: true,
-    width: "150px",
+    width: "120px",
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
         {row.category.name}

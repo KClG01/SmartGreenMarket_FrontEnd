@@ -13,7 +13,7 @@ export default function Header() {
                         <Link to="/trang-chu">GreenMarket</Link>
                     </span>
                     <nav className="flex items-center gap-6">
-                        <Link to="/trang-chu" className="hover:scale-105 text-neutral-600 text-sm font-medium hover:scale-105 hover:text-green-600 transition-colors">
+                        <Link to="/trang-chu" className="text-neutral-600 text-sm font-medium hover:scale-105 hover:text-green-600 transition-colors">
                             Cửa hàng
                         </Link>
                         <CategoryDropdown />
@@ -35,16 +35,16 @@ export default function Header() {
                 {/* Icons */}
                 <div className="flex items-center gap-2 shrink-0">
                     <Link to="/theo-doi-don-hang"
-                        className="hover:scale-115 p-2 rounded-full hover:bg-zinc-100 hover:text-green-600 transition-colors text-zinc-700">
+                        className="p-2 rounded-full hover:bg-zinc-100 hover:text-green-600 transition-colors text-zinc-700">
                         <Newspaper className="w-5 h-5" />
                     </Link>
                     <Link
                         to="/gio-hang"
-                        className="hover:scale-115 p-2 rounded-full hover:bg-zinc-100 hover:text-green-600 transition-colors text-zinc-700"
+                        className="p-2 rounded-full hover:bg-zinc-100 hover:text-green-600 transition-colors text-zinc-700"
                     >
                         <ShoppingCart className="w-5 h-5" />
                     </Link>
-                    <Link to="/tai-khoan/" className="hover:scale-115 p-2 rounded-full hover:bg-zinc-100 hover:text-green-600 transition-colors text-zinc-700">
+                    <Link to="/tai-khoan/" className="p-2 rounded-full hover:bg-zinc-100 hover:text-green-600 transition-colors text-zinc-700">
                         <User className="w-5 h-5" />
                     </Link>
                 </div>
