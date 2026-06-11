@@ -44,6 +44,7 @@ import {
   CertificationPage,
   DocumentPage,
   NotificationPage,
+  DealerPage,
 } from "./pages/Admin";
 
 import { AuthProvider } from "./contexts/authProvider";
@@ -82,7 +83,7 @@ export default function App() {
                     <Route path="dang-ky-nha-cung-cap" element={<RegisterPage />} />
 
                     {/* Admin */}
-                    <Route path="/admin/login" element={<AdminLoginPage />} />
+                    <Route path="/quan-tri/dang-nhap" element={<AdminLoginPage />} />
                     <Route element={<AdminProtectedRoute />}>
                         <Route path="/quan-tri" element={<AdminLayout />}>
                             <Route path="cau-hinh" element={<SettingPage />} />
@@ -92,6 +93,7 @@ export default function App() {
                             <Route path="chung-chi" element={<CertificationPage />} />
                             <Route path="giay-to" element={<DocumentPage />} />
                             <Route path="tat-ca-thong-bao" element={<NotificationPage />} />
+                            <Route path="dai-ly" element={<DealerPage />} />
                         </Route>
                     </Route>
 
