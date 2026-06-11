@@ -114,11 +114,11 @@ export function AuthProvider({ children }) {
 
             // ĐIỀU HƯỚNG TỰ ĐỘNG DỰA THEO ROLE
             if (currentRole === "supplier") {
-                navigate("/nha-cung-cap/login");
+                navigate("/nha-cung-cap/dang-nhap");
             } else if (currentRole === "admin") {
-                navigate("/admin/login");
+                navigate("/quan-tri/dang-nhap");
             }else if (currentRole === "dealer") {
-                navigate("/dai-ly/login");
+                navigate("/dai-ly/dang-nhap");
             } else {
                 navigate("/");
             }
