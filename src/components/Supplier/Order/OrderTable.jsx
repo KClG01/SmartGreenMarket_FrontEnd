@@ -108,7 +108,7 @@ const buildColumns = (onView, onDelete) => [
     width: "130px",
     right: true,
     cell: (row) => (
-      <div className="flex items-center gap-1 pr-2">
+      <div className="flex items-center gap-1">
         <button
           onClick={() => onView(row)}
           title="Xem chi tiết"

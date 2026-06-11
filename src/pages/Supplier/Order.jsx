@@ -1,10 +1,11 @@
 import { useState } from "react";
 // import Toolbar from "../../components/Admin/UI/Toolbar";
 import Filter from "../../components/Admin/UI/Filter";
-import InventoryTable from "../../components/Supplier/Inventory/InventoryTable";
+import InventoryTable from "../../components/Supplier/Order/OrderTable";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
-import CreateInventoryModal from "../../components/Supplier/Inventory/CreateInventoryModal";
-import InventoryDetailModal from "../../components/Supplier/Inventory/DetailInventoryModal";
+import CreateInventoryModal from "../../components/Supplier/Order/CreateOrderModal";
+import InventoryDetailModal from "../../components/Supplier/Order/DetailOrderModal";
+import SupplierPageHeader, { SUPPLIER_PAGE_CLASS } from "../../components/Supplier/UI/SupplierPageHeader";
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 const INITIAL_DATA = [
@@ -17,7 +18,7 @@ const INITIAL_DATA = [
   { id: 7, code: "#GM-P-07", name: "Ớt chuông đỏ", price: 22000, unit: "kg", inventory: 90, status: "pending", image: "../public/images/rau.jpg" },
 ];
 
-export default function InventorySupplierPage() {
+export default function OrderSupplierPage() {
   const [data, setData] = useState(INITIAL_DATA);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -46,9 +47,11 @@ export default function InventorySupplierPage() {
     setData((prev) => [newItem, ...prev]);
   }
   return (
-    <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
-     <h1 className="text-2xl font-bold text-gray-900 mb-1">Quản lý tồn kho</h1>
-      <p className="text-sm text-gray-500">Theo dõi và quản lý các sản phẩm hiện tại trong kho</p>
+    <div className={SUPPLIER_PAGE_CLASS}>
+      <SupplierPageHeader
+        title="Quản lý đơn hàng"
+        description="Theo dõi và quản lý các đơn hàng hiện tại trong kho"
+      />
 
       {/* Toolbar: search + filter button + add CTA */}
       <div className="flex justify-between items-center">

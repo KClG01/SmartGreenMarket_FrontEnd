@@ -3,9 +3,16 @@ import {
   X, Check, ChevronLeft, ChevronRight, ZoomIn,
   Package, Tag, Thermometer, ShieldCheck,
   Calendar, Hash, AlertCircle, CheckCircle,
-  XCircle, Loader2, Pencil, Save, Ban, DollarSign, Lock,
+  XCircle, Loader2, Pencil, Save, Ban, Lock, ImageIcon,
 } from "lucide-react";
 import { productService } from "../../../services/api/productService";
+import UpdateProductImagesModal from "./UpdateProductImagesModal";
+import {
+  parseSupplierApiErrors,
+  validateProductForm,
+  errorsToSummary,
+  extractSupplierApiMessage,
+} from "../../../utils/supplierValidation";
 
 /* ─── Status helpers ─── */
 const STATUS_MAP = {
@@ -221,8 +228,14 @@ export default function DetailProductModal({ isOpen, onClose, product: initialPr
   const [saving,  setSaving]  = useState(false);
   const [saved,   setSaved]   = useState(false);
   const [error,   setError]   = useState("");
+  const [showImageModal, setShowImageModal] = useState(false);
 
-  useEffect(() => { setProduct(initialProduct); setSaved(false); setError(""); }, [initialProduct]);
+  useEffect(() => {
+    setProduct(initialProduct);
+    setSaved(false);
+    setError("");
+    setShowImageModal(false);
+  }, [initialProduct]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -270,8 +283,22 @@ export default function DetailProductModal({ isOpen, onClose, product: initialPr
   };
 
   const handleSave = async () => {
-    setSaving(true);
     setError("");
+    const errs = validateProductForm({
+      name: product.name,
+      category: product.category?.id ?? product.category,
+      unit: product.unit,
+      description: product.description,
+      storage_duration_days: product.storage_duration_days,
+      min_storage_temp: product.min_storage_temp,
+      max_storage_temp: product.max_storage_temp,
+    });
+    if (Object.keys(errs).length) {
+      setError(errorsToSummary(errs));
+      return;
+    }
+
+    setSaving(true);
     try {
       const payload = buildUpdatePayload();
       const updated = await productService.updateProduct(product.id, payload);
@@ -292,18 +319,10 @@ export default function DetailProductModal({ isOpen, onClose, product: initialPr
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
       console.error("Lỗi cập nhật sản phẩm:", err);
-      const data = err?.response?.data;
-      let msg = "Cập nhật thất bại. Vui lòng thử lại.";
-      if (data && typeof data === "object" && !Array.isArray(data)) {
-        const fieldErrors = Object.entries(data)
-          .filter(([k]) => k !== "detail" && k !== "message")
-          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
-          .join(" | ");
-        msg = fieldErrors || data?.detail || data?.message || msg;
-      } else {
-        msg = data?.detail || data?.message || err?.message || msg;
-      }
-      setError(msg);
+      const parsed = parseSupplierApiErrors(err?.response?.data, {
+        fallback: "Cập nhật sản phẩm thất bại. Vui lòng kiểm tra lại thông tin.",
+      });
+      setError(parsed.general || parsed.summary || extractSupplierApiMessage(err));
     } finally {
       setSaving(false);
     }
@@ -458,6 +477,15 @@ export default function DetailProductModal({ isOpen, onClose, product: initialPr
                   <span className="text-xs text-zinc-400 ml-auto">{product.images?.length ?? 0} ảnh</span>
                 </div>
                 <ImageGallery images={product.images} />
+                <button
+                  type="button"
+                  onClick={() => setShowImageModal(true)}
+                  className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-green-700
+                    border border-green-200 rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  Cập nhật hình ảnh
+                </button>
               </div>
 
               {/* Danh mục */}
@@ -526,6 +554,16 @@ export default function DetailProductModal({ isOpen, onClose, product: initialPr
           </div>
         </div>
       </div>
+
+      <UpdateProductImagesModal
+        isOpen={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        product={product}
+        onSuccess={(updated) => {
+          setProduct(updated);
+          onUpdate?.(updated);
+        }}
+      />
 
       <style>{`
         @keyframes modalIn {

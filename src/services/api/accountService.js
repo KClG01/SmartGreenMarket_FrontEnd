@@ -4,7 +4,7 @@ export const accountService = {
   // --- ACCOUNT
 
   create: (data) =>
-    axiosClient.post("/register/", data).then((res) => res.data.data),
+    axiosClient.post("/register/", data).then((res) => res.data),
 
 // {
 //   "username": "supplier01",
@@ -15,4 +15,10 @@ export const accountService = {
 //   "phone": "0901234567",
 //   "role": "supplier"
 // }
+  update: (data) =>
+    axiosClient.put(`/profile/`, data).then((res) => res.data),
+
+  updateAvatar: (data) =>
+    axiosClient.post(`/profile/avatar/`, data).then((res) => res.data),
+
 };

@@ -4,25 +4,36 @@ export const supplierService = {
   // --- SUPPLIER
 
   create: (data) =>
-    axiosClient.post("/suppliers/", data).then((res) => res.data.data),
+    axiosClient.post("/suppliers/", data).then((res) => res.data),
 
   // {
   //   "company_name": "Cong ty Nong San ABC",
   //   "tax_code": "0123456789",
   //   "phone": "0901234567",
   //   "address": "123 Duong X, Quan Y, Ha Noi",
-  //   "description": "Chuyen cung cap rau cu huu co"
+  //   "description": "Chuyen cung cap rau cu huu co",
+  //   "bank_name": "Vietcombank",
+  //   "bank_bin": "970436",
+  //   "account_number": "26022005111",
+  //   "account_name": "Nguyen Van A"
   // }
 
   update: (id, data) =>
     axiosClient.put(`/suppliers/${id}/`, data).then((res) => res.data),
+
+  patch: (id, data) =>
+    axiosClient.patch(`/suppliers/${id}/`, data).then((res) => res.data),
 
   // {
   //   "company_name": "string",
   //   "tax_code": "string",
   //   "phone": "string",
   //   "address": "string",
-  //   "description": "string"
+  //   "description": "string",
+  //   "bank_name": "string",
+  //   "bank_bin": "string",
+  //   "account_number": "string",
+  //   "account_name": "string"
   // }
 
   // --- ADMIN

@@ -5,6 +5,7 @@ import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 import CreateProductModal from "../../components/Supplier/Product/CreateProductModal";
 import DetailProductModal from "../../components/Supplier/Product/DetailProductModal";
 import { productService } from "../../services/api/productService";
+import SupplierPageHeader, { SUPPLIER_PAGE_CLASS } from "../../components/Supplier/UI/SupplierPageHeader";
 
 export default function ProductSupplierPage() {
   const [data,         setData]         = useState([]);
@@ -67,9 +68,11 @@ export default function ProductSupplierPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Quản lý sản phẩm</h1>
-      <p className="text-sm text-gray-500">Theo dõi và quản lý các sản phẩm đã và đang niêm yết trên hệ thống</p>
+    <div className={SUPPLIER_PAGE_CLASS}>
+      <SupplierPageHeader
+        title="Quản lý sản phẩm"
+        description="Theo dõi và quản lý các sản phẩm đã và đang niêm yết trên hệ thống"
+      />
 
       {/* Toolbar */}
       <div className="flex justify-between items-center">

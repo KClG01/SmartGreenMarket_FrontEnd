@@ -82,7 +82,7 @@ const buildColumns = (onView, onDelete) => [
     name: "Ngày tạo",
     selector: (row) => row.created_at,
     sortable: true,
-    width: "150px",
+    width: "120px",
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
         {new Date(row.created_at).toLocaleDateString("vi-VN")}
@@ -93,7 +93,7 @@ const buildColumns = (onView, onDelete) => [
     name: "Đơn vị",
     selector: (row) => row.unit,
     sortable: true,
-    width: "150px",
+    width: "100px",
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
         {row.unit}
@@ -116,23 +116,27 @@ const buildColumns = (onView, onDelete) => [
   },
   {
     name: "Thao tác",
-    width: "130px",
+    width: "170px",
     right: true,
     cell: (row) => (
-      <div className="flex items-center gap-1 pr-2">
+      <div className="flex items-center divide-x divide-zinc-200 border border-zinc-200 rounded-lg overflow-hidden">
         <button
           onClick={() => onView(row)}
           title="Xem chi tiết"
-          className="p-1.5 rounded-lg text-zinc-500 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+          className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-zinc-500
+                     hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
         >
-          <Eye className="w-4 h-4" />
+          <Eye className="w-3.5 h-3.5" />
+          Xem
         </button>
         <button
           onClick={() => onDelete(row)}
-          title="Xóa"
-          className="p-1.5 rounded-lg text-zinc-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+          title="Xóa sản phẩm"
+          className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-zinc-500
+                     hover:text-red-600 hover:bg-red-50 transition-colors"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-3.5 h-3.5" />
+          Xóa
         </button>
       </div>
     ),

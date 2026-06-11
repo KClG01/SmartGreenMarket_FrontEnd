@@ -6,7 +6,7 @@ import SupplierLayout from "./layouts/SupplierLayout";
 
 import  {HomePage}  from "./pages/User/Home";
 
-import InventorySupplierPage from "./pages/Supplier/Inventory";
+import OrderSupplierPage from "./pages/Supplier/Order";
 import ProductSupplierPage from "./pages/Supplier/Product";
 import CertificationSupplierPage from "./pages/Supplier/Vertification";
 import RegisterPage from "./pages/Supplier/RegisterPage";
@@ -14,6 +14,8 @@ import SupplierLoginPage from "./pages/Supplier/SupplierLogin";
 import SupplierProtectedRoute from "./contexts/supplierProtectedRoute";
 import SupplierInfoPage from "./pages/Supplier/SupplierInfoPage";
 import CategorySupplierPage from "./pages/Supplier/Category";
+import CultivationSupplierPage from "./pages/Supplier/Cultivation";
+
 import {
   AdminLoginPage,
   SettingPage,
@@ -45,10 +47,11 @@ export default function App() {
                                 </div>
                             } />
                             <Route path="san-pham" element={<ProductSupplierPage />} />
-                            <Route path="ton-kho" element={<InventorySupplierPage/>} />
+                            <Route path="don-hang" element={<OrderSupplierPage/>} />
                             <Route path="chung-nhan" element={<CertificationSupplierPage />} />
                             <Route path="thong-tin-ca-nhan" element={<SupplierInfoPage />} />
                             <Route path="danh-muc" element={<CategorySupplierPage />} />
+                            <Route path="canh-tac" element={<CultivationSupplierPage />} />
                         </Route>
                     </Route>
                     <Route path="/nha-cung-cap/login" element={<SupplierLoginPage />} />

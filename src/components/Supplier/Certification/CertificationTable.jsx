@@ -132,7 +132,7 @@ export default function CertificationTable({ data, search, statusFilter, onView,
         paginationComponentOptions={paginationVi}
         customStyles={tableStyles}
         noDataComponent={
-          <div className="p-8 text-neutral-400 text-sm font-['Geist',sans-serif]">
+          <div className="py-16 text-sm text-neutral-400 font-['Geist']">
             Không có chứng nhận nào phù hợp.
           </div>
         }

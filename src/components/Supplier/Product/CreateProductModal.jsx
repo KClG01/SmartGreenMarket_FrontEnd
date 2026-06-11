@@ -10,6 +10,12 @@ import {
 // ─────────────────────────────────────────────────────────────
 import { categoryService } from "../../../services/api/categoryService";
 import { productService } from "../../../services/api/productService";
+import {
+  parseSupplierApiErrors,
+  validateProductForm,
+  errorsToSummary,
+  extractSupplierApiMessage,
+} from "../../../utils/supplierValidation";
 // ─────────────────────────────────────────────────────────────
 // API response schema (để tham khảo, không cần sửa)
 // POST /supplier-products/  →  multipart/form-data
@@ -59,6 +65,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
   // ── misc ──
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [categories, setCategories] = useState([]); // fetch từ GET /categories/
 
   // Escape key
@@ -99,7 +106,11 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
 
   if (!isOpen) return null;
 
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k, v) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    if (fieldErrors[k]) setFieldErrors((e) => ({ ...e, [k]: "" }));
+    if (error) setError(null);
+  };
 
   // ── image handlers ──────────────────────────────────────────
   const handleImageUpload = (e) => {
@@ -124,12 +135,13 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
   // ── submit ──────────────────────────────────────────────────
   const handleSubmit = async () => {
     setError(null);
-
-    // Validate bắt buộc
-    if (!form.name.trim() || !form.category || !form.unit) {
-      setError("Vui lòng điền đầy đủ các trường bắt buộc (*).");
+    const errs = validateProductForm(form);
+    if (Object.keys(errs).length) {
+      setFieldErrors(errs);
+      setError(errorsToSummary(errs));
       return;
     }
+    setFieldErrors({});
 
     setSaving(true);
     try {
@@ -192,20 +204,11 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
 
     } catch (err) {
       console.error("[CreateProductModal] submit error:", err);
-      const data = err?.response?.data;
-      let msg = "Lưu sản phẩm thất bại, vui lòng thử lại!";
-
-      if (data && typeof data === "object" && !Array.isArray(data)) {
-        const fieldErrors = Object.entries(data)
-          .filter(([k]) => k !== "detail" && k !== "message")
-          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
-          .join(" | ");
-        msg = fieldErrors || data?.detail || data?.message || msg;
-      } else {
-        msg = data?.detail || data?.message || err?.message || msg;
-      }
-
-      setError(msg);
+      const parsed = parseSupplierApiErrors(err?.response?.data, {
+        fallback: "Lưu sản phẩm thất bại. Vui lòng kiểm tra lại thông tin.",
+      });
+      if (Object.keys(parsed.fieldErrors).length) setFieldErrors(parsed.fieldErrors);
+      setError(parsed.general || parsed.summary || extractSupplierApiMessage(err));
     } finally {
       setSaving(false);
     }
@@ -272,9 +275,10 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
                     placeholder="Nhập tên sản phẩm (VD: Xà lách lụa)"
                     value={form.name}
                     onChange={(e) => set("name", e.target.value)}
-                    className={inputCls}
+                    className={`${inputCls} ${fieldErrors.name ? "border-red-400 bg-red-50" : ""}`}
                     disabled={saving}
                   />
+                  {fieldErrors.name && <p className="text-xs text-red-500 mt-1">{fieldErrors.name}</p>}
                 </div>
 
                 {/* category */}
@@ -283,7 +287,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
                   <select
                     value={form.category}
                     onChange={(e) => set("category", e.target.value)}
-                    className={selectCls}
+                    className={`${selectCls} ${fieldErrors.category ? "border-red-400 bg-red-50" : ""}`}
                     disabled={saving}
                   >
                     <option value="">
@@ -297,6 +301,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
                         </option>
                       ))}
                   </select>
+                  {fieldErrors.category && <p className="text-xs text-red-500 mt-1">{fieldErrors.category}</p>}
                 </div>
 
                 {/* description */}
@@ -323,7 +328,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
                     <select
                       value={form.unit}
                       onChange={(e) => set("unit", e.target.value)}
-                      className={selectCls}
+                      className={`${selectCls} ${fieldErrors.unit ? "border-red-400 bg-red-50" : ""}`}
                       disabled={saving}
                     >
                       <option>kg</option>
@@ -333,6 +338,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
                       <option>hộp</option>
                       <option>thùng</option>
                     </select>
+                    {fieldErrors.unit && <p className="text-xs text-red-500 mt-1">{fieldErrors.unit}</p>}
                   </div>
 
                   {/* storage_duration_days */}
@@ -345,11 +351,14 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
                         placeholder="Số ngày"
                         value={form.storage_duration_days}
                         onChange={(e) => set("storage_duration_days", e.target.value)}
-                        className={inputCls}
+                        className={`${inputCls} ${fieldErrors.storage_duration_days ? "border-red-400 bg-red-50" : ""}`}
                         disabled={saving}
                       />
                       <span className="text-xs text-zinc-400 whitespace-nowrap">ngày</span>
                     </div>
+                    {fieldErrors.storage_duration_days && (
+                      <p className="text-xs text-red-500 mt-1">{fieldErrors.storage_duration_days}</p>
+                    )}
                   </div>
                 </div>
               </Section>
@@ -368,11 +377,14 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
                         placeholder="VD: 2"
                         value={form.min_storage_temp}
                         onChange={(e) => set("min_storage_temp", e.target.value)}
-                        className={`${inputCls} pr-8`}
+                        className={`${inputCls} pr-8 ${fieldErrors.min_storage_temp ? "border-red-400 bg-red-50" : ""}`}
                         disabled={saving}
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400">°C</span>
                     </div>
+                    {fieldErrors.min_storage_temp && (
+                      <p className="text-xs text-red-500 mt-1">{fieldErrors.min_storage_temp}</p>
+                    )}
                   </div>
 
                   {/* max_storage_temp */}
@@ -385,11 +397,14 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
                         placeholder="VD: 8"
                         value={form.max_storage_temp}
                         onChange={(e) => set("max_storage_temp", e.target.value)}
-                        className={`${inputCls} pr-8`}
+                        className={`${inputCls} pr-8 ${fieldErrors.max_storage_temp ? "border-red-400 bg-red-50" : ""}`}
                         disabled={saving}
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400">°C</span>
                     </div>
+                    {fieldErrors.max_storage_temp && (
+                      <p className="text-xs text-red-500 mt-1">{fieldErrors.max_storage_temp}</p>
+                    )}
                   </div>
                 </div>
                 <p className="text-xs text-zinc-400 mt-2">
