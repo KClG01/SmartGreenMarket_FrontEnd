@@ -1,91 +1,92 @@
-import { Eye, Trash2 } from "lucide-react";
 import { tableStyles, paginationVi } from "../../common/tableStyles";
+import { formatDateTime } from "../../common/formatDateTime";
 import DataTable from "react-data-table-component";
 
-// ── Status config ─────────────────────────────────────────────────────────────
-const STATUS_CONFIG = {
-  active: { label: "ĐANG HOẠT ĐỘNG", bg: "bg-teal-800/10", text: "text-teal-800" },
-  paused: { label: "TẠM NGƯNG", bg: "bg-red-700/10", text: "text-red-700" },
-  pending: { label: "ĐĂNG KÝ", bg: "bg-amber-500/10", text: "text-amber-500" },
+const ORDER_STATUS_CONFIG = {
+  pending_supplier_confirmation: {
+    label: "Chờ xác nhận",
+    bg: "bg-amber-100",
+    text: "text-amber-700",
+  },
+  rejected: { label: "Từ chối", bg: "bg-red-100", text: "text-red-700" },
+  confirmed: { label: "Đã xác nhận", bg: "bg-blue-100", text: "text-blue-700" },
+  deposit_pending_verification: {
+    label: "Chờ xác nhận cọc",
+    bg: "bg-amber-100",
+    text: "text-amber-700",
+  },
+  deposit_paid: { label: "Đã cọc", bg: "bg-teal-100", text: "text-teal-700" },
+  processing: { label: "Chuẩn bị hàng", bg: "bg-indigo-100", text: "text-indigo-700" },
+  shipping: { label: "Đang giao", bg: "bg-sky-100", text: "text-sky-700" },
+  delivered: { label: "Đã giao", bg: "bg-emerald-100", text: "text-emerald-700" },
+  final_payment_pending_verification: {
+    label: "Chờ thanh toán cuối",
+    bg: "bg-amber-100",
+    text: "text-amber-700",
+  },
+  completed: { label: "Hoàn tất", bg: "bg-emerald-100", text: "text-emerald-800" },
+  cancelled: { label: "Đã hủy", bg: "bg-neutral-100", text: "text-neutral-600" },
 };
 
-// ── Column definitions ────────────────────────────────────────────────────────
-const buildColumns = (onView, onDelete) => [
+function formatCurrency(value) {
+  const amount = Number(value);
+  if (Number.isNaN(amount)) return "—";
+  return `${amount.toLocaleString("vi-VN")} đ`;
+}
+
+const columns = [
   {
-    name: "Mã lô",
-    selector: (row) => row.code,
+    name: "Mã đơn",
+    selector: (row) => row.order_code,
     sortable: true,
-    width: "100px",
+    width: "140px",
     cell: (row) => (
       <span className="text-emerald-800 text-xs font-semibold font-mono">
-        {row.code}
+        {row.order_code}
       </span>
     ),
   },
   {
-    name: "Hình ảnh",
-    width: "100px",
-    cell: (row) => (
-      <img
-        src={row.image || "https://placehold.co/48x48"}
-        alt={row.name}
-        className="w-12 h-12 rounded-lg border border-stone-300 object-cover"
-      />
-    ),
-  },
-  {
-    name: "Tên sản phẩm",
-    selector: (row) => row.name,
+    name: "Đại lý",
+    selector: (row) => row.dealer_name,
     sortable: true,
-    width: "150px",
     grow: 2,
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {row.name}
+        {row.dealer_name || "—"}
       </span>
     ),
   },
   {
-    name: "Giá bán",
-    selector: (row) => row.price,
+    name: "Tổng tiền",
+    selector: (row) => Number(row.total_amount),
     sortable: true,
-    width: "120px",
+    width: "140px",
     cell: (row) => (
       <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {Number(row.price).toLocaleString("vi-VN")} VNĐ
+        {formatCurrency(row.total_amount)}
       </span>
     ),
   },
   {
-    name: "Tồn kho",
-    selector: (row) => row.inventory,
+    name: "Ngày giao mong muốn",
+    selector: (row) => row.requested_delivery_time,
     sortable: true,
-    width: "100px",
+    width: "170px",
     cell: (row) => (
-      <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {row.inventory} {row.unit}
+      <span className="text-emerald-950 text-sm font-['Geist',sans-serif]">
+        {formatDateTime(row.requested_delivery_time)}
       </span>
     ),
   },
   {
-    name: "Ngày nhập",
-    selector: (row) => row.unit,
-    sortable: true,
-    width: "150px",
-    cell: (row) => (
-      <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {new Date(row.createdAt).toLocaleDateString("vi-VN")}
-      </span>
-    ),
-  },
-  {
-    name: "Ngày hết hạn ",
-    selector: (row) => row.unit,
+    name: "Ngày tạo",
+    selector: (row) => row.created_at,
     sortable: true,
     width: "150px",
     cell: (row) => (
-      <span className="text-emerald-950 text-sm font-semibold font-['Geist',sans-serif]">
-        {new Date(row.createdAt).toLocaleDateString("vi-VN")}
+      <span className="text-emerald-950 text-sm font-['Geist',sans-serif]">
+        {formatDateTime(row.created_at)}
       </span>
     ),
   },
@@ -93,65 +94,53 @@ const buildColumns = (onView, onDelete) => [
     name: "Trạng thái",
     selector: (row) => row.status,
     sortable: true,
-    width: "150px",
+    width: "180px",
     cell: (row) => {
-      const st = STATUS_CONFIG[row.status] ?? STATUS_CONFIG.pending;
+      const st =
+        ORDER_STATUS_CONFIG[row.status] ?? {
+          label: row.status || "Không xác định",
+          bg: "bg-neutral-100",
+          text: "text-neutral-600",
+        };
       return (
-        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${st.bg} ${st.text}`}>
+        <span
+          className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${st.bg} ${st.text}`}
+        >
           {st.label}
         </span>
       );
     },
   },
-  {
-    name: "Thao tác",
-    width: "130px",
-    right: true,
-    cell: (row) => (
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => onView(row)}
-          title="Xem chi tiết"
-          className="p-1.5 rounded-lg text-zinc-500 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => onDelete(row)}
-          title="Xóa"
-          className="p-1.5 rounded-lg text-zinc-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    ),
-    ignoreRowClick: true,
-  },
 ];
 
-export default function InventoryTable({ data, search, statusFilter, onView, onDelete }) {
+export default function OrderTable({ data, search, loading }) {
+  const keyword = (search ?? "").trim().toLowerCase();
   const filtered = data.filter((row) => {
-    const matchName = row.name.toLowerCase().includes((search ?? "").toLowerCase());
-    const matchStatus = statusFilter ? row.status === statusFilter : true;
-    return matchName && matchStatus;
+    if (!keyword) return true;
+    return (
+      row.order_code?.toLowerCase().includes(keyword) ||
+      row.dealer_name?.toLowerCase().includes(keyword)
+    );
   });
 
   return (
     <div className="w-full rounded-xl border border-neutral-200 overflow-hidden">
       <DataTable
-        columns={buildColumns(onView, onDelete)}
+        columns={columns}
         data={filtered}
+        progressPending={loading}
         pagination
-        paginationPerPage={6}
-        paginationRowsPerPageOptions={[6, 12, 20]}
+        paginationPerPage={10}
+        paginationRowsPerPageOptions={[10, 20, 50]}
         paginationComponentOptions={paginationVi}
         customStyles={tableStyles}
         noDataComponent={
           <div className="py-16 text-sm text-neutral-400 font-['Geist']">
-            Không tìm thấy sản phẩm phù hợp.
+            {loading ? "Đang tải đơn hàng..." : "Chưa có đơn hàng nào."}
           </div>
         }
-        defaultSortFieldId={1}
+        defaultSortFieldId={5}
+        defaultSortAsc={false}
         highlightOnHover
         responsive
       />
