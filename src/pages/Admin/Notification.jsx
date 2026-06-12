@@ -12,6 +12,10 @@ import { canManageNotificationActions } from "../../components/common/notificati
 import {
     formatNotificationRow,
     mergeNotificationDetail,
+    isNotificationUnread,
+    getMarkedReadState,
+    resolveNotificationId,
+    matchesNotificationRecord,
 } from "../../components/Admin/Notification/notificationFormatters";
 import { useAuth } from "../../contexts/authProvider";
 
@@ -60,41 +64,7 @@ export default function NotificationPage() {
                     await notificationService.getAll();
 
                 // normalize data cho table
-                const formattedData =
-                    response.map(
-                        (item) => ({
-                            id: item.id,
-
-                            type:
-                                item.type,
-
-                            typeLabel:
-                                item.type_label,
-
-                            title:
-                                item.title,
-
-                            content:
-                                item.content,
-
-                            referenceType:
-                                item.reference_type,
-
-                            referenceTypeLabel:
-                                item.reference_type_label,
-
-                            referenceId:
-                                item.reference_id,
-
-                            createdAt:
-                                item.created_at,
-
-                            createdBy:
-                                item.created_by,
-
-                            readAt:item.read_at,
-                        })
-                    );
+                const formattedData = response.map((item) => formatNotificationRow(item));
 
                 setData(formattedData);
 
@@ -113,21 +83,26 @@ export default function NotificationPage() {
             }
         }, []);
 
-    const handleMarkRead = useCallback(async (notificationId) => {
+    const handleMarkRead = useCallback(async (notificationId, receiptId) => {
+        if (notificationId == null) return;
+
         try {
             setActionLoading(true);
-            await notificationService.mark_read(notificationId);
+            const response = await notificationService.mark_read(notificationId);
+            const markedState = getMarkedReadState(response);
 
-            // Cập nhật giá trị trực tiếp trên UI (Client State) biến `readAt` thành mốc thời gian hiện tại
-            const nowIsoString = new Date().toISOString();
             setData((prev) =>
                 prev.map((item) =>
-                    item.id === notificationId ? { ...item, readAt: nowIsoString } : item
-                )
+                    matchesNotificationRecord(item, notificationId, receiptId)
+                        ? { ...item, id: notificationId, ...markedState }
+                        : item,
+                ),
             );
 
             setViewRow((prev) =>
-                prev && prev.id === notificationId ? { ...prev, readAt: nowIsoString } : prev
+                prev && matchesNotificationRecord(prev, notificationId, receiptId)
+                    ? { ...prev, id: notificationId, ...markedState }
+                    : prev,
             );
         } catch (error) {
             console.error(handleApiError(error, "Không thể đánh dấu đã đọc"));
@@ -138,27 +113,26 @@ export default function NotificationPage() {
 
     // ── BẤM NÚT XEM CHI TIẾT ───────────────────────────
     const handleViewNotification = useCallback(async (row) => {
-        const fallbackDetail = formatNotificationRow(row);
+        const formattedDetail = formatNotificationRow(row);
+        const notificationId = resolveNotificationId(formattedDetail);
+
+        setViewRow(formattedDetail);
+
+        if (notificationId != null && isNotificationUnread(formattedDetail)) {
+            await handleMarkRead(notificationId, formattedDetail.receiptId);
+        }
 
         try {
             setLoading(true);
-            const detail = await notificationService.getById(row.id);
-            const formattedDetail = mergeNotificationDetail(detail, fallbackDetail);
-
-            setViewRow(formattedDetail);
-
-            if (!formattedDetail.readAt) {
-                await handleMarkRead(row.id);
-            }
+            const detail = await notificationService.getById(notificationId);
+            setViewRow((prev) => {
+                if (!prev) return null;
+                return mergeNotificationDetail(detail, prev);
+            });
         } catch (error) {
             console.warn(
                 handleApiError(error, "Không thể tải chi tiết thông báo, dùng dữ liệu tóm tắt"),
             );
-            setViewRow(fallbackDetail);
-
-            if (!fallbackDetail.readAt) {
-                await handleMarkRead(row.id);
-            }
         } finally {
             setLoading(false);
         }

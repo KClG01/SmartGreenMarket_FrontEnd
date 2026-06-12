@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Bell, ExternalLink } from "lucide-react";
 import DateField from "../../common/DateField";
 import NotificationReferenceModal from "./NotificationReferenceModal";
 import { isSupportedReferenceType } from "./notificationReferenceHelpers";
-
 const TYPE = {
     info: {
         label: "THÔNG BÁO",
@@ -47,6 +46,12 @@ export default function NotificationViewModal({
 }) {
     const [referenceModalOpen, setReferenceModalOpen] = useState(false);
 
+    useEffect(() => {
+        if (!isOpen) {
+            setReferenceModalOpen(false);
+        }
+    }, [isOpen]);
+
     if (!isOpen || !notification) return null;
 
     const typeConfig = TYPE[notification.type] ?? TYPE.info;
@@ -55,7 +60,9 @@ export default function NotificationViewModal({
         notification.referenceId != null &&
         isSupportedReferenceType(notification.referenceType);
 
-    const handleClose = () => {
+    const handleClose = (event) => {
+        event?.preventDefault?.();
+        event?.stopPropagation?.();
         setReferenceModalOpen(false);
         onClose();
     };
@@ -82,6 +89,7 @@ export default function NotificationViewModal({
                         <button
                             type="button"
                             disabled={loading}
+                            onMouseDown={(event) => event.preventDefault()}
                             onClick={handleClose}
                             className="cursor-pointer rounded-full p-2 transition-colors hover:bg-neutral-100"
                         >
@@ -131,6 +139,7 @@ export default function NotificationViewModal({
                         <button
                             type="button"
                             disabled={loading}
+                            onMouseDown={(event) => event.preventDefault()}
                             onClick={handleClose}
                             className="cursor-pointer rounded-lg bg-zinc-900 px-6 py-2.5 text-base font-semibold text-white transition-colors hover:bg-zinc-800"
                         >
