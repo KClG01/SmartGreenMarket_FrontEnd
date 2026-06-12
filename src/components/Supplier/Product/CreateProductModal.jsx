@@ -51,7 +51,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
   const [form, setForm] = useState({
     name: "",                  // API: name
     category: "",              // API: category (integer ID)
-    unit: "kg",                // API: unit
+    daily_production_capacity: "", // API: daily_production_capacity
     description: "",           // API: description
     storage_duration_days: "", // API: storage_duration_days
     min_storage_temp: "",      // API: min_storage_temp  (decimal string)
@@ -117,7 +117,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
     const files = Array.from(e.target.files);
     const toAdd = files.map((file) => ({ file, preview: URL.createObjectURL(file) }));
     setImages((prev) => {
-      const next = [...prev, ...toAdd].slice(0, 3);
+      const next = [...prev, ...toAdd].slice(0, 5);
       return next;
     });
   };
@@ -155,7 +155,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
       productFd.append("name", name);
       productFd.append("slug", slug);
       productFd.append("category", parseInt(form.category, 10));
-      productFd.append("unit", form.unit);
+      productFd.append("daily_production_capacity", parseFloat(form.daily_production_capacity));
       if (form.description.trim()) productFd.append("description", form.description.trim());
       if (form.storage_duration_days !== "") productFd.append("storage_duration_days", parseInt(form.storage_duration_days, 10));
       if (form.min_storage_temp !== "") productFd.append("min_storage_temp", form.min_storage_temp);
@@ -318,27 +318,29 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
                 </div>
               </Section>
 
-              {/* Phân loại */}
-              <Section icon={<Tag className="w-4 h-4 text-green-700" />} title="Phân loại & Đơn vị">
+              {/* Phân loại & Năng suất */}
+              <Section icon={<Tag className="w-4 h-4 text-green-700" />} title="Phân loại & Năng suất">
                 <div className="grid grid-cols-2 gap-3">
 
-                  {/* unit */}
+                  {/* daily_production_capacity */}
                   <div>
-                    <label className={labelCls}>Đơn vị tính (*)</label>
-                    <select
-                      value={form.unit}
-                      onChange={(e) => set("unit", e.target.value)}
-                      className={`${selectCls} ${fieldErrors.unit ? "border-red-400 bg-red-50" : ""}`}
-                      disabled={saving}
-                    >
-                      <option>kg</option>
-                      <option>bó</option>
-                      <option>cái</option>
-                      <option>túi</option>
-                      <option>hộp</option>
-                      <option>thùng</option>
-                    </select>
-                    {fieldErrors.unit && <p className="text-xs text-red-500 mt-1">{fieldErrors.unit}</p>}
+                    <label className={labelCls}>Năng suất (*)</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="VD: 500"
+                        value={form.daily_production_capacity}
+                        onChange={(e) => set("daily_production_capacity", e.target.value)}
+                        className={`${inputCls} ${fieldErrors.daily_production_capacity ? "border-red-400 bg-red-50" : ""}`}
+                        disabled={saving}
+                      />
+                      <span className="text-xs text-zinc-400 whitespace-nowrap">kg/tháng</span>
+                    </div>
+                    {fieldErrors.daily_production_capacity && (
+                      <p className="text-xs text-red-500 mt-1">{fieldErrors.daily_production_capacity}</p>
+                    )}
                   </div>
 
                   {/* storage_duration_days */}
@@ -423,14 +425,14 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
                     <ImageIcon className="w-4 h-4 text-green-700 flex-shrink-0" />
                     <span className="text-sm font-semibold text-zinc-800">Hình ảnh</span>
                   </div>
-                  <span className="text-xs text-zinc-400">{images.length}/3 ảnh</span>
+                  <span className="text-xs text-zinc-400">{images.length}/5 ảnh</span>
                 </div>
 
                 {/* Drop zone */}
                 <label
                   className={`border-2 border-dashed border-zinc-200 rounded-lg p-4 text-center cursor-pointer
                     hover:border-green-400 hover:bg-green-50 transition-colors block mb-3 group
-                    ${saving || images.length >= 3 ? "opacity-50 pointer-events-none" : ""}`}
+                    ${saving || images.length >= 5 ? "opacity-50 pointer-events-none" : ""}`}
                 >
                   <input
                     type="file"
@@ -480,7 +482,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
                   ))}
 
                   {/* Add slot */}
-                  {images.length < 3 && (
+                  {images.length < 5 && (
                     <label
                       className={`aspect-square rounded-lg border-2 border-dashed border-zinc-200 flex items-center justify-center
                         cursor-pointer hover:border-green-400 hover:bg-green-50 transition-colors

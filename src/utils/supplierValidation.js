@@ -8,6 +8,7 @@ export const SUPPLIER_FIELD_LABELS = {
   password: "Mật khẩu",
   repassword: "Xác nhận mật khẩu",
   category: "Danh mục",
+  daily_production_capacity: "Năng suất",
   unit: "Đơn vị tính",
   description: "Mô tả",
   storage_duration_days: "Thời hạn bảo quản",
@@ -154,8 +155,13 @@ export function validateProductForm(form) {
     errs.category = "Danh mục: Vui lòng chọn nhóm rau/danh mục.";
   }
 
-  if (!form.unit?.trim()) {
-    errs.unit = "Đơn vị tính: Không được để trống.";
+  if (form.daily_production_capacity === "" || form.daily_production_capacity == null) {
+    errs.daily_production_capacity = "Năng suất: Không được để trống.";
+  } else {
+    const capacity = Number(form.daily_production_capacity);
+    if (isNaN(capacity) || capacity < 0) {
+      errs.daily_production_capacity = "Năng suất: Phải là số không âm.";
+    }
   }
 
   if (form.storage_duration_days !== "" && form.storage_duration_days != null) {

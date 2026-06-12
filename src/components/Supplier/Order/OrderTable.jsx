@@ -1,4 +1,5 @@
-import { tableStyles, paginationVi } from "../../common/tableStyles";
+import { supplierTableStyles, paginationVi } from "../UI/supplierTableStyles";
+import { SupplierActionButton, SupplierActionGroup } from "../UI/SupplierTableActions";
 import { formatDateTime } from "../../common/formatDateTime";
 import DataTable from "react-data-table-component";
 
@@ -34,7 +35,7 @@ function formatCurrency(value) {
   return `${amount.toLocaleString("vi-VN")} đ`;
 }
 
-const columns = [
+const buildColumns = (onView) => [
   {
     name: "Mã đơn",
     selector: (row) => row.order_code,
@@ -111,9 +112,20 @@ const columns = [
       );
     },
   },
+  {
+    name: "Thao tác",
+    width: "100px",
+    right: true,
+    cell: (row) => (
+      <SupplierActionGroup>
+        <SupplierActionButton label="Xem" onClick={() => onView?.(row)} />
+      </SupplierActionGroup>
+    ),
+    ignoreRowClick: true,
+  },
 ];
 
-export default function OrderTable({ data, search, loading }) {
+export default function OrderTable({ data, search, loading, onView }) {
   const keyword = (search ?? "").trim().toLowerCase();
   const filtered = data.filter((row) => {
     if (!keyword) return true;
@@ -126,14 +138,14 @@ export default function OrderTable({ data, search, loading }) {
   return (
     <div className="w-full rounded-xl border border-neutral-200 overflow-hidden">
       <DataTable
-        columns={columns}
+        columns={buildColumns(onView)}
         data={filtered}
         progressPending={loading}
         pagination
         paginationPerPage={10}
         paginationRowsPerPageOptions={[10, 20, 50]}
         paginationComponentOptions={paginationVi}
-        customStyles={tableStyles}
+        customStyles={supplierTableStyles}
         noDataComponent={
           <div className="py-16 text-sm text-neutral-400 font-['Geist']">
             {loading ? "Đang tải đơn hàng..." : "Chưa có đơn hàng nào."}
