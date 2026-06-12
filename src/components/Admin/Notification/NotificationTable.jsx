@@ -10,21 +10,6 @@ const getSupplierName = async (supplierId) => {
     const response = await supplierService.getSupplierById(supplierId);
     return response.data.name;
 }
-
-const getCategoryName = async (categoryId) => {
-    const response = await categoryService.getCategoryById(categoryId);
-    return response.data.name;
-}
-
-const getCertificationName = async (certificationId) => {
-    const response = await certificationService.getCertificationById(certificationId);
-    return response.data.name;
-}
-
-const getProductName = async (productId) => {
-    const response = await productService.getProductById(productId);
-    return response.data.name;
-}
 const TYPE = {
     info: {label: "THÔNG BÁO"},
     warning: {label: "CẢNH BÁO"},
@@ -40,7 +25,6 @@ const TYPE_REF = {
     supplier_product: {label: "SẢN PHẨM - NHÀ CUNG CẤP"},
     dealer_product:{label: "SẢN PHẨM - ĐẠI LÝ"},
     purchase_order:{label: "ĐƠN HÀNG - ĐẠI LÝ"},
-    
 }
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView) => [
