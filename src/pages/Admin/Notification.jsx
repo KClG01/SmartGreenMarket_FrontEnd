@@ -8,13 +8,13 @@ import Toolbar from "../../components/Admin/UI/Toolbar";
 import Filter from "../../components/Admin/Notification/NotificationFilter";
 import NotificationTable from "../../components/Admin/Notification/NotificationTable";
 import NotificationViewModal from "../../components/Admin/Notification/NotificationViewModal";
-import { canManageNotificationActions } from "../../components/common/notificationRolePaths";
+import { canManageNotificationActions, canFetchNotificationDetail } from "../../components/common/notificationRolePaths";
 import {
     formatNotificationRow,
     mergeNotificationDetail,
     isNotificationUnread,
     getMarkedReadState,
-    resolveNotificationId,
+    resolveMarkReadId,
     matchesNotificationRecord,
 } from "../../components/Admin/Notification/notificationFormatters";
 import { useAuth } from "../../contexts/authProvider";
@@ -26,7 +26,8 @@ import {
 
 export default function NotificationPage() {
     const { user } = useAuth();
-    const canManageActions = canManageNotificationActions(user?.role);
+    const userRole = user?.role ?? "admin";
+    const canManageActions = canManageNotificationActions(userRole);
 
     // ── STATES ─────────────────────────────────────────
     const [data, setData] =
@@ -83,25 +84,25 @@ export default function NotificationPage() {
             }
         }, []);
 
-    const handleMarkRead = useCallback(async (notificationId, receiptId) => {
-        if (notificationId == null) return;
+    const handleMarkRead = useCallback(async (markReadId, receiptId) => {
+        if (markReadId == null) return;
 
         try {
             setActionLoading(true);
-            const response = await notificationService.mark_read(notificationId);
+            const response = await notificationService.mark_read(markReadId);
             const markedState = getMarkedReadState(response);
 
             setData((prev) =>
                 prev.map((item) =>
-                    matchesNotificationRecord(item, notificationId, receiptId)
-                        ? { ...item, id: notificationId, ...markedState }
+                    matchesNotificationRecord(item, markReadId, receiptId)
+                        ? { ...item, ...markedState }
                         : item,
                 ),
             );
 
             setViewRow((prev) =>
-                prev && matchesNotificationRecord(prev, notificationId, receiptId)
-                    ? { ...prev, id: notificationId, ...markedState }
+                prev && matchesNotificationRecord(prev, markReadId, receiptId)
+                    ? { ...prev, ...markedState }
                     : prev,
             );
         } catch (error) {
@@ -114,7 +115,7 @@ export default function NotificationPage() {
     // ── BẤM NÚT XEM CHI TIẾT ───────────────────────────
     const handleViewNotification = useCallback(async (row) => {
         const formattedDetail = formatNotificationRow(row);
-        const notificationId = resolveNotificationId(formattedDetail);
+        const notificationId = resolveMarkReadId(formattedDetail);
 
         setViewRow(formattedDetail);
 
@@ -122,21 +123,23 @@ export default function NotificationPage() {
             await handleMarkRead(notificationId, formattedDetail.receiptId);
         }
 
-        try {
-            setLoading(true);
-            const detail = await notificationService.getById(notificationId);
-            setViewRow((prev) => {
-                if (!prev) return null;
-                return mergeNotificationDetail(detail, prev);
-            });
-        } catch (error) {
-            console.warn(
-                handleApiError(error, "Không thể tải chi tiết thông báo, dùng dữ liệu tóm tắt"),
-            );
-        } finally {
-            setLoading(false);
+        if (canFetchNotificationDetail(userRole) && notificationId != null) {
+            try {
+                setLoading(true);
+                const detail = await notificationService.getById(notificationId);
+                setViewRow((prev) => {
+                    if (!prev) return null;
+                    return mergeNotificationDetail(detail, prev);
+                });
+            } catch (error) {
+                console.warn(
+                    handleApiError(error, "Không thể tải chi tiết thông báo, dùng dữ liệu tóm tắt"),
+                );
+            } finally {
+                setLoading(false);
+            }
         }
-    }, [handleMarkRead]);
+    }, [handleMarkRead, userRole]);
 
     // ── INITIAL FETCH ─────────────────────────────────
     useEffect(() => {

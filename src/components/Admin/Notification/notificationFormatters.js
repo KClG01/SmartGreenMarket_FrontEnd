@@ -18,9 +18,13 @@ export function formatNotificationRow(item) {
     };
 }
 
-/** notification id từ getAll — dùng cho getById và mark_read */
+/** notification id từ getAll — dùng cho mark_read (mọi role) */
 export function resolveNotificationId(item) {
-    return item?.id ?? null;
+    return item?.id ?? item?.notification_id ?? null;
+}
+
+export function resolveMarkReadId(item) {
+    return resolveNotificationId(item);
 }
 
 export function matchesNotificationRecord(item, notificationId, receiptId) {

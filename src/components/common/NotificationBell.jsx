@@ -4,13 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { notificationService, handleApiError } from "../../services/api/notificationService";
 import NotificationDropdown from "./NotificationDropdown";
 import NotificationViewModal from "../Admin/Notification/NotificationViewModal";
-import { getNotificationSeeAllPath, canManageNotificationActions } from "./notificationRolePaths";
+import { getNotificationSeeAllPath, canManageNotificationActions, canFetchNotificationDetail } from "./notificationRolePaths";
 import {
     formatNotificationRow,
     mergeNotificationDetail,
     isNotificationUnread,
     getMarkedReadState,
-    resolveNotificationId,
+    resolveMarkReadId,
     matchesNotificationRecord,
 } from "../Admin/Notification/notificationFormatters";
 import { useAuth } from "../../contexts/authProvider";
@@ -63,25 +63,25 @@ export default function NotificationBell({ role: roleProp }) {
 
     // Xử lý đánh dấu đã đọc khi xem
     // Xử lý đánh dấu đã đọc khi xem
-    const handleMarkRead = useCallback(async (notificationId, receiptId) => {
-        if (notificationId == null) return;
+    const handleMarkRead = useCallback(async (markReadId, receiptId) => {
+        if (markReadId == null) return;
 
         try {
             setActionLoading(true);
-            const response = await notificationService.mark_read(notificationId);
+            const response = await notificationService.mark_read(markReadId);
             const markedState = getMarkedReadState(response);
 
             setNotifications((prev) =>
                 prev.map((item) =>
-                    matchesNotificationRecord(item, notificationId, receiptId)
-                        ? { ...item, id: notificationId, ...markedState }
+                    matchesNotificationRecord(item, markReadId, receiptId)
+                        ? { ...item, ...markedState }
                         : item,
                 ),
             );
             setUnreadCount((prev) => Math.max(0, prev - 1));
             setViewRow((prev) =>
-                prev && matchesNotificationRecord(prev, notificationId, receiptId)
-                    ? { ...prev, id: notificationId, ...markedState }
+                prev && matchesNotificationRecord(prev, markReadId, receiptId)
+                    ? { ...prev, ...markedState }
                     : prev,
             );
         } catch (error) {
@@ -95,7 +95,7 @@ export default function NotificationBell({ role: roleProp }) {
     const handleItemClick = useCallback(async (item) => {
         setIsOpenDropdown(false);
         const formattedDetail = formatNotificationRow(item);
-        const notificationId = resolveNotificationId(formattedDetail);
+        const notificationId = resolveMarkReadId(formattedDetail);
 
         setViewRow(formattedDetail);
 
@@ -103,18 +103,20 @@ export default function NotificationBell({ role: roleProp }) {
             await handleMarkRead(notificationId, formattedDetail.receiptId);
         }
 
-        try {
-            const detail = await notificationService.getById(notificationId);
-            setViewRow((prev) => {
-                if (!prev) return null;
-                return mergeNotificationDetail(detail, prev);
-            });
-        } catch (error) {
-            console.warn(
-                handleApiError(error, "Không thể tải chi tiết thông báo, dùng dữ liệu tóm tắt"),
-            );
+        if (canFetchNotificationDetail(role) && notificationId != null) {
+            try {
+                const detail = await notificationService.getById(notificationId);
+                setViewRow((prev) => {
+                    if (!prev) return null;
+                    return mergeNotificationDetail(detail, prev);
+                });
+            } catch (error) {
+                console.warn(
+                    handleApiError(error, "Không thể tải chi tiết thông báo, dùng dữ liệu tóm tắt"),
+                );
+            }
         }
-    }, [handleMarkRead]);
+    }, [handleMarkRead, role]);
 
     return (
         <div className="relative" ref={dropdownRef}>

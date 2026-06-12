@@ -2,12 +2,17 @@ import axiosClient from "./axiosClient";
 
 export const notificationService = {
   getAll: () =>
-    axiosClient.get("/notifications/my/").then((res) => res.data.results),
+    axiosClient.get("/notifications/my/").then((res) => {
+      const data = res.data;
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.results)) return data.results;
+      return [];
+    }),
 
   // getAll response (results[]):
   // {
-  //   "receipt_id": 0,   ← KHÔNG dùng cho mark_read
-  //   "id": 0,           ← dùng cho getById + mark_read
+  //   "receipt_id": 0,   ← chỉ để hiển thị/tracking
+  //   "id": 0,           ← dùng cho mark_read (mọi role); getById chỉ admin
   //   "title": "string",
   //   "content": "string",
   //   "type": "info",
@@ -42,6 +47,7 @@ export const notificationService = {
     axiosClient
       .post(`/notifications/${id}/mark_read/`, {})
       .then((res) => res.data),
+  // id = notification id từ getAll (mọi role)
 };
 
 export const handleApiError = (error, defaultMessage = "Có lỗi xảy ra") => {
