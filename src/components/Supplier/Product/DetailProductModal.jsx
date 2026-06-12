@@ -305,6 +305,10 @@ export default function DetailProductModal({
       payload.category = Number(catId);
     }
 
+    if (product.wholesale_price != null && product.wholesale_price !== "") {
+      payload.wholesale_price = String(product.wholesale_price);
+    }
+
     if (product.daily_production_capacity != null && product.daily_production_capacity !== "") {
       payload.daily_production_capacity = Number(product.daily_production_capacity);
     }
@@ -329,6 +333,7 @@ export default function DetailProductModal({
     const errs = validateProductForm({
       name: product.name,
       category: product.category?.id ?? product.category,
+      wholesale_price: product.wholesale_price,
       daily_production_capacity: product.daily_production_capacity,
       description: product.description,
       storage_duration_days: product.storage_duration_days,
@@ -447,6 +452,11 @@ export default function DetailProductModal({
                   <EditableField label="Tên sản phẩm"
                     value={field("name")}
                     onSave={v => update("name", v)} />
+
+                  <EditableField label="Giá sỉ"
+                    value={field("wholesale_price")}
+                    onSave={v => update("wholesale_price", v === "" ? null : v)}
+                    type="number" suffix="đ" />
 
                   <EditableField label="Năng suất"
                     value={field("daily_production_capacity")}
@@ -621,6 +631,14 @@ export default function DetailProductModal({
                       <span className="font-mono text-zinc-600 truncate ml-2 max-w-[120px]" title={product.slug}>{product.slug}</span>
                     </div>
                   )}
+                  <div className="flex justify-between text-xs">
+                    <span className="text-zinc-500">Giá sỉ</span>
+                    <span className="font-semibold text-zinc-800">
+                      {product.wholesale_price != null && product.wholesale_price !== ""
+                        ? `${Number(product.wholesale_price).toLocaleString("vi-VN")} đ`
+                        : "—"}
+                    </span>
+                  </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-zinc-500">Ngày tạo</span>
                     <span className="text-zinc-700">{fmt(product.created_at)}</span>

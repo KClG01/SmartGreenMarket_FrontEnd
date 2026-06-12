@@ -82,6 +82,23 @@ export const productService = {
     const res = await axiosClient.post("/supplier-product-images/", formData);
     return res.data;
   },
+
+  updateImageProduct: async (id, formData) => {
+    const res = await axiosClient.patch(`/supplier-product-images/${id}/`, formData);
+    return res.data;
+  },
+
+  deleteImageProduct: async (id) => {
+    try {
+      const res = await axiosClient.delete(`/supplier-product-images/${id}/`);
+      return res.data;
+    } catch (err) {
+      // Ảnh đã bị xóa trước đó hoặc id không còn — bỏ qua để không chặn luồng lưu
+      if (err.response?.status === 404) return null;
+      throw err;
+    }
+  },
+
   updateProduct: async (id, payload) => {
     const res = await axiosClient.patch(`/supplier-products/${id}/`, payload);
     return res.data;

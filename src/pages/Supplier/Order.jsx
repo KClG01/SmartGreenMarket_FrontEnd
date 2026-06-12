@@ -31,7 +31,7 @@ export default function OrderSupplierPage() {
     setDetailRow(row);
     try {
       const detail = await orderService.getById(row.id);
-      setDetailRow(detail);
+      setDetailRow(detail ?? row);
     } catch (error) {
       console.error("Lỗi khi tải chi tiết đơn hàng:", error);
     }
@@ -66,6 +66,7 @@ export default function OrderSupplierPage() {
         isOpen={detailRow !== null}
         onClose={() => setDetailRow(null)}
         order={detailRow}
+        onUpdate={fetchOrders}
       />
     </div>
   );

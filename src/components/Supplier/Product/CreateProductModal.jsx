@@ -51,6 +51,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
   const [form, setForm] = useState({
     name: "",                  // API: name
     category: "",              // API: category (integer ID)
+    wholesale_price: "",       // API: wholesale_price
     daily_production_capacity: "", // API: daily_production_capacity
     description: "",           // API: description
     storage_duration_days: "", // API: storage_duration_days
@@ -155,6 +156,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
       productFd.append("name", name);
       productFd.append("slug", slug);
       productFd.append("category", parseInt(form.category, 10));
+      productFd.append("wholesale_price", form.wholesale_price);
       productFd.append("daily_production_capacity", parseFloat(form.daily_production_capacity));
       if (form.description.trim()) productFd.append("description", form.description.trim());
       if (form.storage_duration_days !== "") productFd.append("storage_duration_days", parseInt(form.storage_duration_days, 10));
@@ -182,9 +184,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
 
           // Gắn ID sản phẩm vào ảnh (Tên key 'supplier_product' phải khớp với Backend)
           imageFd.append("supplier_product", productId);
-
-          // Gắn file ảnh (Tên key 'image' phải khớp với Backend)
-          imageFd.append("images", img.file);
+          imageFd.append("images", img.file, img.file.name);
 
           // Đánh dấu ảnh nào là thumbnail (nếu BE có hỗ trợ trường này)
           imageFd.append("is_thumbnail", index === thumbnailIdx ? "true" : "false");
@@ -321,6 +321,27 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess }) {
               {/* Phân loại & Năng suất */}
               <Section icon={<Tag className="w-4 h-4 text-green-700" />} title="Phân loại & Năng suất">
                 <div className="grid grid-cols-2 gap-3">
+
+                  {/* wholesale_price */}
+                  <div>
+                    <label className={labelCls}>Giá sỉ (*)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="VD: 15000"
+                        value={form.wholesale_price}
+                        onChange={(e) => set("wholesale_price", e.target.value)}
+                        className={`${inputCls} pr-8 ${fieldErrors.wholesale_price ? "border-red-400 bg-red-50" : ""}`}
+                        disabled={saving}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400">đ</span>
+                    </div>
+                    {fieldErrors.wholesale_price && (
+                      <p className="text-xs text-red-500 mt-1">{fieldErrors.wholesale_price}</p>
+                    )}
+                  </div>
 
                   {/* daily_production_capacity */}
                   <div>
