@@ -4,40 +4,6 @@ import { accountService } from "../../services/api/accountService";
 import { bankService } from "../../services/api/bankService";
 import SupplierPageHeader, { SUPPLIER_PAGE_CLASS } from "../../components/Supplier/UI/SupplierPageHeader";
 import { extractSupplierApiMessage } from "../../utils/supplierValidation";
-// ---- Mock data ----
-const mockSupplierData = {
-  id: 9,
-  account: {
-    id: 18,
-    username: "QuocKhanh",
-    email: "abc123@gmail.com",
-    first_name: "",
-    last_name: "",
-    full_name: "Nguyễn Văn A",
-    phone: "0123586974",
-    avatar_url: null,
-    role: "supplier",
-    status: "active",
-    created_at: "2026-06-08T01:31:58.776439Z",
-    updated_at: "2026-06-08T04:04:35.315469Z",
-  },
-  company_name: "Công ty TNHH Minh Nhựa",
-  tax_code: "0254718693",
-  phone: "0258974630",
-  address: "65 Huỳnh Thúc Kháng, phường Sài Gòn",
-  description: "Rau rất sạch",
-  bank_name: "Vietcombank",
-  bank_bin: "970436",
-  account_number: "26022005111",
-  account_name: "Nguyễn Văn A",
-  verification_status: "approved",
-  verified_by: 2,
-  verified_by_username: "admin",
-  verified_at: "2026-06-08T04:04:35.312340Z",
-  rejection_reason: "",
-  created_at: "2026-06-08T01:32:46.178439Z",
-  updated_at: "2026-06-08T16:43:51.304671Z",
-};
 
 // ---- Helpers ----
 const verificationLabel = {
@@ -106,6 +72,116 @@ function extractSupplierErrorMessage(error, fallback = "Cập nhật thất bạ
 function toNumberOrNull(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getLoggedInUser() {
+  try {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeSupplierDetail(raw, fallbackUser = null) {
+  if (!raw) return null;
+
+  const apiAccount = raw.account && typeof raw.account === "object" ? raw.account : null;
+  const userAccount = fallbackUser || {};
+
+  const account = {
+    id: apiAccount?.id ?? userAccount.id ?? null,
+    username: apiAccount?.username ?? userAccount.username ?? "",
+    email: apiAccount?.email ?? userAccount.email ?? "",
+    full_name:
+      apiAccount?.full_name ??
+      userAccount.full_name ??
+      userAccount.username ??
+      "",
+    phone: apiAccount?.phone ?? userAccount.phone ?? "",
+    avatar_url:
+      apiAccount?.avatar_url ??
+      apiAccount?.avatar ??
+      userAccount.avatar_url ??
+      userAccount.avatar ??
+      null,
+    role: apiAccount?.role ?? userAccount.role ?? "supplier",
+    status: apiAccount?.status ?? userAccount.status ?? "active",
+    created_at: apiAccount?.created_at ?? userAccount.created_at ?? null,
+    updated_at: apiAccount?.updated_at ?? userAccount.updated_at ?? null,
+  };
+
+  return {
+    ...raw,
+    account,
+    company_name: raw.company_name ?? "",
+    tax_code: raw.tax_code ?? "",
+    phone: raw.phone ?? "",
+    address: raw.address ?? "",
+    description: raw.description ?? "",
+    bank_name: raw.bank_name ?? "",
+    bank_bin: raw.bank_bin != null ? String(raw.bank_bin) : "",
+    account_number: raw.account_number ?? "",
+    account_name: raw.account_name ?? "",
+    verification_status: raw.verification_status ?? "pending",
+    verified_by_username: raw.verified_by_username ?? "",
+    rejection_reason: raw.rejection_reason ?? "",
+  };
+}
+
+async function fetchCurrentSupplierProfile() {
+  const user = getLoggedInUser();
+  const userId = toNumberOrNull(user?.id);
+
+  if (!userId) {
+    throw new Error("Không tìm thấy thông tin tài khoản đăng nhập.");
+  }
+
+  const directSupplierId =
+    toNumberOrNull(user?.supplier_id) ??
+    toNumberOrNull(user?.supplier?.id) ??
+    toNumberOrNull(user?.supplier);
+
+  if (directSupplierId) {
+    const supplierDetail = await supplierService.getById(directSupplierId);
+    return normalizeSupplierDetail(supplierDetail, user);
+  }
+
+  const suppliers = await supplierService.getAll();
+  const list = Array.isArray(suppliers) ? suppliers : [];
+
+  const supplierSummary = list.find((item) => {
+    const accountId =
+      toNumberOrNull(item?.account) ??
+      toNumberOrNull(item?.account_id) ??
+      toNumberOrNull(item?.account?.id);
+
+    if (accountId && accountId === userId) return true;
+
+    const usernameMatches =
+      item?.account?.username &&
+      user?.username &&
+      item.account.username === user.username;
+
+    const emailMatches =
+      item?.account?.email &&
+      user?.email &&
+      item.account.email === user.email;
+
+    return usernameMatches || emailMatches;
+  });
+
+  if (supplierSummary?.id) {
+    const supplierDetail = await supplierService.getById(supplierSummary.id);
+    return normalizeSupplierDetail(supplierDetail, user);
+  }
+
+  if (list.length === 1 && list[0]?.id) {
+    const supplierDetail = await supplierService.getById(list[0].id);
+    return normalizeSupplierDetail(supplierDetail, user);
+  }
+
+  throw new Error("Không tìm thấy hồ sơ nhà cung cấp của tài khoản này.");
 }
 
 // ---- Sub-components ----
@@ -326,7 +402,7 @@ function CompanySection({ supplier, onEdit }) {
 
       <div className="p-6">
         {/* Verification banner */}
-        <div className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-6 border ${vsBanner.bg}`}>
+        {/* <div className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-6 border ${vsBanner.bg}`}>
           <span>{vsBanner.icon}</span>
           <div>
             <p className={`text-sm font-semibold ${vsBanner.text}`}>
@@ -341,7 +417,7 @@ function CompanySection({ supplier, onEdit }) {
               <p className={`text-xs ${vsBanner.sub}`}>Lý do: {supplier.rejection_reason}</p>
             )}
           </div>
-        </div>
+        </div> */}
 
         {/* Fields */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-5">
@@ -369,10 +445,10 @@ function CompanySection({ supplier, onEdit }) {
             label="Trạng thái xác minh"
             value={verificationLabel[supplier.verification_status] || supplier.verification_status}
           />
-          <InfoField
+          {/* <InfoField
             label="Xác minh bởi"
             value={supplier.verified_by_username}
-          />
+          /> */}
           <InfoField label="Thời điểm xác minh" value={formatDate(supplier.verified_at)} />
           {supplier.rejection_reason ? (
             <InfoField label="Lý do từ chối" value={supplier.rejection_reason} />
@@ -625,8 +701,8 @@ function EditCompanyModal({ supplier, onClose, onSave, isSaving }) {
   );
 }
 
-export default function SupplierProfileContent({ supplierData = mockSupplierData }) {
-  const [supplier, setSupplier] = useState(supplierData || null);
+export default function SupplierInfoPage() {
+  const [supplier, setSupplier] = useState(null);
   const [isLoadingSupplier, setIsLoadingSupplier] = useState(true);
   const [supplierError, setSupplierError] = useState("");
   const [editingPersonal, setEditingPersonal] = useState(false);
@@ -640,68 +716,12 @@ export default function SupplierProfileContent({ supplierData = mockSupplierData
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
-    const fetchSupplierProfile = async () => {
+    const loadSupplierProfile = async () => {
       try {
         setIsLoadingSupplier(true);
         setSupplierError("");
-
-        const savedUser = localStorage.getItem("user");
-        const user = savedUser ? JSON.parse(savedUser) : null;
-        const userId = toNumberOrNull(user?.id);
-
-        if (!userId) {
-          throw new Error("Không tìm thấy thông tin tài khoản đăng nhập.");
-        }
-
-        const directSupplierId =
-          toNumberOrNull(user?.supplier_id) ??
-          toNumberOrNull(user?.supplier?.id) ??
-          toNumberOrNull(user?.supplier);
-
-        // Ưu tiên lấy theo supplier id đã có sẵn trong user (nếu backend trả về)
-        if (directSupplierId) {
-          const supplierDetail = await supplierService.getById(directSupplierId);
-          setSupplier(supplierDetail);
-          return;
-        }
-
-        // Fallback: quét từ danh sách và match linh hoạt account field
-        const suppliers = await supplierService.getAll();
-        const supplierSummary = suppliers.find((item) => {
-          const accountId =
-            toNumberOrNull(item?.account) ??
-            toNumberOrNull(item?.account_id) ??
-            toNumberOrNull(item?.account?.id);
-
-          if (accountId && accountId === userId) return true;
-
-          const usernameMatches =
-            item?.account?.username &&
-            user?.username &&
-            item.account.username === user.username;
-
-          const emailMatches =
-            item?.account?.email &&
-            user?.email &&
-            item.account.email === user.email;
-
-          return usernameMatches || emailMatches;
-        });
-
-        if (supplierSummary?.id) {
-          const supplierDetail = await supplierService.getById(supplierSummary.id);
-          setSupplier(supplierDetail);
-          return;
-        }
-
-        // Fallback: nếu API chỉ trả 1 supplier thì dùng luôn bản ghi đó
-        if (suppliers.length === 1 && suppliers[0]?.id) {
-          const supplierDetail = await supplierService.getById(suppliers[0].id);
-          setSupplier(supplierDetail);
-          return;
-        }
-
-        throw new Error("Không tìm thấy hồ sơ nhà cung cấp của tài khoản này.");
+        const profile = await fetchCurrentSupplierProfile();
+        setSupplier(profile);
       } catch (error) {
         console.error("Lỗi tải thông tin nhà cung cấp:", error);
         setSupplierError(
@@ -715,7 +735,7 @@ export default function SupplierProfileContent({ supplierData = mockSupplierData
       }
     };
 
-    fetchSupplierProfile();
+    loadSupplierProfile();
   }, []);
 
   const handlePickAvatar = (e) => {
@@ -775,7 +795,13 @@ export default function SupplierProfileContent({ supplierData = mockSupplierData
     try {
       setIsUpdatingPersonal(true);
       await accountService.update(changedFields);
-      setSupplier((s) => ({ ...s, account: { ...s.account, ...changedFields } }));
+      const nextAccount = { ...supplier.account, ...changedFields };
+      setSupplier((s) => ({ ...s, account: nextAccount }));
+
+      const savedUser = getLoggedInUser();
+      if (savedUser) {
+        localStorage.setItem("user", JSON.stringify({ ...savedUser, ...changedFields }));
+      }
       setEditingPersonal(false);
       alert("Cập nhật thông tin cá nhân thành công!");
     } catch (error) {
@@ -809,20 +835,6 @@ export default function SupplierProfileContent({ supplierData = mockSupplierData
         alert(`${bankFieldLabels[missingBankField] || "Thông tin ngân hàng"}: Không được để trống.`);
         return;
       }
-    }
-
-    try {
-      setIsUpdatingCompany(true);
-      const updated = await supplierService.patch(supplier.id, changedFields);
-      setSupplier((s) => ({ ...s, ...changedFields, ...updated }));
-      setEditingCompany(false);
-      alert("Cập nhật thông tin doanh nghiệp thành công!");
-    } catch (error) {
-      console.error("Lỗi khi cập nhật thông tin:", error);
-      console.log("DATA:", error?.response?.data);
-      alert(extractSupplierErrorMessage(error));
-    } finally {
-      setIsUpdatingCompany(false);
     }
   };
 
@@ -924,7 +936,7 @@ export function KamereoLayoutPreview() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto">
           {activeNav === "profile" ? (
-            <SupplierProfileContent />
+            <SupplierInfoPage />
           ) : activeNav === "certs" ? (
             <div className={SUPPLIER_PAGE_CLASS}>
               <SupplierPageHeader

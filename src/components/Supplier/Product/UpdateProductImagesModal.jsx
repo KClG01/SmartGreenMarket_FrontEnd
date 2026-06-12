@@ -25,6 +25,19 @@ function buildSlotsFromProduct(images = []) {
   }));
 }
 
+function appendProductImageFile(formData, file) {
+  formData.append("images", file, file.name);
+}
+
+function buildNewImageFormData(productId, file, { isThumbnail = false, sortOrder = 0 } = {}) {
+  const fd = new FormData();
+  fd.append("supplier_product", productId);
+  appendProductImageFile(fd, file);
+  fd.append("is_thumbnail", isThumbnail ? "true" : "false");
+  fd.append("sort_order", String(sortOrder));
+  return fd;
+}
+
 function validateImageSlots(slots) {
   const active = slots.filter((s) => !s.markedDelete);
   const errs = {};
@@ -59,6 +72,8 @@ export default function UpdateProductImagesModal({
   const [fieldErrors, setFieldErrors] = useState({});
   const replaceInputRef = useRef(null);
   const [replaceTargetKey, setReplaceTargetKey] = useState(null);
+  const slotsRef = useRef(slots);
+  slotsRef.current = slots;
 
   useEffect(() => {
     if (!isOpen || !product) return;
@@ -76,13 +91,13 @@ export default function UpdateProductImagesModal({
 
   useEffect(() => {
     return () => {
-      slots.forEach((slot) => {
-        if (slot.file && slot.preview?.startsWith("blob:")) {
+      slotsRef.current.forEach((slot) => {
+        if (slot.preview?.startsWith("blob:")) {
           URL.revokeObjectURL(slot.preview);
         }
       });
     };
-  }, [slots]);
+  }, []);
 
   if (!isOpen || !product) return null;
 
@@ -202,32 +217,30 @@ export default function UpdateProductImagesModal({
       const toCreate = slots.filter((s) => !s.id && !s.markedDelete && s.file);
       const thumbKey = slots.find((s) => !s.markedDelete && s.is_thumbnail)?.key;
 
-      for (const slot of toDelete) {
-        await productService.deleteImageProduct(slot.id);
-      }
-
-      for (const slot of toReplace) {
-        const fd = new FormData();
-        fd.append("images", slot.file);
-        await productService.updateImageProduct(slot.id, fd);
-      }
-
       const createdMap = new Map();
-      let sortBase = slots.filter((s) => s.id && !s.markedDelete).length;
+      const existingCount = slots.filter((s) => s.id && !s.markedDelete).length;
 
+      // 1. Thêm ảnh mới trước (tránh backend báo lỗi khi sản phẩm không còn ảnh)
       for (const [index, slot] of toCreate.entries()) {
-        const fd = new FormData();
-        fd.append("supplier_product", product.id);
-        fd.append("images", slot.file);
-        fd.append("is_thumbnail", "false");
-        fd.append("sort_order", sortBase + index);
+        const fd = buildNewImageFormData(product.id, slot.file, {
+          isThumbnail: false,
+          sortOrder: existingCount + index,
+        });
         const created = await productService.addImageProduct(fd);
         createdMap.set(slot.key, created?.id ?? created?.data?.id);
+      }
+
+      // 2. Thay file ảnh hiện có
+      for (const slot of toReplace) {
+        const fd = new FormData();
+        appendProductImageFile(fd, slot.file);
+        await productService.updateImageProduct(slot.id, fd);
       }
 
       let fresh = await productService.getById(product.id);
       let allImages = fresh.images ?? [];
 
+      // 3. Cập nhật ảnh đại diện
       let thumbnailId = null;
       const thumbSlot = slots.find((s) => s.key === thumbKey && !s.markedDelete);
       if (thumbSlot?.id) {
@@ -246,6 +259,16 @@ export default function UpdateProductImagesModal({
             await productService.updateImageProduct(img.id, fd);
           })
         );
+        fresh = await productService.getById(product.id);
+        allImages = fresh.images ?? [];
+      }
+
+      // 4. Xóa ảnh cuối cùng
+      for (const slot of toDelete) {
+        await productService.deleteImageProduct(slot.id);
+      }
+
+      if (toDelete.length) {
         fresh = await productService.getById(product.id);
         allImages = fresh.images ?? [];
       }

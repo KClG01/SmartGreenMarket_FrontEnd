@@ -3,7 +3,6 @@ import NotificationBell from "../components/common/NotificationBell";
 import AppToaster from "../components/common/AppToaster";
 import SideBar from "../components/Supplier/UI/SideBar";
 import Logo from "../components/Supplier/UI/Logo";
-
 export default function SupplierLayout() {
     return (
         <div className="min-h-screen bg-neutral-50">
