@@ -4,13 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { notificationService, handleApiError } from "../../services/api/notificationService";
 import NotificationDropdown from "./NotificationDropdown";
 import NotificationViewModal from "../Admin/Notification/NotificationViewModal";
-import { getNotificationSeeAllPath } from "./notificationRolePaths";
+import { getNotificationSeeAllPath, canManageNotificationActions } from "./notificationRolePaths";
+import {
+    formatNotificationRow,
+    mergeNotificationDetail,
+} from "../Admin/Notification/notificationFormatters";
 import { useAuth } from "../../contexts/authProvider";
 
 export default function NotificationBell({ role: roleProp }) {
     const { user } = useAuth();
     const role = roleProp ?? user?.role ?? "admin";
     const seeAllPath = getNotificationSeeAllPath(role);
+    const canManageActions = canManageNotificationActions(role);
     const [unreadCount, setUnreadCount] = useState(0);
     const [notifications, setNotifications] = useState([]);
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
@@ -87,27 +92,24 @@ export default function NotificationBell({ role: roleProp }) {
     // Xử lý khi nhấn vào từng item thông báo trong chuông
     const handleItemClick = useCallback(async (item) => {
         setIsOpenDropdown(false);
+        const fallbackDetail = formatNotificationRow(item);
+
         try {
             const detail = await notificationService.getById(item.id);
-            const formattedDetail = {
-                id: detail.id,
-                type: detail.type,
-                typeLabel: detail.type_label,
-                title: detail.title,
-                content: detail.content,
-                referenceType: detail.reference_type,
-                referenceTypeLabel: detail.reference_type_label,
-                referenceId: detail.reference_id,
-                createdAt: detail.created_at,
-                readAt: detail.read_at || item.readAt,
-            };
-            setViewRow(formattedDetail);
+            setViewRow(mergeNotificationDetail(detail, fallbackDetail));
 
-            if (!formattedDetail.readAt) {
+            if (!detail.read_at && !fallbackDetail.readAt) {
                 await handleMarkRead(item.id);
             }
         } catch (error) {
-            console.error(handleApiError(error));
+            console.warn(
+                handleApiError(error, "Không thể tải chi tiết thông báo, dùng dữ liệu tóm tắt"),
+            );
+            setViewRow(fallbackDetail);
+
+            if (!fallbackDetail.readAt) {
+                await handleMarkRead(item.id);
+            }
         }
     }, [handleMarkRead]);
 
@@ -144,8 +146,8 @@ export default function NotificationBell({ role: roleProp }) {
                     fetchBellData();     
                 }}
                 notification={viewRow}
-                onChange={() => viewRow && handleMarkRead(viewRow.id)}
                 loading={actionLoading}
+                canManageActions={canManageActions}
             />
         </div>
     );
