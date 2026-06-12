@@ -1,48 +1,30 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import { AuthProvider } from "./contexts/authProvider";
+    //Protected Routes
+import AdminProtectedRoute from "./contexts/adminProtectedRoute";
+import SupplierProtectedRoute from "./contexts/supplierProtectedRoute";
+import DealerProtectedRoute from "./contexts/dealerProtectedRoute";
+    //Layouts
 import UserLayout from "./layouts/UserLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import SupplierLayout from "./layouts/SupplierLayout";
 import UserProfileLayout from "./layouts/UserProfileLayout";
 import DealerLayout from "./layouts/DealerLayout";
-
-import  {HomePage}  from "./pages/User/Home";
-import CartPage from "./pages/User/Cart";
-import OrderPage from "./pages/User/Order";
-import PaymentPage from "./pages/User/Payment";
-import OrderStatusPage from "./pages/user/OrderStatus";
-import UserProfilePage from "./pages/user/Profile/Profile";
-
-import OrderSupplierPage from "./pages/Supplier/Order";
-import ProductSupplierPage from "./pages/Supplier/Product";
-import CertificationSupplierPage from "./pages/Supplier/Vertification";
-import RegisterPage from "./pages/Supplier/RegisterPage";
-import SupplierLoginPage from "./pages/Supplier/SupplierLogin";
-import SupplierInfoPage from "./pages/Supplier/SupplierInfoPage";
-import CategorySupplierPage from "./pages/Supplier/Category";
-import CultivationSupplierPage from "./pages/Supplier/Cultivation"
-import {
-  AdminLoginPage,
-  SettingPage,
-  SupplierPage,
-  CategoryPage,
-  ProductPage,
-  CertificationPage,
-  DocumentPage,
-  NotificationPage,
-  DealerPage,
-} from "./pages/Admin";
+    //User Pages
+import {HomePage, CartPage, OrderPage, PaymentPage, OrderStatusPage, UserProfilePage}  from "./pages/User";
+    //Supplier Pages
+import { OrderSupplierPage, ProductSupplierPage, CertificationSupplierPage, RegisterPage, SupplierLoginPage, SupplierInfoPage, CategorySupplierPage, CultivationSupplierPage } from "./pages/Supplier";
+    //Admin Pages
+import { AdminLoginPage, SettingPage, SupplierPage, CategoryPage, ProductPage, CertificationPage, DocumentPage, NotificationPage, DealerPage,} from "./pages/Admin";
+    //Dealer Pages
 import { RegisterDealerPage, DealerLoginPage } from "./pages/Dealer";
-import { AuthProvider } from "./contexts/authProvider";
-import AdminProtectedRoute from "./contexts/adminProtectedRoute";
-import SupplierProtectedRoute from "./contexts/supplierProtectedRoute";
-import DealerProtectedRoute from "./contexts/dealerProtectedRoute";
 
 export default function App() {
     return (
         <BrowserRouter>
             <AuthProvider>
                 <Routes>
+                    {/* User */}
                     <Route path="/" element={<UserLayout />}>
                         <Route index element={<HomePage />} />
                         <Route path="trang-chu" element={<HomePage />} />
