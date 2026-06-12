@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import OrderTable from "../../components/Supplier/Order/OrderTable";
 import OrderStatusStats from "../../components/Supplier/Order/OrderStatusStats";
+import DetailOrderModal from "../../components/Supplier/Order/DetailOrderModal";
 import SupplierPageHeader, { SUPPLIER_PAGE_CLASS } from "../../components/Supplier/UI/SupplierPageHeader";
 import { orderService, parseOrderList } from "../../services/api/orderService";
 
@@ -8,6 +9,7 @@ export default function OrderSupplierPage() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [detailRow, setDetailRow] = useState(null);
 
   const fetchOrders = async () => {
     try {
@@ -24,6 +26,16 @@ export default function OrderSupplierPage() {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  const handleViewOrder = async (row) => {
+    setDetailRow(row);
+    try {
+      const detail = await orderService.getById(row.id);
+      setDetailRow(detail);
+    } catch (error) {
+      console.error("Lỗi khi tải chi tiết đơn hàng:", error);
+    }
+  };
 
   return (
     <div className={SUPPLIER_PAGE_CLASS}>
@@ -43,7 +55,18 @@ export default function OrderSupplierPage() {
         />
       </div>
 
-      <OrderTable data={data} search={search} loading={loading} />
+      <OrderTable
+        data={data}
+        search={search}
+        loading={loading}
+        onView={handleViewOrder}
+      />
+
+      <DetailOrderModal
+        isOpen={detailRow !== null}
+        onClose={() => setDetailRow(null)}
+        order={detailRow}
+      />
     </div>
   );
 }

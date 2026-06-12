@@ -3,7 +3,7 @@ import {
   X, Check, ChevronLeft, ChevronRight, ZoomIn,
   Package, Tag, Thermometer, ShieldCheck,
   Calendar, Hash, AlertCircle, CheckCircle,
-  XCircle, Loader2, Pencil, Save, Ban, Lock, ImageIcon,
+  XCircle, Loader2, Pencil, Save, Ban, Lock, LockOpen, ImageIcon,CircleDotDashed
 } from "lucide-react";
 import { productService } from "../../../services/api/productService";
 import UpdateProductImagesModal from "./UpdateProductImagesModal";
@@ -13,6 +13,12 @@ import {
   errorsToSummary,
   extractSupplierApiMessage,
 } from "../../../utils/supplierValidation";
+import {
+  canLockProduct,
+  canUnlockProduct,
+} from "./productSellingUtils";
+import { farmingProcessService } from "../../../services/api/cultivationService";
+import { parseCultivationList } from "../Cultivation/cultivationUtils";
 
 /* ─── Status helpers ─── */
 const STATUS_MAP = {
@@ -20,7 +26,7 @@ const STATUS_MAP = {
   approved: { label: "Đã duyệt",    color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   rejected: { label: "Từ chối",     color: "bg-red-100 text-red-700 border-red-200" },
   active:   { label: "Đang bán",    color: "bg-green-100 text-green-700 border-green-200" },
-  inactive: { label: "Tạm ngừng",   color: "bg-zinc-100 text-zinc-500 border-zinc-200" },
+  inactive: { label: "Ngừng bán",   color: "bg-zinc-100 text-zinc-500 border-zinc-200" },
 };
 
 const StatusBadge = ({ status }) => {
@@ -223,18 +229,29 @@ function InfoRow({ icon, label, value }) {
 }
 
 /* ─── Main modal ─── */
-export default function DetailProductModal({ isOpen, onClose, product: initialProduct, onUpdate }) {
+export default function DetailProductModal({
+  isOpen,
+  onClose,
+  product: initialProduct,
+  onUpdate,
+  onLockSelling,
+  onUnlockSelling,
+  togglingSelling = false,
+}) {
   const [product, setProduct] = useState(initialProduct);
   const [saving,  setSaving]  = useState(false);
   const [saved,   setSaved]   = useState(false);
   const [error,   setError]   = useState("");
   const [showImageModal, setShowImageModal] = useState(false);
+  const [cultivationSteps, setCultivationSteps] = useState([]);
+  const [loadingCultivation, setLoadingCultivation] = useState(false);
 
   useEffect(() => {
     setProduct(initialProduct);
     setSaved(false);
     setError("");
     setShowImageModal(false);
+    setCultivationSteps([]);
   }, [initialProduct]);
 
   useEffect(() => {
@@ -249,6 +266,28 @@ export default function DetailProductModal({ isOpen, onClose, product: initialPr
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen || !product?.id) return;
+
+    const fetchCultivation = async () => {
+      setLoadingCultivation(true);
+      try {
+        const res = await farmingProcessService.getAll({ supplier_product: product.id });
+        const steps = parseCultivationList(res)
+          .filter((s) => Number(s.supplier_product) === Number(product.id))
+          .sort((a, b) => a.step_order - b.step_order);
+        setCultivationSteps(steps);
+      } catch (err) {
+        console.error("Lỗi tải quy trình canh tác:", err);
+        setCultivationSteps([]);
+      } finally {
+        setLoadingCultivation(false);
+      }
+    };
+
+    fetchCultivation();
+  }, [isOpen, product?.id]);
+
   if (!isOpen || !product) return null;
 
   const field  = (key) => product[key] ?? "";
@@ -258,13 +297,16 @@ export default function DetailProductModal({ isOpen, onClose, product: initialPr
     const payload = {
       name: product.name?.trim() ?? "",
       slug: product.slug ?? "",
-      unit: product.unit ?? "",
       description: product.description ?? "",
     };
 
     const catId = product.category?.id ?? product.category;
     if (catId != null && catId !== "") {
       payload.category = Number(catId);
+    }
+
+    if (product.daily_production_capacity != null && product.daily_production_capacity !== "") {
+      payload.daily_production_capacity = Number(product.daily_production_capacity);
     }
 
     if (product.storage_duration_days != null && product.storage_duration_days !== "") {
@@ -287,7 +329,7 @@ export default function DetailProductModal({ isOpen, onClose, product: initialPr
     const errs = validateProductForm({
       name: product.name,
       category: product.category?.id ?? product.category,
-      unit: product.unit,
+      daily_production_capacity: product.daily_production_capacity,
       description: product.description,
       storage_duration_days: product.storage_duration_days,
       min_storage_temp: product.min_storage_temp,
@@ -406,10 +448,10 @@ export default function DetailProductModal({ isOpen, onClose, product: initialPr
                     value={field("name")}
                     onSave={v => update("name", v)} />
 
-                  <EditableField label="Đơn vị tính"
-                    value={field("unit")}
-                    onSave={v => update("unit", v)}
-                    options={["kg", "bó", "cái", "túi", "hộp", "thùng"]} />
+                  <EditableField label="Năng suất"
+                    value={field("daily_production_capacity")}
+                    onSave={v => update("daily_production_capacity", v === "" ? null : Number(v))}
+                    type="number" suffix="kg/tháng" />
 
                   <div className="col-span-2">
                     <EditableField label="Mô tả chi tiết"
@@ -442,9 +484,45 @@ export default function DetailProductModal({ isOpen, onClose, product: initialPr
               <Section icon={<ShieldCheck className="w-4 h-4 text-green-700" />} title="Trạng thái & Phê duyệt">
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                   <LockedStatusField
-                    label="Trạng thái (không thể thay đổi)"
+                    label="Trạng thái duyệt (không thể thay đổi)"
                     status={product.status}
                   />
+
+                  <div>
+                    <div className="text-xs text-zinc-400 mb-2">Trạng thái bán hàng</div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusBadge status={product.status} />
+                      {canLockProduct(product.status) && (
+                        <button
+                          type="button"
+                          onClick={() => onLockSelling?.(product)}
+                          disabled={togglingSelling}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg
+                            border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors disabled:opacity-50"
+                        >
+                          <Lock className="w-3.5 h-3.5" />
+                          Khóa bán
+                        </button>
+                      )}
+                      {canUnlockProduct(product.status) && (
+                        <button
+                          type="button"
+                          onClick={() => onUnlockSelling?.(product)}
+                          disabled={togglingSelling}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg
+                            border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                        >
+                          <LockOpen className="w-3.5 h-3.5" />
+                          Mở khóa bán
+                        </button>
+                      )}
+                      {!canLockProduct(product.status) && !canUnlockProduct(product.status) && (
+                        <span className="text-xs text-zinc-400">
+                          Chỉ khóa/mở khóa khi sản phẩm đang bán hoặc đã tạm ngừng bán.
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   <div>
                     <div className="text-xs text-zinc-400 mb-0.5">Người duyệt</div>
                     <div className="text-sm font-medium text-zinc-700">{product.verified_by_username ?? "—"}</div>
@@ -465,6 +543,32 @@ export default function DetailProductModal({ isOpen, onClose, product: initialPr
                     <div className="text-sm font-medium text-zinc-700">{fmt(product.updated_at)}</div>
                   </div>
                 </div>
+              </Section>
+              <Section icon={<CircleDotDashed className="w-4 h-4 text-green-700" />} title="Quy trình canh tác">
+                {loadingCultivation ? (
+                  <div className="flex items-center gap-2 text-sm text-zinc-400">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Đang tải quy trình canh tác...
+                  </div>
+                ) : cultivationSteps.length === 0 ? (
+                  <p className="text-sm text-zinc-400 italic">Chưa có quy trình canh tác cho sản phẩm này.</p>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {cultivationSteps.map((step) => (
+                      <div key={step.id} className="flex gap-3 p-3 bg-zinc-50 rounded-lg border border-zinc-100">
+                        <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold text-sm flex items-center justify-center flex-shrink-0">
+                          {step.step_order}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-zinc-800">{step.process_name}</p>
+                          <p className="text-xs text-zinc-500 mt-0.5 whitespace-pre-wrap">
+                            {step.description || "—"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </Section>
             </div>
 

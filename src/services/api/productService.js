@@ -87,6 +87,26 @@ export const productService = {
     return res.data;
   },
 
+  /** Supplier tạm ngừng / mở lại bán hàng */
+  updateSellingStatus: async (id, status) => {
+    const res = await axiosClient.patch(`/supplier-products/${id}/`, { status });
+    return res.data;
+  },
+
+  lockSelling: async (id) => {
+    const res = await axiosClient.patch(`/supplier-products/${id}/`, {
+      status: "inactive",
+    });
+    return res.data;
+  },
+
+  unlockSelling: async (id) => {
+    const res = await axiosClient.patch(`/supplier-products/${id}/`, {
+      status: "active",
+    });
+    return res.data;
+  },
+
   deleteProduct: async (id) => {
     const res = await axiosClient.delete(`/supplier-products/${id}`);
     return res.data;

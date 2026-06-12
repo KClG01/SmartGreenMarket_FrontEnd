@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Eye, Pencil, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { SupplierActionButton, SupplierActionGroup } from "../UI/SupplierTableActions";
 
 const PAGE_SIZES = [6, 10, 20];
 
@@ -49,9 +50,9 @@ export default function CultivationTable({ data, search, productFilter, onView, 
     <div className="w-full rounded-xl border border-neutral-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[#f8f7f5] border-b border-neutral-200 min-h-[48px]">
+            <tr className="bg-[#f8f7f5] border-b border-neutral-200">
               <Th onClick={() => handleSort("supplier_product")} className="w-[180px]">
-                Sản phẩm <SortIcon field="supplier_product" />
+                Ten Sản phẩm <SortIcon field="supplier_product" />
               </Th>
               <Th onClick={() => handleSort("step_order")} className="w-[80px] text-center">
                 Bước <SortIcon field="step_order" />
@@ -63,7 +64,7 @@ export default function CultivationTable({ data, search, productFilter, onView, 
               <Th onClick={() => handleSort("created_at")} className="w-[130px]">
                 Ngày tạo <SortIcon field="created_at" />
               </Th>
-              <Th className="w-[130px] text-center">Hành động</Th>
+              <Th className="min-w-[220px] text-center">Thao tác</Th>
             </tr>
           </thead>
           <tbody>
@@ -77,63 +78,46 @@ export default function CultivationTable({ data, search, productFilter, onView, 
               paginated.map((row, idx) => (
                 <tr
                   key={row.id}
-                  className={`min-h-[64px] border-b border-neutral-200 last:border-0 transition-colors hover:bg-[#fafaf9] ${
+                  className={`border-b border-neutral-200 last:border-0 transition-colors hover:bg-[#fafaf9] ${
                     idx % 2 === 0 ? "" : "bg-neutral-50/50"
                   }`}
                 >
-                  {/* Sản phẩm */}
-                  <td className="px-6 py-4">
-                    <span className="font-medium text-neutral-800 text-xs">
-                      {row.product_name ?? `SP #${row.supplier_product}`}
+                  {/* Ten Sản phẩm */}
+                  <td className="px-6 py-5">
+                    <span className="font-medium text-neutral-800 text-sm">
+                      {row.product_name ?? "—"}
                     </span>
                   </td>
 
-                  {/* Bước */}
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-6 py-5 text-center">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">
                       {row.step_order}
                     </span>
                   </td>
 
-                  {/* Tên quy trình */}
-                  <td className="px-6 py-4">
-                    <span className="font-semibold text-gray-900">{row.process_name}</span>
+                  <td className="px-6 py-5">
+                    <span className="font-semibold text-gray-900 text-sm">{row.process_name}</span>
                   </td>
 
-                  {/* Mô tả */}
-                  <td className="px-6 py-4 text-neutral-500 max-w-[280px]">
-                    <span className="line-clamp-2">{row.description}</span>
+                  <td className="px-6 py-5 text-neutral-500 max-w-[320px]">
+                    <span className="line-clamp-2 text-sm">{row.description}</span>
                   </td>
 
-                  {/* Ngày tạo */}
-                  <td className="px-6 py-4 text-neutral-500 text-xs">
+                  <td className="px-6 py-5 text-neutral-500 text-sm">
                     {formatDate(row.created_at)}
                   </td>
 
-                  {/* Actions */}
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-1">
-                      <ActionBtn
-                        onClick={() => onView(row)}
-                        title="Xem chi tiết"
-                        className="text-emerald-700 hover:bg-emerald-50"
-                      >
-                        <Eye size={15} />
-                      </ActionBtn>
-                      <ActionBtn
-                        onClick={() => onEdit(row)}
-                        title="Chỉnh sửa"
-                        className="text-blue-600 hover:bg-blue-50"
-                      >
-                        <Pencil size={15} />
-                      </ActionBtn>
-                      <ActionBtn
+                  <td className="px-6 py-5">
+                    <div className="flex justify-center">
+                      <SupplierActionGroup>
+                      <SupplierActionButton label="Xem" onClick={() => onView(row)} />
+                      <SupplierActionButton label="Sửa" onClick={() => onEdit(row)} />
+                      <SupplierActionButton
+                        label="Xóa"
+                        variant="danger"
                         onClick={() => onDelete(row)}
-                        title="Xóa"
-                        className="text-red-500 hover:bg-red-50"
-                      >
-                        <Trash2 size={15} />
-                      </ActionBtn>
+                      />
+                    </SupplierActionGroup>
                     </div>
                   </td>
                 </tr>
@@ -172,20 +156,10 @@ export default function CultivationTable({ data, search, productFilter, onView, 
 const Th = ({ children, className = "", onClick }) => (
   <th
     onClick={onClick}
-    className={`px-6 py-3 text-left text-[11px] font-bold text-neutral-600 uppercase tracking-[0.07em] whitespace-nowrap font-['Geist',sans-serif] ${onClick ? "cursor-pointer select-none hover:text-emerald-700" : ""} ${className}`}
+    className={`px-6 py-4 text-left text-[11px] font-bold text-neutral-600 uppercase tracking-[0.07em] whitespace-nowrap font-['Geist',sans-serif] ${onClick ? "cursor-pointer select-none hover:text-emerald-700" : ""} ${className}`}
   >
     {children}
   </th>
-);
-
-const ActionBtn = ({ children, onClick, title, className }) => (
-  <button
-    onClick={onClick}
-    title={title}
-    className={`p-1.5 rounded-md transition-colors ${className}`}
-  >
-    {children}
-  </button>
 );
 
 const PagBtn = ({ children, onClick, disabled }) => (
