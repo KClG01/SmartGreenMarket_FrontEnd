@@ -11,7 +11,7 @@ import SupplierLayout from "./layouts/SupplierLayout";
 import UserProfileLayout from "./layouts/UserProfileLayout";
 import DealerLayout from "./layouts/DealerLayout";
     //User Pages
-import {HomePage, CartPage, OrderPage, PaymentPage, OrderStatusPage, UserProfilePage}  from "./pages/User";
+import {HomePage, ProductDetailPage, CartPage, OrderPage, PaymentPage, OrderStatusPage, UserProfilePage, ChangePasswordPage, OrderHistoryPage}  from "./pages/User";
     //Supplier Pages
 import { OrderSupplierPage, ProductSupplierPage, CertificationSupplierPage, RegisterPage, SupplierLoginPage, SupplierInfoPage, CategorySupplierPage, CultivationSupplierPage } from "./pages/Supplier";
     //Admin Pages
@@ -28,12 +28,15 @@ export default function App() {
                     <Route path="/" element={<UserLayout />}>
                         <Route index element={<HomePage />} />
                         <Route path="trang-chu" element={<HomePage />} />
+                        <Route path="san-pham/:id" element={<ProductDetailPage />} />
                         <Route path="gio-hang" element={<CartPage />} />
                         <Route path="dat-hang" element={<OrderPage />} />
                         <Route path="thanh-toan" element={<PaymentPage />} />
                         <Route path="theo-doi-don-hang" element={<OrderStatusPage />} />
                         <Route path="tai-khoan" element={<UserProfileLayout />}>
                             <Route path="" element={<UserProfilePage />} />
+                            <Route path="doi-mat-khau" element={<ChangePasswordPage />} />
+                            <Route path="lich-su-don-hang" element={<OrderHistoryPage />} />
                         </Route>
                     </Route>
                     {/* Supplier */}
