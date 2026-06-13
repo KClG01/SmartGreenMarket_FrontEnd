@@ -9,6 +9,7 @@ export const SUPPLIER_FIELD_LABELS = {
   repassword: "Xác nhận mật khẩu",
   category: "Danh mục",
   daily_production_capacity: "Năng suất",
+  wholesale_price: "Giá sỉ",
   unit: "Đơn vị tính",
   description: "Mô tả",
   storage_duration_days: "Thời hạn bảo quản",
@@ -161,6 +162,15 @@ export function validateProductForm(form) {
     const capacity = Number(form.daily_production_capacity);
     if (isNaN(capacity) || capacity < 0) {
       errs.daily_production_capacity = "Năng suất: Phải là số không âm.";
+    }
+  }
+
+  if (form.wholesale_price === "" || form.wholesale_price == null) {
+    errs.wholesale_price = "Giá sỉ: Không được để trống.";
+  } else {
+    const price = Number(form.wholesale_price);
+    if (isNaN(price) || price < 0) {
+      errs.wholesale_price = "Giá sỉ: Phải là số không âm.";
     }
   }
 
