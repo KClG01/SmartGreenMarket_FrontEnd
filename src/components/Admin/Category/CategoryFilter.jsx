@@ -1,9 +1,11 @@
 const OPTIONS = [
     { label: "TẤT CẢ",         value: "" },
+    { label: "HỆ THỐNG",      value: "system" },
+    { label: "ĐĂNG KÝ",      value: "custom" },
     { label: "ĐÃ DUYỆT", value: "active" },
     { label: "KHÓA",        value: "inactive" },
     { label: "TỪ CHỐI",        value: "rejected" },
-    { label: "ĐĂNG KÝ",      value: "pending" },
+    { label: "CHỜ DUYỆT",      value: "pending" },
 ];
 
 export default function Filter({ value, onChange }) {

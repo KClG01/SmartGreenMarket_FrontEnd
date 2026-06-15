@@ -20,13 +20,16 @@ export default function Toolbar({ search, onSearch, onAdd, addLabel = "ThÃªm má»
                     placeholder={searchPlaceholder}
                 />
             </div>
-            {/* <button
-                onClick={onAdd}
-                className="flex items-center gap-2 px-5 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors font-['Geist',sans-serif]"
-            >
-                <Plus className="w-4 h-4" />
-                {addLabel}
-            </button> */}
+            {onAdd ? (
+                <button
+                    type="button"
+                    onClick={onAdd}
+                    className="cursor-pointer flex items-center gap-2 rounded-lg bg-emerald-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 font-['Geist',sans-serif]"
+                >
+                    <Plus className="h-4 w-4" />
+                    {addLabel}
+                </button>
+            ) : null}
         </div>
     );
 }
