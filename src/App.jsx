@@ -16,25 +16,8 @@ import {HomePage, ProductDetailPage, CartPage, OrderPage, PaymentPage, OrderStat
 import { OrderSupplierPage, ProductSupplierPage, CertificationSupplierPage, RegisterPage, SupplierLoginPage, SupplierInfoPage, CategorySupplierPage, CultivationSupplierPage,DashboardSupplierPage } from "./pages/Supplier";
     //Admin Pages
 import { AdminLoginPage, SettingPage, SupplierPage, CategoryPage, ProductPage, CertificationPage, DocumentPage, NotificationPage, DealerPage,} from "./pages/Admin";
-
-
-
-import {
-    RegisterDealerPage,
-    DealerLoginPage,
-    DealerDashboardPage,
-    DealerInventoryPage,
-    DealerSupplierPage,
-    DealerCategoryPage,
-    DealerSalesOrderPage,
-    DealerPurchaseOrderPage,
-    DealerCreatePurchaseOrderPage,
-    DealerPurchaseOrderDetailPage,
-    DealerSupplierDetailPage,
-    DealerCategoryDetail,
-    DealerInfoPage,
-} from "./pages/Dealer";
-
+    //Dealer Pages
+import { RegisterDealerPage, DealerLoginPage, DealerDashboardPage, DealerInventoryPage, DealerSupplierPage, DealerCategoryPage, DealerSalesOrderPage, DealerPurchaseOrderPage, DealerCreatePurchaseOrderPage, DealerPurchaseOrderDetailPage,DealerSupplierDetailPage,DealerCategoryDetail, DealerInfoPage,} from "./pages/Dealer";
 
 export default function App() {
     return (
