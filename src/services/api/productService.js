@@ -74,24 +74,61 @@ export const productService = {
 
   addProduct: async (formData) => {
     // Sửa lại thành:
-    const res = await axiosClient.post("/supplier-products/", formData); 
+    const res = await axiosClient.post("/supplier-products/", formData);
     // Đã xóa bỏ { headers: { "Content-Type": "multipart/form-data" } }
     return res.data;
   },
-  addImageProduct: async (formData) =>{
-    const res = await axiosClient.post("/supplier-product-images/",formData)
+  addImageProduct: async (formData) => {
+    const res = await axiosClient.post("/supplier-product-images/", formData);
     return res.data;
   },
+
+  updateImageProduct: async (id, formData) => {
+    const res = await axiosClient.patch(`/supplier-product-images/${id}/`, formData);
+    return res.data;
+  },
+
+  deleteImageProduct: async (id) => {
+    try {
+      const res = await axiosClient.delete(`/supplier-product-images/${id}/`);
+      return res.data;
+    } catch (err) {
+      // Ảnh đã bị xóa trước đó hoặc id không còn — bỏ qua để không chặn luồng lưu
+      if (err.response?.status === 404) return null;
+      throw err;
+    }
+  },
+
   updateProduct: async (id, payload) => {
     const res = await axiosClient.patch(`/supplier-products/${id}/`, payload);
     return res.data;
   },
-  
+
+  /** Supplier tạm ngừng / mở lại bán hàng */
+  updateSellingStatus: async (id, status) => {
+    const res = await axiosClient.patch(`/supplier-products/${id}/`, { status });
+    return res.data;
+  },
+
+  lockSelling: async (id) => {
+    const res = await axiosClient.patch(`/supplier-products/${id}/`, {
+      status: "inactive",
+    });
+    return res.data;
+  },
+
+  unlockSelling: async (id) => {
+    const res = await axiosClient.patch(`/supplier-products/${id}/`, {
+      status: "active",
+    });
+    return res.data;
+  },
+
   deleteProduct: async (id) => {
     const res = await axiosClient.delete(`/supplier-products/${id}`);
     return res.data;
   },
-  
+
   verify: (id, data) => {
     const formData = new FormData();
     formData.append("status", data.status);
@@ -104,17 +141,16 @@ export const productService = {
         },
       })
       .then((res) => res.data);
-  //   {
-  //     "status": "approved / rejected",
-  //     "rejection_reason": "string"
-  //   }
-    },
+    //   {
+    //     "status": "approved / rejected",
+    //     "rejection_reason": "string"
+    //   }
+  },
   remove: (id) => {
     return axiosClient
       .delete(`/supplier-products/${id}/`)
       .then((res) => res.data);
   },
-
 };
 
 // Xử lý bug
@@ -124,4 +160,3 @@ export const handleApiError = (error, defaultMessage = "Có lỗi xảy ra") => 
   console.error("API Error:", error);
   return message;
 };
-

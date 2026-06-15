@@ -3,107 +3,110 @@ import { tableStyles, paginationVi } from "../../common/tableStyles";
 import { formatDateTime } from "../../common/formatDateTime";
 import { getDealerDisplayStatus } from "./DealerFilter";
 
+// ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-    active: { label: "ĐANG HOẠT ĐỘNG", bg: "bg-green-200", text: "text-green-800" },
-    inactive: { label: "TẠM KHÓA", bg: "bg-gray-200", text: "text-gray-800" },
-    banned: { label: "VÔ HIỆU HÓA", bg: "bg-red-200", text: "text-red-800" },
-    pending: { label: "CHỜ DUYỆT", bg: "bg-amber-200", text: "text-amber-800" },
-    rejected: { label: "TỪ CHỐI", bg: "bg-rose-200", text: "text-rose-800" },
+    active:  { label: "ĐANG HOẠT ĐỘNG", bg: "bg-green-200",   text: "text-green-800"  },
+    rejected:  { label: "TỪ CHỐI",      bg: "bg-red-200",    text: "text-red-800"   },
+    pending: { label: "CHỜ DUYỆT",        bg: "bg-amber-200",  text: "text-amber-800" },
+    inactive: { label: "KHÓA",        bg: "bg-gray-200",  text: "text-gray-800" },
 };
 
+// ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView) => [
     {
         id: 1,
-        name: "CỬA HÀNG",
+        name: "ĐẠI LÝ",
         selector: (row) => row.store_name,
         sortable: true,
         grow: 2,
+
         cell: (row) => (
-            <div className="flex flex-col py-1">
-                <span className="text-sm font-semibold font-['Geist',sans-serif]">
-                    {row.store_name || "—"}
-                </span>
-                <span className="text-xs text-neutral-500">{row.owner_name || "—"}</span>
-            </div>
+            <span className="text-sm font-semibold font-['Geist',sans-serif]">
+                {row.store_name}
+            </span>
         ),
     },
+
     {
         name: "ĐỊA CHỈ",
         selector: (row) => row.store_address,
         sortable: true,
         grow: 2,
+
         cell: (row) => (
             <span className="text-sm font-semibold font-['Geist',sans-serif]">
-                {row.store_address || "—"}
+                {row.store_address}
             </span>
         ),
     },
+
     {
-        name: "LIÊN HỆ",
+        name: "PHONE",
         selector: (row) => row.phone,
         sortable: true,
         grow: 1,
+
         cell: (row) => (
-            <div className="flex flex-col py-1">
-                <span className="text-sm font-semibold font-['Geist',sans-serif]">
-                    {row.phone || "—"}
-                </span>
-                <span className="text-xs text-neutral-500">{row.email || "—"}</span>
-            </div>
+            <span className="text-sm font-semibold font-['Geist',sans-serif]">
+                {row.phone}
+            </span>
         ),
     },
+
     {
         name: "THỜI GIAN",
         selector: (row) => row.created_at,
         sortable: true,
         center: true,
-        width: "150px",
+        width: '150px',
         cell: (row) => (
-            <span className="text-sm font-semibold font-['Geist',sans-serif]">
+            <span className="font-bold text-sm font-semibold font-['Geist',sans-serif]">
                 {formatDateTime(row.created_at)}
             </span>
         ),
     },
     {
-        name: "TRẠNG THÁI",
-        selector: (row) => getDealerDisplayStatus(row),
+        name: "Trạng thái",
+        selector: (row) => row.verify,
         sortable: true,
         center: true,
-        width: "180px",
+        width: "200px",
+
         cell: (row) => {
             const displayStatus = getDealerDisplayStatus(row);
             const st = STATUS_CONFIG[displayStatus] ?? STATUS_CONFIG.pending;
-
             return (
-                <span
-                    className={`rounded-full px-2.5 py-1 text-sm font-semibold uppercase tracking-wide font-['Geist',sans-serif] ${st.bg} ${st.text}`}
-                >
+                <span className={`px-2.5 py-1 rounded-full text-sm font-semibold font-['Geist',sans-serif] uppercase tracking-wide ${st.bg} ${st.text}`}>
                     {st.label}
                 </span>
             );
         },
     },
+
     {
-        name: "THAO TÁC",
+        name: "Thao tác",
         width: "150px",
         center: true,
+
         cell: (row) => (
-            <button
-                type="button"
-                onClick={() => onView(row)}
-                title="Xem chi tiết"
-                className="cursor-pointer rounded-lg bg-blue-200 px-3 py-1.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-300 font-['Geist',sans-serif]"
-            >
-                Xem chi tiết
-            </button>
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={() => onView(row)}
+                    title="Xem chi tiết"
+                    className="px-3 py-1.5 rounded-lg font-bold text-sm font-semibold font-['Geist',sans-serif] bg-blue-200 text-blue-700 hover:bg-blue-300 transition-colors cursor-pointer"
+                >
+                    Xem chi tiết
+                </button>
+            </div>
         ),
+
         ignoreRowClick: true,
     },
 ];
 
-export default function DealerTable({ data, loading, onView }) {
+export default function DealerTable({ data, onView, loading = false }) {
     return (
-        <div className="w-full overflow-hidden rounded-xl border border-neutral-200">
+        <div className="w-full rounded-xl border border-neutral-200 overflow-hidden">
             <DataTable
                 columns={buildColumns(onView)}
                 data={data}

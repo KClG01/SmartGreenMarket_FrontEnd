@@ -16,9 +16,9 @@ function readCachedProfileId() {
 
 export const dealerService = {
   getAll: () =>
-    axiosClient.get("/dealers/").then(
-      (res) => res.data.results ?? res.data.result ?? [],
-    ),
+    axiosClient
+      .get("/dealers/")
+      .then((res) => res.data.results ?? res.data.result ?? []),
   // "results": [
   //       {
   //         "id": 0,
@@ -49,15 +49,20 @@ export const dealerService = {
   //       }
   //     ]
   getById: (id) => axiosClient.get(`/dealers/${id}/`).then((res) => res.data),
+  
   // --- DEALER (đăng ký / tự quản lý hồ sơ)
   getMine: () => axiosClient.get("/dealers/me/").then((res) => res.data),
 
   create: (data) =>
-    axiosClient.post("/dealers/", data).then((res) => res.data.data ?? res.data),
+    axiosClient
+      .post("/dealers/", data)
+      .then((res) => res.data.data ?? res.data),
 
   resolveMyProfile: async () => {
     try {
-      const profile = await axiosClient.get("/dealers/me/").then((res) => res.data);
+      const profile = await axiosClient
+        .get("/dealers/me/")
+        .then((res) => res.data);
       if (profile?.id) {
         persistProfileId(profile.id);
         return profile;
@@ -172,19 +177,17 @@ export const dealerService = {
   //   "products": [ ... ]
   // }
 
+  // Khóa / mở khóa tài khoản đại lý (account.status)
   statusUpdate: (id, data) =>
-    axiosClient.post(`/dealers/${id}/account-status/`, data).then((res) => res.data),
-  // {
-  //   "status": "active | inactive |  banned(rejected) | pending",
-  //   "reason": "string"
-  // }
+    axiosClient
+      .post(`/dealers/${id}/account-status/`, data)
+      .then((res) => res.data),
+  // { "status": "active | inactive | banned", "reason": "string" }
 
+  // Duyệt / từ chối hồ sơ đại lý (dealer.status)
   verify: (id, data) =>
     axiosClient.post(`/dealers/${id}/verify/`, data).then((res) => res.data),
-  // {
-  //   "status": "active | rejected",
-  //   "rejection_reason": "string"
-  // }
+  // { "status": "active | rejected", "rejection_reason": "string" }
 };
 
 export const handleApiError = (error, defaultMessage = "Có lỗi xảy ra") => {

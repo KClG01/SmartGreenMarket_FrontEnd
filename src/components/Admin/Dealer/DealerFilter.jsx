@@ -1,10 +1,9 @@
 const OPTIONS = [
     { label: "TẤT CẢ", value: "" },
-    { label: "CHỜ DUYỆT", value: "pending" },
     { label: "ĐANG HOẠT ĐỘNG", value: "active" },
     { label: "TẠM KHÓA", value: "inactive" },
-    { label: "VÔ HIỆU HÓA", value: "banned" },
     { label: "TỪ CHỐI", value: "rejected" },
+    { label: "CHỜ DUYỆT", value: "pending" },
 ];
 
 export default function DealerFilter({ value, onChange }) {

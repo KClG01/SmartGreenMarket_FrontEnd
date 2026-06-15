@@ -6,6 +6,7 @@ import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 import CreateCertificationModal from "../../components/Supplier/Certification/CreateCertificationModal";
 import { certificationService } from "../../services/api/CertificationService"; 
 import DetailCertificationModal from "../../components/Supplier/Certification/DetailCertificationModal";
+import SupplierPageHeader, { SUPPLIER_PAGE_CLASS } from "../../components/Supplier/UI/SupplierPageHeader";
 
 export default function CertificationSupplierPage() {
   const [data, setData] = useState([]); // Khởi tạo mảng rỗng để chứa dữ liệu từ API
@@ -47,16 +48,14 @@ export default function CertificationSupplierPage() {
   };
 
   return (
-    <div className="flex-1 w-full max-w-[1200px] flex flex-col mx-auto px-10 py-8 gap-6">
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Quản lý chứng nhận</h1>
-      <p className="text-sm text-gray-500">Theo dõi và quản lý các chứng nhận sản phẩm đang gửi trên hệ thống</p>
-
-      </div>
+    <div className={SUPPLIER_PAGE_CLASS}>
+      <SupplierPageHeader
+        title="Quản lý chứng nhận"
+        description="Theo dõi và quản lý các chứng nhận sản phẩm đang gửi trên hệ thống"
+      />
 
       {/* ── Actions bar ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mt-2">
+      <div className="flex items-center justify-between">
         <input
           type="text"
           placeholder="Tìm kiếm mã hoặc tên chứng nhận..."

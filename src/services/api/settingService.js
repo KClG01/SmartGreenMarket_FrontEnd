@@ -4,7 +4,7 @@ export const settingService = {
   // GET /system-config/ trả về object phẳng (không bọc trong "results")
   get: () => axiosClient.get("/system-config/").then((res) => res.data),
 
-  // {
+   // {
   //   "max_upload_image_size_mb": 0,
   //   "allowed_image_types": ["string"],
   //   "max_categories_per_supplier": 0,
@@ -20,7 +20,6 @@ export const settingService = {
   //   "min_delivery_lead_days": 0,
   //   "default_deposit_percent": 0
   // }
-
 };
 
 // Xử lý bug

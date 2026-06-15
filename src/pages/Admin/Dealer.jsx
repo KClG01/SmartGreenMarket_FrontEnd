@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import SearchBar from "../../components/Admin/UI/SearchBar";
+import { AdminInitialLoadGate } from "../../components/Admin/UI/AdminFetchState";
 import DealerFilter, {
     getDealerDisplayStatus,
 } from "../../components/Admin/Dealer/DealerFilter";
 import DealerTable from "../../components/Admin/Dealer/DealerTable";
 import DealerViewModal from "../../components/Admin/Dealer/DealerViewModal";
+import { getDealerApprovalDocumentError } from "../../components/Admin/Dealer/dealerDocumentHelpers";
+import { appToast } from "../../components/common/toast";
 import { dealerService, handleApiError } from "../../services/api/dealerService";
 
 function formatDealerListItem(dealer) {
@@ -44,6 +47,8 @@ function formatDealerDetail(detail) {
 
 export default function DealerPage() {
     const [data, setData] = useState([]);
+    const [isFetching, setIsFetching] = useState(true);
+    const [loadError, setLoadError] = useState("");
     const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [error, setError] = useState("");
@@ -51,17 +56,31 @@ export default function DealerPage() {
     const [statusFilter, setStatusFilter] = useState("pending");
     const [viewRow, setViewRow] = useState(null);
 
-    const fetchDealers = useCallback(async () => {
+    const fetchDealers = useCallback(async ({ initial = false } = {}) => {
         try {
-            setLoading(true);
+            if (initial) {
+                setIsFetching(true);
+                setLoadError("");
+            } else {
+                setLoading(true);
+            }
             setError("");
 
             const response = await dealerService.getAll();
             setData(Array.isArray(response) ? response.map(formatDealerListItem) : []);
         } catch (err) {
-            setError(handleApiError(err, "Không thể tải danh sách đại lý"));
+            const message = handleApiError(err, "Không thể tải danh sách đại lý");
+            if (initial) {
+                setLoadError(message);
+            } else {
+                setError(message);
+            }
         } finally {
-            setLoading(false);
+            if (initial) {
+                setIsFetching(false);
+            } else {
+                setLoading(false);
+            }
         }
     }, []);
 
@@ -80,7 +99,7 @@ export default function DealerPage() {
     }, []);
 
     useEffect(() => {
-        fetchDealers();
+        fetchDealers({ initial: true });
     }, [fetchDealers]);
 
     const filteredData = useMemo(() => {
@@ -105,11 +124,24 @@ export default function DealerPage() {
     const handleApprove = async (dealer) => {
         try {
             setActionLoading(true);
+
+            const detail = await dealerService.getById(dealer.id);
+            const docError = getDealerApprovalDocumentError(detail.documents);
+
+            if (docError) {
+                throw new Error(docError);
+            }
+
             await dealerService.verify(dealer.id, { status: "active" });
             setViewRow(null);
             await fetchDealers();
         } catch (err) {
             const msg = handleApiError(err, "Không thể duyệt đại lý");
+            if (msg.includes("giấy tờ")) {
+                appToast.warning(msg);
+            } else {
+                appToast.danger(msg);
+            }
             console.error(msg);
             throw new Error(msg);
         } finally {
@@ -171,25 +203,13 @@ export default function DealerPage() {
         }
     };
 
-    const handleBan = async (dealer, reason) => {
-        try {
-            setActionLoading(true);
-            await dealerService.statusUpdate(dealer.id, {
-                status: "banned",
-                reason,
-            });
-            setViewRow(null);
-            await fetchDealers();
-        } catch (err) {
-            const msg = handleApiError(err, "Không thể vô hiệu hóa đại lý");
-            console.error(msg);
-            throw new Error(msg);
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
     return (
+        <AdminInitialLoadGate
+            isFetching={isFetching}
+            loadError={loadError}
+            onRetry={() => fetchDealers({ initial: true })}
+            loadingMessage="Đang tải danh sách đại lý..."
+        >
         <div className="flex flex-col gap-6 px-8 pb-10 pt-6">
             <SearchBar
                 value={search}
@@ -223,10 +243,10 @@ export default function DealerPage() {
                 onApprove={handleApprove}
                 onReject={handleReject}
                 onLock={handleLock}
-                onBan={handleBan}
                 onUnlock={handleUnlock}
                 loading={actionLoading}
             />
         </div>
+        </AdminInitialLoadGate>
     );
 }
