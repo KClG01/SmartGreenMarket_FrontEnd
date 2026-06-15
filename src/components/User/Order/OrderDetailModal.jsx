@@ -81,7 +81,7 @@ export default function OrderDetailModal({ orderId, fallbackOrder, onClose }) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-full p-2 text-neutral-400 transition-colors hover:bg-zinc-100 hover:text-neutral-700"
+                            className="cursor-pointer rounded-full p-2 text-neutral-400 transition-colors hover:bg-zinc-100 hover:text-neutral-700"
                             aria-label="Đóng"
                         >
                             <X className="h-5 w-5" />
@@ -231,13 +231,6 @@ export default function OrderDetailModal({ orderId, fallbackOrder, onClose }) {
                 </div>
 
                 <div className="border-t border-stone-200 px-6 py-4">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="rounded-lg border border-stone-300 px-6 py-2.5 text-base text-neutral-700 transition-colors hover:bg-zinc-100"
-                    >
-                        Đóng
-                    </button>
                 </div>
             </div>
         </div>

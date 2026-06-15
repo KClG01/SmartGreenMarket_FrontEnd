@@ -7,7 +7,7 @@ import {
     Loader2,
 } from "lucide-react";
 import OrderHistoryCard from "../../../components/User/Profile/OrderHistoryCard";
-import OrderDetailModal from "../../../components/User/Profile/OrderDetailModal";
+import OrderDetailModal from "../../../components/User/Order/OrderDetailModal";
 import { useUserOrders } from "../../../hooks/useUserOrders";
 
 const PAGE_SIZE = 3;
