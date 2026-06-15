@@ -9,12 +9,12 @@ export default function SuggestProductCard({
     image,
 }) {
     const content = (
-        <div className="relative flex w-64 shrink-0 flex-col overflow-hidden rounded-2xl border border-stone-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+        <div className="mt-5 mb-5 relative flex w-64 shrink-0 flex-col overflow-hidden rounded-2xl border border-stone-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
             <div className="overflow-hidden">
                 <img
                     src={image || "https://placehold.co/282x212"}
                     alt={name}
-                    className="h-48 w-full object-cover transition-transform duration-300 hover:scale-105"
+                    className="h-60 w-full object-cover transition-transform duration-300 hover:scale-105"
                 />
             </div>
 
