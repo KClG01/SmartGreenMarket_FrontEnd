@@ -1,5 +1,15 @@
 import { formatCurrency } from "../components/User/Cart/mockData";
 
+const API_ORIGIN = "https://smart-green-market-api.onrender.com";
+
+export function resolveMediaUrl(url) {
+    if (!url || typeof url !== "string") return null;
+    if (/^https?:\/\//i.test(url)) return url;
+    if (url.startsWith("//")) return `https:${url}`;
+    if (url.startsWith("/")) return `${API_ORIGIN}${url}`;
+    return url;
+}
+
 export function parseProductList(response) {
     if (Array.isArray(response)) return response;
     if (Array.isArray(response?.results)) return response.results;
@@ -21,14 +31,20 @@ export function parseDealerProductList(response) {
 
 function buildDealerImages(raw) {
     if (Array.isArray(raw?.images) && raw.images.length) {
-        return [...raw.images].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+        return [...raw.images]
+            .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+            .map((img) => ({
+                ...img,
+                image_url: resolveMediaUrl(img.image_url),
+            }));
     }
 
-    if (raw?.thumbnail) {
+    const thumbnail = resolveMediaUrl(raw?.thumbnail);
+    if (thumbnail) {
         return [
             {
                 id: raw.id,
-                image_url: raw.thumbnail,
+                image_url: thumbnail,
                 is_thumbnail: true,
                 sort_order: 0,
             },
@@ -45,7 +61,7 @@ export function getProductPrice(product) {
 export function formatDealerProduct(raw) {
     const images = buildDealerImages(raw);
     const thumbnail =
-        raw?.thumbnail ??
+        resolveMediaUrl(raw?.thumbnail) ??
         images.find((img) => img.is_thumbnail)?.image_url ??
         images[0]?.image_url ??
         null;

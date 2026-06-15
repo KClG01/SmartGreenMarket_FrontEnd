@@ -5,6 +5,7 @@ import {
 } from "react";
 
 import Toolbar from "../../components/Admin/UI/Toolbar";
+import { AdminInitialLoadGate } from "../../components/Admin/UI/AdminFetchState";
 import Filter from "../../components/Admin/Notification/NotificationFilter";
 import NotificationTable from "../../components/Admin/Notification/NotificationTable";
 import NotificationViewModal from "../../components/Admin/Notification/NotificationViewModal";
@@ -33,6 +34,12 @@ export default function NotificationPage() {
     const [data, setData] =
         useState([]);
 
+    const [isFetching, setIsFetching] =
+        useState(true);
+
+    const [loadError, setLoadError] =
+        useState("");
+
     const [loading, setLoading] =
         useState(false);
 
@@ -55,9 +62,14 @@ export default function NotificationPage() {
 
     // ── FETCH ALL NOTIFICATIONS ───────────────────────
     const fetchNotifications =
-        useCallback(async () => {
+        useCallback(async ({ initial = false } = {}) => {
             try {
-                setLoading(true);
+                if (initial) {
+                    setIsFetching(true);
+                    setLoadError("");
+                } else {
+                    setLoading(true);
+                }
 
                 setError("");
 
@@ -77,10 +89,18 @@ export default function NotificationPage() {
                         "Không thể tải danh sách thông báo"
                     );
 
-                setError(message);
+                if (initial) {
+                    setLoadError(message);
+                } else {
+                    setError(message);
+                }
 
             } finally {
-                setLoading(false);
+                if (initial) {
+                    setIsFetching(false);
+                } else {
+                    setLoading(false);
+                }
             }
         }, []);
 
@@ -143,10 +163,16 @@ export default function NotificationPage() {
 
     // ── INITIAL FETCH ─────────────────────────────────
     useEffect(() => {
-        fetchNotifications();
+        fetchNotifications({ initial: true });
     }, [fetchNotifications]);
 
     return (
+        <AdminInitialLoadGate
+            isFetching={isFetching}
+            loadError={loadError}
+            onRetry={() => fetchNotifications({ initial: true })}
+            loadingMessage="Đang tải danh sách thông báo..."
+        >
         <div className="flex flex-col gap-6 px-8 pt-6 pb-10">
 
             {/* TOOLBAR */}
@@ -204,5 +230,6 @@ export default function NotificationPage() {
                 canManageActions={canManageActions}
             />
         </div>
+        </AdminInitialLoadGate>
     );
 }
