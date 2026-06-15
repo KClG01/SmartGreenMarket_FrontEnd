@@ -13,7 +13,7 @@ import DealerLayout from "./layouts/DealerLayout";
     //User Pages
 import {HomePage, ProductDetailPage, CartPage, OrderPage, PaymentPage, OrderStatusPage, UserProfilePage, ChangePasswordPage, OrderHistoryPage}  from "./pages/User";
     //Supplier Pages
-import { OrderSupplierPage, ProductSupplierPage, CertificationSupplierPage, RegisterPage, SupplierLoginPage, SupplierInfoPage, CategorySupplierPage, CultivationSupplierPage } from "./pages/Supplier";
+import { OrderSupplierPage, ProductSupplierPage, CertificationSupplierPage, RegisterPage, SupplierLoginPage, SupplierInfoPage, CategorySupplierPage, CultivationSupplierPage,DashboardSupplierPage } from "./pages/Supplier";
     //Admin Pages
 import { AdminLoginPage, SettingPage, SupplierPage, CategoryPage, ProductPage, CertificationPage, DocumentPage, NotificationPage, DealerPage,} from "./pages/Admin";
     //Dealer Pages
@@ -42,11 +42,7 @@ export default function App() {
                     {/* Supplier */}
                     <Route element={<SupplierProtectedRoute />}>
                         <Route path="/nha-cung-cap" element={<SupplierLayout />}>
-                            <Route index element={
-                                <div className="p-8 text-sm text-neutral-400 font-['Geist',sans-serif]">
-                                    Chọn mục quản lý từ sidebar.
-                                </div>
-                            } />
+                            <Route index element={ <DashboardSupplierPage />} />
                             <Route path="san-pham" element={<ProductSupplierPage />} />
                             <Route path="don-hang" element={<OrderSupplierPage/>} />
                             <Route path="chung-nhan" element={<CertificationSupplierPage />} />
