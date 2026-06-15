@@ -65,8 +65,14 @@ export function AuthProvider({ children }) {
                 };
             }
 
-            setUser(me);
-            localStorage.setItem("user", JSON.stringify(me));
+            const userWithProfile = {
+                ...me,
+                dealer_profile: response.dealer_profile || null,
+                supplier_profile: response.supplier_profile || null,
+            };
+
+            setUser(userWithProfile);
+            localStorage.setItem("user", JSON.stringify(userWithProfile));
 
             // ĐIỀU HƯỚNG TỰ ĐỘNG DỰA THEO ROLE
             if (me.role === "admin") {

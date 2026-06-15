@@ -1,11 +1,17 @@
-import { useState } from "react";
-import { X, Tag } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Edit } from "lucide-react";
 
-export default function CreateCategoryModal({ onClose, onConfirm }) {
+export default function UpdateCategoryModal({ onClose, onConfirm, category }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (category) {
+      setName(category.name || "");
+      setDescription(category.description || "");
+    }
+  }, [category]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -13,10 +19,9 @@ export default function CreateCategoryModal({ onClose, onConfirm }) {
 
     try {
       setIsLoading(true);
-      await onConfirm({
+      await onConfirm(category.id, {
         name: name.trim(),
         description: description.trim(),
-        sort_order: 1
       });
       onClose();
     } catch (error) {
@@ -38,7 +43,7 @@ export default function CreateCategoryModal({ onClose, onConfirm }) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
           <h2 className="text-base font-extrabold text-emerald-950 flex items-center gap-2">
-            <Tag className="w-5 h-5 text-emerald-600" /> Thêm Danh Mục Mới
+            <Edit className="w-5 h-5 text-emerald-600" /> Cập Nhật Danh Mục
           </h2>
           <button
             onClick={onClose}
@@ -57,7 +62,7 @@ export default function CreateCategoryModal({ onClose, onConfirm }) {
               </label>
               <input
                 type="text"
-                required  
+                required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ví dụ: Rau ăn củ, Trái cây nhiệt đới..."
@@ -77,8 +82,6 @@ export default function CreateCategoryModal({ onClose, onConfirm }) {
                 className="w-full border border-neutral-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 font-medium resize-none"
               />
             </div>
-
-            
           </div>
 
           {/* Footer */}
@@ -98,7 +101,7 @@ export default function CreateCategoryModal({ onClose, onConfirm }) {
               {isLoading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               ) : (
-                "Tạo danh mục"
+                "Lưu thay đổi"
               )}
             </button>
           </div>

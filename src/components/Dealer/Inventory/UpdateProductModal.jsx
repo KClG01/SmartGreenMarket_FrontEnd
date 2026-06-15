@@ -1,25 +1,32 @@
 import { useState } from "react";
 import { Tag, X, ClipboardList } from "lucide-react";
+import { toast } from "sonner";
 
 export default function UpdateProductModal({ data, onClose, onSave }) {
-  // Helper to parse currency string (e.g., "30,000 đ" -> 30000)
-  const parseCurrency = (str) => {
-    if (!str) return 0;
-    if (typeof str === "number") return str;
-    return parseInt(str.replace(/[^0-9]/g, ""), 10) || 0;
-  };
+
 
   const [adjustment, setAdjustment] = useState(0); // Số lượng hao hụt
   const [reason, setReason] = useState("");
-  const [priceRetail, setPriceRetail] = useState(parseCurrency(data.priceRetail));
-  const [discount, setDiscount] = useState(data.discount || 0);
+  const [note, setNote] = useState("");
+  const [discount, setDiscount] = useState(data.discount === undefined ? "" : data.discount);
   const [discountDate, setDiscountDate] = useState(data.discountDate || "");
 
   const handleSubmit = () => {
     const parsedShrinkage = parseInt(adjustment, 10) || 0;
+
+    if (parsedShrinkage > 0) {
+      if (!reason) {
+        toast.error("Vui lòng chọn lý do hao hụt.", { position: "top-center", duration: 5000 },);
+        return;
+      }
+      if (reason === "Khác" && !note.trim()) {
+        toast.error("Vui lòng nhập chi tiết (Ghi chú) cho lý do Khác.", { position: "top-center", duration: 5000 },);
+        return;
+      }
+    }
+
     const finalStock = Math.max(0, data.stock - parsedShrinkage);
     
-    // Auto-update status based on new stock level
     const finalStatus =
       finalStock === 0
         ? "Hết hàng"
@@ -27,7 +34,6 @@ export default function UpdateProductModal({ data, onClose, onSave }) {
         ? "Sắp hết hàng"
         : "Còn hàng";
 
-    // If stock is 0, freshness might be affected
     let finalFreshness = data.freshness;
     let finalFreshnessColor = data.freshnessColor;
     if (finalStock === 0) {
@@ -41,9 +47,13 @@ export default function UpdateProductModal({ data, onClose, onSave }) {
       status: finalStatus,
       freshness: finalFreshness,
       freshnessColor: finalFreshnessColor,
-      priceRetail: priceRetail.toLocaleString("vi-VN") + " đ",
       discount: parseInt(discount, 10) || 0,
-      discountDate: discountDate || ""
+      discountDate: discountDate || "",
+      wastageData: parsedShrinkage > 0 ? {
+        quantity: parsedShrinkage,
+        reason: reason || "Khác",
+        note: note
+      } : null
     };
 
     onSave(updated);
@@ -110,7 +120,11 @@ export default function UpdateProductModal({ data, onClose, onSave }) {
                   min="0"
                   max={data.stock}
                   value={adjustment}
-                  onChange={(e) => setAdjustment(Math.min(data.stock, Math.max(0, parseInt(e.target.value, 10) || 0)))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "") setAdjustment("");
+                    else setAdjustment(Math.min(data.stock, Math.max(0, parseInt(val, 10) || 0)));
+                  }}
                   className="w-full border border-neutral-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 font-bold"
                 />
               </div>
@@ -126,39 +140,28 @@ export default function UpdateProductModal({ data, onClose, onSave }) {
                   onChange={(e) => setReason(e.target.value)}
                   className="w-full border border-neutral-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 font-medium"
                 >
-                  <option value="">Chọn lý do...</option>
-                  <option value="damage">Hàng dập nát / hư hỏng</option>
-                  <option value="expired">Quá hạn sử dụng</option>
-                  <option value="recount">Chênh lệch khi kiểm kho</option>
-                  <option value="return">Trả lại nhà cung cấp</option>
+                  <option value="" disabled>Chọn lý do...</option>
+                  <option value="Hàng dập nát / hư hỏng">Hàng dập nát / hư hỏng</option>
+                  <option value="Quá hạn sử dụng">Quá hạn sử dụng</option>
+                  <option value="Chênh lệch khi kiểm kho">Chênh lệch khi kiểm kho</option>
+                  <option value="Trả lại nhà cung cấp">Trả lại nhà cung cấp</option>
+                  <option value="Khác">Khác</option>
                 </select>
+                <label className="text-xs font-bold text-neutral-600 mt-3 mb-1.5 block">
+                  Chi tiết (Ghi chú)
+                </label>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows="2"
+                  placeholder="Nhập chi tiết về tình trạng hao hụt..."
+                  className="w-full border border-neutral-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 font-medium resize-none"
+                />
               </div>
             )}
           </div>
 
-          {/* Section: Cấu hình giá bán */}
-          <div className="mb-6">
-            <h3 className="text-xs font-extrabold text-neutral-400 uppercase tracking-wider mb-3">
-              Giá bán lẻ sản phẩm
-            </h3>
-            <div>
-              <label className="text-xs font-bold text-neutral-600 mb-1.5 block">
-                Giá bán hiện tại (VNĐ / {data.unit})
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min="0"
-                  value={priceRetail}
-                  onChange={(e) => setPriceRetail(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                  className="w-full border border-neutral-200 rounded-xl pl-3 pr-12 py-2.5 text-xs focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 font-bold text-emerald-800"
-                />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-neutral-400">
-                  VNĐ
-                </span>
-              </div>
-            </div>
-          </div>
+
 
           {/* Section: Áp dụng khuyến mãi */}
           <div className="mb-2">
@@ -176,7 +179,11 @@ export default function UpdateProductModal({ data, onClose, onSave }) {
                   min="0"
                   max="100"
                   value={discount}
-                  onChange={(e) => setDiscount(Math.min(100, Math.max(0, parseInt(e.target.value, 10) || 0)))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "") setDiscount("");
+                    else setDiscount(Math.min(100, Math.max(0, parseInt(val, 10) || 0)));
+                  }}
                   className="w-full border border-neutral-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 font-bold"
                 />
               </div>
