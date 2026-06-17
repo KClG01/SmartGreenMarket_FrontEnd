@@ -8,6 +8,30 @@ export function getStoredDealerSlug() {
     return localStorage.getItem(STORE_DEALER_SLUG_KEY) || "";
 }
 
+export function normalizeDealerSlugInput(input) {
+    if (!input || typeof input !== "string") return "";
+
+    let value = input.trim();
+    if (!value) return "";
+
+    if (/^https?:\/\//i.test(value)) {
+        try {
+            value = new URL(value).pathname;
+        } catch {
+            return "";
+        }
+    }
+
+    const pathMatch = value.match(/(?:^|\/)cua-hang\/([^/?#]+)/i);
+    if (pathMatch?.[1]) {
+        return decodeURIComponent(pathMatch[1]).trim();
+    }
+
+    value = value.replace(/^\/+|\/+$/g, "");
+    const firstSegment = value.split("/")[0] ?? "";
+    return decodeURIComponent(firstSegment).trim();
+}
+
 export function saveBuyerSession(response, dealerSlug) {
     saveAuthTokens({
         access: response.access,

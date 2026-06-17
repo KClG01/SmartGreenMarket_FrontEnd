@@ -101,7 +101,7 @@ export function redirectToLoginByPath() {
         const slug = pathname.split("/")[2];
         window.location.href = slug
             ? `/cua-hang/${encodeURIComponent(slug)}/dang-nhap`
-            : "/trang-chu";
+            : "/";
         return;
     }
 

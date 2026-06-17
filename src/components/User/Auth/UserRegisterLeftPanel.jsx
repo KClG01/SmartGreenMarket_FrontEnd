@@ -55,7 +55,7 @@ export default function UserRegisterLeftPanel() {
                     <div className="hover:scale-105 transition-all duration-300 flex-1 rounded-2xl border border-white/20 bg-white/15 p-4 backdrop-blur-md">
                         <div className="mb-2 text-2xl">📦</div>
                         <div className="mb-1 text-[11px] text-white/65">Đơn hàng</div>
-                        <div className="text-base font-bold text-white">Theo dõi realtime</div>
+                        <div className="text-base font-bold text-white">Theo dõi đơn hàng</div>
                     </div>
                 </div>
             </div>
