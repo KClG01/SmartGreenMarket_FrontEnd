@@ -22,6 +22,7 @@ export function isAuthBypassRequest(url = "") {
     const path = String(url);
     return (
         path.endsWith("/login/") ||
+        path.endsWith("/register/") ||
         path.endsWith("/refresh/") ||
         path.endsWith("/logout/")
     );
@@ -93,6 +94,14 @@ export function redirectToLoginByPath() {
 
     if (pathname.startsWith("/nha-cung-cap")) {
         window.location.href = "/nha-cung-cap/dang-nhap";
+        return;
+    }
+
+    if (pathname.startsWith("/cua-hang/")) {
+        const slug = pathname.split("/")[2];
+        window.location.href = slug
+            ? `/cua-hang/${encodeURIComponent(slug)}/dang-nhap`
+            : "/trang-chu";
         return;
     }
 
