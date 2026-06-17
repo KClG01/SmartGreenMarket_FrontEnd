@@ -141,7 +141,7 @@ export function AuthProvider({ children }) {
                 navigate(
                     buyerSlug
                         ? `/cua-hang/${encodeURIComponent(buyerSlug)}/trang-chu`
-                        : "/trang-chu",
+                        : "/",
                     { replace: true },
                 );
             } else {
