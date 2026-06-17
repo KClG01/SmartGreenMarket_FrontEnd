@@ -6,12 +6,13 @@ import SupplierProtectedRoute from "./contexts/supplierProtectedRoute";
 import DealerProtectedRoute from "./contexts/dealerProtectedRoute";
     //Layouts
 import UserLayout from "./layouts/UserLayout";
+import StorefrontSlugSync from "./layouts/StorefrontSlugSync";
 import AdminLayout from "./layouts/AdminLayout";
 import SupplierLayout from "./layouts/SupplierLayout";
 import UserProfileLayout from "./layouts/UserProfileLayout";
 import DealerLayout from "./layouts/DealerLayout";
     //User Pages
-import {HomePage, ProductDetailPage, CartPage, OrderPage, PaymentPage, OrderStatusPage, UserProfilePage, ChangePasswordPage, OrderHistoryPage}  from "./pages/User";
+import {HomePage, ProductDetailPage, CartPage, OrderPage, PaymentPage, OrderStatusPage, UserProfilePage, ChangePasswordPage, OrderHistoryPage, UserLoginPage, UserRegisterPage, SearchProductPage}  from "./pages/User";
     //Supplier Pages
 import { OrderSupplierPage, ProductSupplierPage, CertificationSupplierPage, RegisterPage, SupplierLoginPage, SupplierInfoPage, CategorySupplierPage, CultivationSupplierPage,DashboardSupplierPage } from "./pages/Supplier";
     //Admin Pages
@@ -24,6 +25,26 @@ export default function App() {
         <BrowserRouter>
             <AuthProvider>
                 <Routes>
+                    <Route path="cua-hang/:dealerSlug/dang-nhap" element={<UserLoginPage />} />
+                    <Route path="cua-hang/:dealerSlug/dang-ky" element={<UserRegisterPage />} />
+                    <Route path="cua-hang/:dealerSlug" element={<StorefrontSlugSync />}>
+                        <Route element={<UserLayout />}>
+                            <Route index element={<HomePage />} />
+                            <Route path="trang-chu" element={<HomePage />} />
+                            <Route path="san-pham/:id" element={<ProductDetailPage />} />
+                            <Route path="tim-kiem" element={<SearchProductPage />} />
+                            <Route path="gio-hang" element={<CartPage />} />
+                            <Route path="dat-hang" element={<OrderPage />} />
+                            <Route path="thanh-toan" element={<PaymentPage />} />
+                            <Route path="theo-doi-don-hang" element={<OrderStatusPage />} />
+                            <Route path="tai-khoan" element={<UserProfileLayout />}>
+                                <Route path="" element={<UserProfilePage />} />
+                                <Route path="doi-mat-khau" element={<ChangePasswordPage />} />
+                                <Route path="lich-su-don-hang" element={<OrderHistoryPage />} />
+                            </Route>
+                        </Route>
+                    </Route>
+
                     {/* User */}
                     <Route path="/" element={<UserLayout />}>
                         <Route index element={<HomePage />} />

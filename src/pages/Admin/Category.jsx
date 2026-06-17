@@ -212,15 +212,8 @@ export default function CategoryPage() {
                     onAdd={() => setIsCreateOpen(true)}
                     addLabel="Thêm danh mục"
                     searchPlaceholder="Tìm kiếm danh mục..."
+                    filter={<Filter value={statusFilter} onChange={setStatusFilter} />}
                 />
-
-                <div className="flex items-center gap-3">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                        Lọc:
-                    </span>
-
-                    <Filter value={statusFilter} onChange={setStatusFilter} />
-                </div>
 
                 {error ? (
                     <div className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">

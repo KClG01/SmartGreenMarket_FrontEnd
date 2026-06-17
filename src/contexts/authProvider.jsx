@@ -8,7 +8,9 @@ import {
 
 import { useNavigate } from "react-router-dom";
 import { authService } from "../services/api/authAdminService";
+import { authBuyerService } from "../services/api/Buyer/authBuyerService";
 import { clearAuthStorage, getAccessToken, saveAuthTokens } from "../services/token/authTokenStorage";
+import { clearBuyerAuth, getStoredDealerSlug } from "../utils/buyerAuthUtils";
 
 const AuthContext = createContext();
 
@@ -105,32 +107,48 @@ export function AuthProvider({ children }) {
 
     // LOGOUT DÙNG CHUNG (ĐÃ FIX LỖI VÒNG LẶP)
     const logout = useCallback(async () => {
-        // Lấy role trực tiếp từ localStorage để KHÔNG làm re-render component
         const savedUser = localStorage.getItem("user");
         const currentUser = savedUser ? JSON.parse(savedUser) : null;
         const currentRole = currentUser?.role;
+        const isBuyer =
+            currentRole === "buyer" || currentUser?.auth_scope === "storefront";
+        const buyerSlug =
+            currentUser?.store_dealer_slug || getStoredDealerSlug();
 
         try {
-            // Gọi API logout (nếu có)
-            await authService.logout();
+            if (isBuyer) {
+                await authBuyerService.logout();
+            } else {
+                await authService.logout();
+            }
         } catch (error) {
             console.error("Lỗi khi logout API:", error);
         } finally {
-            clearAuthStorage();
+            if (isBuyer) {
+                clearBuyerAuth();
+            } else {
+                clearAuthStorage();
+            }
             setUser(null);
 
-            // ĐIỀU HƯỚNG TỰ ĐỘNG DỰA THEO ROLE
             if (currentRole === "supplier") {
                 navigate("/nha-cung-cap/dang-nhap");
             } else if (currentRole === "admin") {
                 navigate("/quan-tri/dang-nhap");
-            }else if (currentRole === "dealer") {
+            } else if (currentRole === "dealer") {
                 navigate("/dai-ly/dang-nhap");
+            } else if (isBuyer) {
+                navigate(
+                    buyerSlug
+                        ? `/cua-hang/${encodeURIComponent(buyerSlug)}/trang-chu`
+                        : "/trang-chu",
+                    { replace: true },
+                );
             } else {
                 navigate("/");
             }
         }
-    }, [navigate]); // <-- SỬA: Đã xóa chữ 'user' khỏi mảng này
+    }, [navigate]);
 
     // INIT SESSION (ĐÃ FIX LỖI VÒNG LẶP)
     useEffect(() => {
@@ -157,6 +175,11 @@ export function AuthProvider({ children }) {
         initAuth();
     }, []);
 
+    const syncSession = useCallback(() => {
+        const saved = localStorage.getItem("user");
+        setUser(saved ? JSON.parse(saved) : null);
+    }, []);
+
     return (
         <AuthContext.Provider
             value={{
@@ -164,6 +187,7 @@ export function AuthProvider({ children }) {
                 login,
                 logout,
                 loading,
+                syncSession,
             }}
         >
             {children}
