@@ -6,6 +6,7 @@ import {
     fetchRelatedBuyerProducts,
 } from "../../hooks/useBuyerCatalog";
 import { useStorefrontPaths } from "../../hooks/useStorefrontPaths";
+import { addRecentlyViewed } from "../../utils/recentlyViewedUtils";
 import { handleApiError } from "../../services/api/Buyer/buyerCatalogService";
 import ProductDetailGallery from "../../components/User/Product/ProductDetailGallery";
 import ProductDetailPurchase from "../../components/User/Product/ProductDetailPurchase";
@@ -62,6 +63,11 @@ export default function ProductDetailPage() {
             cancelled = true;
         };
     }, [id, paths.slug]);
+
+    useEffect(() => {
+        if (!product?.id || !paths.slug) return;
+        addRecentlyViewed(paths.slug, product);
+    }, [product?.id, paths.slug]);
 
     const breadcrumb = useMemo(() => {
         if (!product) return [];
