@@ -8,7 +8,8 @@ export default function InventoryTable({ data, onRowClick }) {
       name: "Mã lô",
       selector: (row) => row.batchCode,
       sortable: true,
-      width: "100px",
+      minWidth: "100px",
+      grow: 1,
       cell: (row) => (
         <span className="text-emerald-800 text-xs font-bold font-mono">
           {row.batchCode}
@@ -19,8 +20,8 @@ export default function InventoryTable({ data, onRowClick }) {
       name: "Tên nông sản",
       selector: (row) => row.productName,
       sortable: true,
-      minWidth: "110px",
-      grow: 1,
+      minWidth: "150px",
+      grow: 2,
       cell: (row) => (
         <div className="flex flex-col py-2">
           <span className="font-bold text-neutral-800">{row.productName}</span>
@@ -32,8 +33,8 @@ export default function InventoryTable({ data, onRowClick }) {
       name: "Nhà cung cấp",
       selector: (row) => row.supplier,
       sortable: true,
-      minWidth: "100px",
-      grow: 0.8,
+      minWidth: "120px",
+      grow: 1.5,
       cell: (row) => (
         <span className="text-neutral-600 font-medium text-xs">{row.supplier}</span>
       ),
@@ -42,7 +43,8 @@ export default function InventoryTable({ data, onRowClick }) {
       name: "Tồn kho",
       selector: (row) => row.stock,
       sortable: true,
-      width: "90px",
+      minWidth: "90px",
+      grow: 1,
       cell: (row) => (
         <span className="font-bold text-neutral-800">
           {row.stock} {row.unit}
@@ -53,25 +55,19 @@ export default function InventoryTable({ data, onRowClick }) {
       name: "Giá mua",
       selector: (row) => row.priceImport,
       sortable: true,
-      width: "95px",
+      minWidth: "100px",
+      grow: 1,
       cell: (row) => (
         <span className="text-neutral-500 font-medium text-xs">{row.priceImport}</span>
       ),
     },
-    {
-      name: "Giá bán",
-      selector: (row) => row.priceRetail,
-      sortable: true,
-      width: "95px",
-      cell: (row) => (
-        <span className="font-extrabold text-emerald-700 text-xs">{row.priceRetail}</span>
-      ),
-    },
+
     {
       name: "Ngày nhập",
       selector: (row) => row.importDate,
       sortable: true,
-      width: "100px",
+      minWidth: "100px",
+      grow: 1,
       cell: (row) => (
         <span className="text-neutral-500 text-xs font-medium">{row.importDate}</span>
       ),
@@ -80,7 +76,8 @@ export default function InventoryTable({ data, onRowClick }) {
       name: "Hạn dùng",
       selector: (row) => row.expiryDate,
       sortable: true,
-      width: "100px",
+      minWidth: "100px",
+      grow: 1,
       cell: (row) => (
         <span className="text-neutral-600 text-xs font-bold">{row.expiryDate}</span>
       ),
@@ -91,7 +88,8 @@ export default function InventoryTable({ data, onRowClick }) {
       selector: (row) => row.status,
       sortable: true,
       center: true,
-      width: "105px",
+      minWidth: "110px",
+      grow: 1,
       cell: (row) => {
         const statusClass =
           row.status === "Còn hàng"
@@ -110,7 +108,8 @@ export default function InventoryTable({ data, onRowClick }) {
     },
     {
       name: "Thao tác",
-      width: "90px",
+      minWidth: "60px",
+      center: true,
       right: true,
       cell: (row) => (
         <div className="flex items-center gap-1.5 pr-2">

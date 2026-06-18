@@ -5,18 +5,25 @@ export default function CreateCategoryModal({ onClose, onConfirm }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const handleSubmit = (e) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-
-    onConfirm({
-      name: name.trim(),
-      description: description.trim(),
-      count: "0 sản phẩm",
-      status: "Chờ duyệt",
-    });
-    onClose();
+    try {
+      setIsLoading(true);
+      await onConfirm({
+        name: name.trim(),
+        description: description.trim(),
+        sort_order: 1
+      });
+      onClose();
+    } catch (error) {
+      // The parent component handles the error notification
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -85,9 +92,14 @@ export default function CreateCategoryModal({ onClose, onConfirm }) {
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl transition-all cursor-pointer shadow-md shadow-emerald-100"
+              disabled={isLoading}
+              className="px-5 py-2 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl transition-all cursor-pointer shadow-md shadow-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px]"
             >
-              Tạo danh mục
+              {isLoading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                "Tạo danh mục"
+              )}
             </button>
           </div>
         </form>
