@@ -45,7 +45,7 @@ export default function ProductDetailPage() {
                     paths.slug,
                     detail.id,
                     detail.category_id,
-                    4,
+                    10,
                 );
                 if (!cancelled) setRelated(relatedList);
             } catch (err) {
@@ -101,52 +101,56 @@ export default function ProductDetailPage() {
     }
 
     return (
-        <div className="mx-auto w-full max-w-[1280px] px-4 py-8 sm:px-10 sm:py-12">
-            <nav className="mb-8 flex flex-wrap items-center gap-2 text-sm sm:text-base">
-                {breadcrumb.map((item, index) => (
-                    <span key={item.label} className="inline-flex items-center gap-2">
-                        {index > 0 ? (
-                            <ChevronRight className="h-4 w-4 text-neutral-500" />
-                        ) : null}
-                        {item.to ? (
-                            <Link
-                                to={item.to}
-                                className="text-neutral-700 no-underline hover:text-emerald-800"
-                            >
-                                {item.label}
-                            </Link>
-                        ) : (
-                            <span className="font-bold text-emerald-950">{item.label}</span>
-                        )}
-                    </span>
-                ))}
-            </nav>
+        <>
+            <div className="mx-auto w-full max-w-[1280px] px-4 py-8 sm:px-10 sm:py-12">
+                <nav className="mb-8 flex flex-wrap items-center gap-2 text-sm sm:text-base">
+                    {breadcrumb.map((item, index) => (
+                        <span key={item.label} className="inline-flex items-center gap-2">
+                            {index > 0 ? (
+                                <ChevronRight className="h-4 w-4 text-neutral-500" />
+                            ) : null}
+                            {item.to ? (
+                                <Link
+                                    to={item.to}
+                                    className="text-neutral-700 no-underline hover:text-emerald-800"
+                                >
+                                    {item.label}
+                                </Link>
+                            ) : (
+                                <span className="font-bold text-emerald-950">{item.label}</span>
+                            )}
+                        </span>
+                    ))}
+                </nav>
 
-            <div className="grid gap-10 lg:grid-cols-2 lg:gap-12">
-                <ProductDetailGallery
-                    images={product.images}
-                    name={product.name}
-                    status={product.status}
-                    inStock={product.in_stock}
-                />
-                <ProductDetailPurchase
-                    product={product}
-                    rating={product.rating}
-                    reviewCount={product.sold}
-                />
+                <div className="grid gap-10 lg:grid-cols-2 lg:gap-12">
+                    <ProductDetailGallery
+                        images={product.images}
+                        thumbnail={product.thumbnail}
+                        name={product.name}
+                        status={product.status}
+                        inStock={product.in_stock}
+                    />
+                    <ProductDetailPurchase
+                        product={product}
+                        rating={product.rating ?? 4.8}
+                        reviewCount={product.sold ?? 0}
+                    />
+                </div>
+
+                <div className="mt-16">
+                    <ProductDetailSpecs product={product} />
+                </div>
+
+                <div className="mt-16">
+                    <ProductReviews />
+                </div>
             </div>
 
-            <div className="mt-16">
-                <ProductDetailSpecs product={product} />
-            </div>
-
-            <div className="mt-16">
-                <ProductReviews />
-            </div>
-
-            <div className="mt-16">
-                <RelatedProducts products={related} />
-            </div>
-        </div>
+            <RelatedProducts
+                products={related}
+                categoryName={product.category_name}
+            />
+        </>
     );
 }
