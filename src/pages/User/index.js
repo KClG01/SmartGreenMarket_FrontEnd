@@ -13,3 +13,4 @@ export { default as SearchProductPage } from "./SearchProduct";
 export { default as DealerSlugEntryPage } from "./DealerSlugEntryPage";
 export { default as CheckoutPage } from "./CheckoutPage";
 export { default as OrderTrackingPage } from "./OrderTrackingPage";
+export { default as OrderHistoryPage_1 } from "./Profile/OrderHistoryPage";
