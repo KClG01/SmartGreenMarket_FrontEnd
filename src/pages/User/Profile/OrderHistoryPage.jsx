@@ -10,7 +10,7 @@ import FilterTabs  from "../../../components/User/OrderHistory/FilterTabs";
 import OrderCard   from "../../../components/User/orderHistory/OrderCard";
 import Pagination  from "../../../components/User/orderHistory/Pagination";
 import EmptyState  from "../../../components/User/orderHistory/EmptyState";
-
+// import OrderDetailModal  from "../../../components/User/OrderTracking/OrderDetailModal";
 const LIMIT = 5; // số đơn hàng mỗi trang
   
 // -------------------------------------------------------
@@ -138,113 +138,105 @@ const mockFetch = ({ page }) => {
  
 export default function OrderHistoryPage(){
   const navigate = useNavigate();
- 
+
+  const [activeTab,   setActiveTab]   = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [orders,      setOrders]      = useState([]);
   const [totalPages,  setTotalPages]  = useState(1);
-  const [total,       setTotal]       = useState(0);
+  const [counts,      setCounts]      = useState({});
   const [isLoading,   setIsLoading]   = useState(true);
   const [error,       setError]       = useState(null);
- 
-  // ── Fetch khi trang thay đổi ───────────────────────────
+
+  // ── Fetch khi tab hoặc trang thay đổi ─────────────────
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        // TODO: thay mockFetch bằng dòng dưới khi API sẵn sàng
-        // const data = await getOrders({ status: "completed", page: currentPage, limit: LIMIT });
-        const data = await mockFetch({ page: currentPage });
- 
+        // TODO: thay mockFetch bằng getOrders khi API sẵn sàng
+        // const data = await getOrders({ status: activeTab, page: currentPage, limit: LIMIT });
+        const data = await mockFetch({ status: activeTab, page: currentPage });
+
         setOrders(data.results);
         setTotalPages(data.totalPages);
-        setTotal(data.total);
-      } catch {
+        if (data.counts) setCounts(data.counts);
+      } catch (e) {
         setError("Không thể tải danh sách đơn hàng. Vui lòng thử lại.");
       } finally {
         setIsLoading(false);
       }
     };
     load();
-  }, [currentPage]);
- 
+  }, [activeTab, currentPage]);
+
+  // ── Khi đổi tab → về trang 1 ──────────────────────────
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
+  // ── Navigate sang trang chi tiết ──────────────────────
   const handleViewDetail = (orderId) => {
     navigate(`/orders/${orderId}`);
     // TODO: đảm bảo route /orders/:orderId tồn tại trong App router
   };
- 
-  const handlePageChange = (p) => {
-    setCurrentPage(p);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
- 
-  // ── Skeleton ───────────────────────────────────────────
+
+  // ── Skeleton loader ────────────────────────────────────
   const SkeletonCard = () => (
-    <div className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse">
-      <div className="flex items-start gap-4">
-        <div className="w-[72px] h-[72px] rounded-xl bg-gray-100 flex-shrink-0" />
-        <div className="flex-1 space-y-2.5">
-          <div className="flex gap-2">
-            <div className="h-3 bg-gray-100 rounded w-24" />
-            <div className="h-3 bg-gray-100 rounded w-16" />
-          </div>
-          <div className="h-4 bg-gray-100 rounded w-2/5" />
-          <div className="h-3 bg-gray-100 rounded w-1/3" />
-          <div className="h-3 bg-gray-100 rounded w-1/2" />
-        </div>
-        <div className="flex flex-col items-end gap-2 flex-shrink-0">
-          <div className="h-5 bg-gray-100 rounded w-20" />
-          <div className="h-8 bg-gray-100 rounded w-24" />
-        </div>
+    <div className="bg-white rounded-2xl border border-gray-200 px-5 py-4 flex items-center gap-4 animate-pulse">
+      <div className="w-[72px] h-[72px] rounded-xl bg-gray-100 flex-shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="h-3 bg-gray-100 rounded w-1/3" />
+        <div className="h-4 bg-gray-100 rounded w-1/2" />
+        <div className="h-3 bg-gray-100 rounded w-1/4" />
+        <div className="h-3 bg-gray-100 rounded w-2/5" />
       </div>
-      {/* Item rows skeleton */}
-      <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
-        <div className="h-3 bg-gray-100 rounded w-3/4" />
-        <div className="h-3 bg-gray-100 rounded w-1/2" />
+      <div className="flex flex-col items-end gap-2">
+        <div className="h-4 bg-gray-100 rounded w-20" />
+        <div className="h-8 bg-gray-100 rounded w-24" />
       </div>
     </div>
   );
- 
+
   return (
-    <div className="min-h-screen  ml-2 mr-2 ">
-      <div className="py-0">
- 
-        {/* ── Header ── */}
+    <div className="min-h-screen bg-[#f3f4f6]">
+      <div className="max-w-3xl mx-auto px-4 py-8">
+
+        {/* ── Header card ── */}
         <div className="bg-white rounded-2xl border border-gray-200 px-6 py-5 mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-[20px] font-medium text-gray-900 mb-1">Lịch sử đơn hàng</h1>
-              <p className="text-[13px] text-gray-400">
-                Theo dõi và xem lại các đơn hàng bạn đã đặt trên GreenMarket.
-              </p>
-            </div>
-            {/* Tổng số đơn */}
-            {!isLoading && total > 0 && (
-              <div className="flex-shrink-0 bg-[#d1fae5] text-[#1a5c2a] text-[12px] font-medium
-                px-3 py-1.5 rounded-full">
-                {total} đơn hoàn thành
-              </div>
-            )}
-          </div>
+          <h1 className="text-[20px] font-medium text-gray-900 mb-1">Lịch sử đơn hàng</h1>
+          <p className="text-[13px] text-gray-400 mb-4">
+            Theo dõi và xem lại các đơn hàng bạn đã đặt trên GreenMarket.
+          </p>
+          {/* Filter tabs */}
+          <FilterTabs
+            activeTab={activeTab}
+            onChange={handleTabChange}
+            counts={counts}
+          />
         </div>
- 
-        {/* ── Danh sách đơn hàng ── */}
+
+        {/* ── Order list ── */}
         <div className="flex flex-col gap-3">
           {isLoading ? (
+            // Skeleton
             Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
           ) : error ? (
+            // Error
             <div className="bg-white rounded-2xl border border-gray-200 py-12 text-center">
               <p className="text-[13px] text-gray-500 mb-2">{error}</p>
               <button
-                onClick={() => setCurrentPage(1)}
+                onClick={() => setCurrentPage((p) => p)} // trigger re-fetch
                 className="text-[13px] text-[#1a5c2a] hover:underline"
               >
                 Thử lại
               </button>
             </div>
           ) : orders.length === 0 ? (
-            <EmptyState />
+            // Empty
+            <EmptyState activeTab={activeTab} />
           ) : (
+            // Order cards
             orders.map((order) => (
               <OrderCard
                 key={order.id}
@@ -254,16 +246,19 @@ export default function OrderHistoryPage(){
             ))
           )}
         </div>
- 
-        {/* ── Phân trang ── */}
+
+        {/* ── Pagination ── */}
         {!isLoading && !error && orders.length > 0 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            onChange={handlePageChange}
+            onChange={(p) => {
+              setCurrentPage(p);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
           />
         )}
- 
+
       </div>
     </div>
   );

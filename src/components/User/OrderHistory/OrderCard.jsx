@@ -79,14 +79,14 @@ const OrderCard = ({ order, onViewDetail }) => {
 
         {/* Giá + nút */}
         <div className="flex flex-col items-end gap-2.5 flex-shrink-0">
-          <span className="text-[15px] font-medium text-[#1a5c2a]">{fmt(totalPrice)}</span>
-          <button
+          <span className="text-[20px] font-medium text-[#1a5c2a]">{fmt(totalPrice)}</span>
+          {/* <button
             onClick={() => onViewDetail(id)}
             className="px-4 py-2 bg-[#1a5c2a] hover:bg-[#155223] text-white text-[13px]
               font-medium rounded-lg transition-colors duration-150 whitespace-nowrap"
           >
             Xem chi tiết
-          </button>
+          </button> */}
         </div>
 
       </div>
