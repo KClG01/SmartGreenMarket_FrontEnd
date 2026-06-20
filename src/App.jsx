@@ -46,14 +46,13 @@ export default function App() {
                                 <Route path="gio-hang" element={<CartPage />} />
                                 <Route path="dat-hang" element={<OrderPage />} />
                                 <Route path="thanh-toan" element={<PaymentPage />} />
-                                <Route path="theo-doi-don-hang" element={<OrderStatusPage />} />
+                                <Route path="theo-doi-don-hang" element={<OrderTrackingPage />} />
                                 <Route path="tai-khoan" element={<UserProfileLayout />}>
                                     <Route path="" element={<UserProfilePage />} />
                                     <Route path="doi-mat-khau" element={<ChangePasswordPage />} />
                                     <Route path="lich-su-don-hang" element={<OrderHistoryPage />} />
                                 </Route>
                                 <Route path="dat-hang-1" element={<CheckoutPage />} />
-                                <Route path="theo-doi-don-hang-1" element={<OrderTrackingPage />} />
                             </Route>
                         </Route>
                     </Route>
