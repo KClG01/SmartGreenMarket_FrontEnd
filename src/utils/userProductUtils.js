@@ -2,6 +2,8 @@ import { formatCurrency } from "../components/User/Cart/mockData";
 
 const API_ORIGIN = "https://smart-green-market-api.onrender.com";
 
+export const PRODUCT_IMAGE_FALLBACK = "https://placehold.co/600x750/e8f5ef/006c49?text=Nông+sản";
+
 export function resolveMediaUrl(url) {
   if (!url || typeof url !== "string") return null;
   if (/^https?:\/\//i.test(url)) return url;

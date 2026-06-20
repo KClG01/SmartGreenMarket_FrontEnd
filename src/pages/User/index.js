@@ -11,3 +11,7 @@ export { default as UserLoginPage } from "./UserLoginPage";
 export { default as UserRegisterPage } from "./UserRegisterPage";
 export { default as SearchProductPage } from "./SearchProduct";
 export { default as DealerSlugEntryPage } from "./DealerSlugEntryPage";
+export { default as CheckoutPage } from "./CheckoutPage";
+export { default as OrderTrackingPage } from "./OrderTrackingPage";
+export { default as PoliciesPage } from "./PoliciesPage";
+export { default as SupportPage } from "./SupportPage";
