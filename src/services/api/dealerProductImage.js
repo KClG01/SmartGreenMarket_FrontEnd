@@ -40,6 +40,7 @@ export const dealerProductImage = {
   // }
 
   update: (id, data) => axiosClient.put(`/dealer-product-images/${id}/`, data).then((res) => res.data),
+  
   // {
   //   "dealer_product": 0,
   //   "image_url": "string", Chọn file ảnh (avif, bmp, gif, heic, heif, jfif, jpeg, jpg, png, tif, tiff, webp — tối đa 5MB)

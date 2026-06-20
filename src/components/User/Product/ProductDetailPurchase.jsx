@@ -186,7 +186,7 @@ export default function ProductDetailPurchase({
                 <div className="flex flex-col gap-3">
                     <div className="flex gap-3">
                         <Link
-                            to="/dat-hang"
+                            to={paths.checkout}
                             className={`flex flex-1 items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3.5 text-sm font-bold tracking-wide text-white no-underline transition-colors ${
                                 inStock ? "hover:bg-orange-600" : "pointer-events-none opacity-50"
                             }`}
