@@ -27,6 +27,7 @@ export function useStorefrontPaths() {
             return qs ? `${path}?${qs}` : path;
         },
         cart: prefix ? `${prefix}/gio-hang` : "/",
+        checkout: prefix ? `${prefix}/dat-hang` : "/",
         login: prefix ? `${prefix}/dang-nhap` : "/",
         register: prefix ? `${prefix}/dang-ky` : "/",
         account: prefix ? `${prefix}/tai-khoan` : "/",

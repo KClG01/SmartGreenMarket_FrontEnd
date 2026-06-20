@@ -5,35 +5,18 @@ import {
     PRODUCT_IMAGE_FALLBACK,
     resolveMediaUrl,
 } from "../../../utils/userProductUtils";
+import ProductImage from "./ProductImage";
 
 const AUTO_PLAY_MS = 3000;
-
-function GalleryImage({ src, alt, className }) {
-    const resolvedSrc = src || PRODUCT_IMAGE_FALLBACK;
-    const [currentSrc, setCurrentSrc] = useState(resolvedSrc);
-
-    useEffect(() => {
-        setCurrentSrc(resolvedSrc);
-    }, [resolvedSrc]);
-
-    return (
-        <img
-            src={currentSrc || PRODUCT_IMAGE_FALLBACK}
-            alt={alt}
-            className={className}
-            onError={() => setCurrentSrc(PRODUCT_IMAGE_FALLBACK)}
-        />
-    );
-}
 
 function normalizeGalleryImages(images = [], thumbnail = null) {
     const normalized = [...images]
         .map((img, index) => ({
             ...img,
             image_url:
-                getProductImageUrl(img) ||
+                getProductImageUrl(img, null) ||
                 resolveMediaUrl(thumbnail) ||
-                PRODUCT_IMAGE_FALLBACK,
+                null,
             sort_order: img.sort_order ?? index,
         }))
         .filter((img) => img.image_url);
@@ -107,10 +90,11 @@ export default function ProductDetailGallery({
             onMouseLeave={() => setIsPaused(false)}
         >
             <div className="relative overflow-hidden rounded-xl bg-zinc-100 shadow-sm">
-                <GalleryImage
+                <ProductImage
                     src={activeImage}
                     alt={name}
-                    className="aspect-[4/5] w-full object-cover lg:max-h-[560px]"
+                    eager
+                    className="aspect-[4/5] w-full lg:max-h-[560px]"
                 />
                 <div className="absolute left-4 top-3 rounded-full bg-teal-800 px-3 py-1 text-xs font-medium uppercase tracking-wide text-white shadow-sm">
                     {getStockLabel(status, inStock)}
@@ -148,10 +132,10 @@ export default function ProductDetailGallery({
                                     : "outline outline-1 outline-offset-[-1px] outline-transparent hover:outline-stone-300"
                             }`}
                         >
-                            <GalleryImage
+                            <ProductImage
                                 src={img.image_url}
                                 alt=""
-                                className="h-28 w-28 object-cover sm:h-36 sm:w-36"
+                                className="h-28 w-28 sm:h-36 sm:w-36"
                             />
                         </button>
                     ))}

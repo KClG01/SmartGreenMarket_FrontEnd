@@ -66,7 +66,27 @@ function buildDealerImages(raw) {
 }
 
 export function getProductImageUrl(primary, fallback = PRODUCT_IMAGE_FALLBACK) {
-    return extractImageUrl(primary) || resolveMediaUrl(fallback) || PRODUCT_IMAGE_FALLBACK;
+    const extracted = extractImageUrl(primary);
+    if (extracted) return extracted;
+    if (fallback === null) return null;
+    return resolveMediaUrl(fallback) || PRODUCT_IMAGE_FALLBACK;
+}
+
+/** Ưu tiên ảnh gốc trong mảng images, tránh thumbnail nén thấp khi có ảnh lớn hơn */
+export function getBestProductImage(product) {
+    const images = product?.images ?? [];
+
+    const fullImages = images
+        .filter((img) => !img.is_thumbnail)
+        .map((img) => extractImageUrl(img))
+        .filter(Boolean);
+
+    if (fullImages.length) return fullImages[0];
+
+    const anyImage = images.map((img) => extractImageUrl(img)).find(Boolean);
+    if (anyImage) return anyImage;
+
+    return extractImageUrl(product?.thumbnail) || PRODUCT_IMAGE_FALLBACK;
 }
 
 export function parseProductList(response) {
@@ -108,7 +128,7 @@ function resolveCategoryName(raw) {
 export function formatDealerProduct(raw) {
     const images = buildDealerImages(raw);
     const thumbnail =
-        resolveMediaUrl(raw?.thumbnail) ??
+        getBestProductImage(raw) ??
         images.find((img) => img.is_thumbnail)?.image_url ??
         images[0]?.image_url ??
         null;
@@ -325,7 +345,7 @@ export function toCardProduct(product) {
         rawUnit,
         unitKey: unitFilterKey,
         unitFilterKey,
-        image: product.thumbnail,
+        image: getBestProductImage(product),
         brand: product.category_name || product.supplier_name || "GreenMarket",
         rating: product.rating,
         sold: product.sold,
