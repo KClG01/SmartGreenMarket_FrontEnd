@@ -2,13 +2,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, ShoppingCart, Newspaper, User } from "lucide-react";
 import { useAuth } from "../../../contexts/authProvider";
+import { isBuyerUser } from "../../../utils/buyerAuthUtils";
 import { useCart } from "../../../contexts/cartProvider";
 import { useStorefrontPaths } from "../../../hooks/useStorefrontPaths";
-
-function isBuyerUser(user) {
-    if (!user) return false;
-    return user.role === "buyer" || user.auth_scope === "storefront";
-}
 
 export default function Header() {
     const navigate = useNavigate();

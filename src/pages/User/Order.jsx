@@ -9,7 +9,6 @@ import OrderNoteSection from "../../components/User/Order/OrderNoteSection";
 import PaymentSummaryCard from "../../components/User/Order/PaymentSummaryCard";
 import AddressFormModal from "../../components/User/Profile/AddressFormModal";
 import { appToast } from "../../components/common/toast";
-import { useAuth } from "../../contexts/authProvider";
 import { useCart } from "../../contexts/cartProvider";
 import { useBuyerAddresses } from "../../hooks/useBuyerAddresses";
 import { useStorefrontPaths } from "../../hooks/useStorefrontPaths";
@@ -26,7 +25,6 @@ import {
 export default function OrderPage() {
     const navigate = useNavigate();
     const paths = useStorefrontPaths();
-    const { user } = useAuth();
     const { items: cartItems, removeItem } = useCart();
 
     const checkoutItems = useMemo(
@@ -78,12 +76,6 @@ export default function OrderPage() {
             })),
         [checkoutItems],
     );
-
-    useEffect(() => {
-        if (!user && paths.slug) {
-            navigate(paths.login, { replace: true, state: { from: paths.checkout } });
-        }
-    }, [user, paths.slug, paths.login, paths.checkout, navigate]);
 
     useEffect(() => {
         if (checkoutItems.length === 0) return;

@@ -4,6 +4,7 @@ import { AuthProvider } from "./contexts/authProvider";
 import AdminProtectedRoute from "./contexts/adminProtectedRoute";
 import SupplierProtectedRoute from "./contexts/supplierProtectedRoute";
 import DealerProtectedRoute from "./contexts/dealerProtectedRoute";
+import BuyerRouteProtect from "./contexts/buyerRouteProtect";
     //Layouts
 import UserLayout from "./layouts/UserLayout";
 import StorefrontSlugSync from "./layouts/StorefrontSlugSync";
@@ -13,7 +14,7 @@ import UserProfileLayout from "./layouts/UserProfileLayout";
 import DealerLayout from "./layouts/DealerLayout";
 import StorefrontEntryRedirect from "./components/User/StorefrontEntryRedirect";
     //User Pages
-import {HomePage, ProductDetailPage, CartPage, OrderPage, PaymentPage, OrderStatusPage, UserProfilePage, ChangePasswordPage, OrderHistoryPage, UserLoginPage, UserRegisterPage, SearchProductPage, DealerSlugEntryPage, CheckoutPage, OrderTrackingPage, OrderHistoryPage_1}  from "./pages/User";
+import {HomePage, ProductDetailPage, CartPage, OrderPage, PaymentPage, OrderStatusPage, UserProfilePage, ChangePasswordPage, OrderHistoryPage, UserLoginPage, UserRegisterPage, SearchProductPage, DealerSlugEntryPage, CheckoutPage, OrderTrackingPage, PoliciesPage, SupportPage}  from "./pages/User";
     //Supplier Pages
 import { OrderSupplierPage, ProductSupplierPage, CertificationSupplierPage, RegisterPage, SupplierLoginPage, SupplierInfoPage, CategorySupplierPage, CultivationSupplierPage,DashboardSupplierPage } from "./pages/Supplier";
     //Admin Pages
@@ -36,18 +37,22 @@ export default function App() {
                             <Route path="trang-chu" element={<HomePage />} />
                             <Route path="san-pham/:id" element={<ProductDetailPage />} />
                             <Route path="tim-kiem" element={<SearchProductPage />} />
-                            <Route path="gio-hang" element={<CartPage />} />
-                            <Route path="dat-hang" element={<OrderPage />} />
-                            <Route path="thanh-toan" element={<PaymentPage />} />
-                            <Route path="theo-doi-don-hang" element={<OrderStatusPage />} />
-                            <Route path="tai-khoan" element={<UserProfileLayout />}>
-                                <Route path="" element={<UserProfilePage />} />
-                                <Route path="doi-mat-khau" element={<ChangePasswordPage />} />
-                                <Route path="lich-su-don-hang" element={<OrderHistoryPage />} />
-                                <Route path ="lich-su-don-hang-1" element={<OrderHistoryPage_1/>}/>
+                            <Route path="chinh-sach" element={<PoliciesPage />} />
+                            <Route path="ho-tro" element={<SupportPage />} />
+
+                            <Route element={<BuyerRouteProtect />}>
+                                <Route path="gio-hang" element={<CartPage />} />
+                                <Route path="dat-hang" element={<OrderPage />} />
+                                <Route path="thanh-toan" element={<PaymentPage />} />
+                                <Route path="theo-doi-don-hang" element={<OrderStatusPage />} />
+                                <Route path="tai-khoan" element={<UserProfileLayout />}>
+                                    <Route path="" element={<UserProfilePage />} />
+                                    <Route path="doi-mat-khau" element={<ChangePasswordPage />} />
+                                    <Route path="lich-su-don-hang" element={<OrderHistoryPage />} />
+                                </Route>
+                                <Route path="dat-hang-1" element={<CheckoutPage />} />
+                                <Route path="theo-doi-don-hang-1" element={<OrderTrackingPage />} />
                             </Route>
-                            <Route path="dat-hang-1" element={<CheckoutPage />} />
-                            <Route path="theo-doi-don-hang-1" element={<OrderTrackingPage />} />
                         </Route>
                     </Route>
 
