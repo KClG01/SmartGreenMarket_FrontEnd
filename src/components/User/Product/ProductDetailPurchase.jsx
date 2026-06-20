@@ -194,14 +194,6 @@ export default function ProductDetailPurchase({
                             <Zap className="h-4 w-4" />
                             MUA NGAY
                         </Link>
-                        <button
-                            type="button"
-                            disabled={!inStock}
-                            className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-emerald-900 transition-colors hover:border-emerald-200 hover:bg-emerald-50 disabled:opacity-50"
-                            aria-label="Yêu thích"
-                        >
-                            <Heart className="h-5 w-5" />
-                        </button>
                     </div>
 
                     <button
