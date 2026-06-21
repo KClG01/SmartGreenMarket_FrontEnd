@@ -258,39 +258,6 @@ export default function FilterProduct() {
                             </div>
                         </FilterSection>
 
-                        <FilterSection title="Nhà cung cấp">
-                            <div className="flex flex-wrap gap-2">
-                                {loading ? (
-                                    <span className="text-xs text-neutral-400">
-                                        Đang tải...
-                                    </span>
-                                ) : availableSuppliers.length > 0 ? (
-                                    availableSuppliers.map((supplier) => (
-                                        <TagButton
-                                            key={supplier.value}
-                                            active={selectedSuppliers.includes(
-                                                supplier.value,
-                                            )}
-                                            onClick={() =>
-                                                toggleSupplier(supplier.value)
-                                            }
-                                        >
-                                            {supplier.label}
-                                            {supplier.count != null ? (
-                                                <span className="ml-1 opacity-70">
-                                                    ({supplier.count})
-                                                </span>
-                                            ) : null}
-                                        </TagButton>
-                                    ))
-                                ) : (
-                                    <span className="text-xs text-neutral-400">
-                                        Chưa có dữ liệu
-                                    </span>
-                                )}
-                            </div>
-                        </FilterSection>
-
                         <FilterSection title="Tồn kho">
                             <div className="flex flex-wrap gap-2">
                                 <TagButton
