@@ -13,14 +13,36 @@ export const formatCurrency = (value) => {
 // withTime = false -> chỉ hiện ngày (dùng cho delivery_date dạng "YYYY-MM-DD")
 export const formatDateTime = (value, withTime = true) => {
   if (!value) return null;
+
+  const raw = String(value).trim();
+  if (!withTime && /^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    const [year, month, day] = raw.split("-");
+    return `${day}/${month}/${year}`;
+  }
+
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value; // fallback: hiện nguyên string nếu parse lỗi
+  if (Number.isNaN(d.getTime())) return value;
 
-  const datePart = d.toLocaleDateString("vi-VN");
-  if (!withTime) return datePart;
+  const options = withTime
+    ? {
+        timeZone: "Asia/Ho_Chi_Minh",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }
+    : {
+        timeZone: "Asia/Ho_Chi_Minh",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      };
 
-  const timePart = d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
-  return `${datePart} • ${timePart}`;
+  const formatted = new Intl.DateTimeFormat("vi-VN", options).format(d);
+  if (!withTime) return formatted;
+
+  return formatted.replace(", ", " • ");
 };
 
 // status của ĐƠN HÀNG (order.status) — bám theo flow BE: pending → confirmed → processing → shipping → delivered → completed
