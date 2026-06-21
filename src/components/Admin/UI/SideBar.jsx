@@ -1,16 +1,16 @@
 import { NavLink } from "react-router-dom";
-import { useAuth } from "../../../contexts/authProvider"
+import { useAuth } from "../../../contexts/authProvider";
 import {
     LayoutDashboard,
     Settings,
     Truck,
     Store,
-    Users,
     Tag,
     Package,
     LogOut,
     FileCheck,
     FileText,
+    ShieldCheck,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -26,13 +26,20 @@ const NAV_ITEMS = [
 ];
 
 export default function SideBar() {
-    const { logout } = useAuth();
-        const handleLogout = async () => {
-            await logout();
-        };
+    const { logout, user } = useAuth();
+
+    const adminName =
+        user?.full_name ||
+        user?.username ||
+        user?.account?.username ||
+        "Quản trị viên";
+
+    const handleLogout = async () => {
+        await logout();
+    };
 
     return (
-        <aside className="fixed left-0 top-16 bottom-0 w-64 bg-stone-50 border-r border-neutral-200 flex flex-col z-40">
+        <aside className="fixed left-0 top-16 bottom-0 z-40 flex w-64 flex-col border-r border-emerald-900/10 bg-[#e4ebe6]">
             {/* Nav items */}
             <nav className="flex-1 px-4 py-6 flex flex-col gap-1 overflow-y-auto">
                 {NAV_ITEMS.map(({ label, icon: Icon, to, end }) => (
@@ -41,10 +48,10 @@ export default function SideBar() {
                         to={to}
                         end={end}
                         className={({ isActive }) =>
-                            `hover:scale-105 relative flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold transition-all duration-150
+                            `hover:scale-105 cursor-pointer relative flex items-center gap-3 rounded-lg px-4 py-3 text-xs font-semibold transition-colors duration-150
                             ${isActive
-                                ? "bg-green-200 border-l-4 border-emerald-800 text-emerald-700 pl-3"
-                                : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800"
+                                ? "border-l-4 border-emerald-800 bg-white pl-3 text-emerald-800 shadow-sm"
+                                : "text-neutral-700 hover:bg-white/55 hover:text-emerald-950"
                             }`
                         }
                     >
@@ -54,11 +61,10 @@ export default function SideBar() {
                 ))}
             </nav>
 
-            {/* Logout */}
-            <div className="px-4 py-4 border-t border-neutral-200">
+            <div className="border-t border-emerald-900/10 px-4 py-4">
                 <button
                     onClick={handleLogout}
-                    className="hover:scale-105 cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold text-neutral-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150 group cursor-pointer"
+                    className="hover:scale-105 cursor-pointer group flex w-full cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-xs font-semibold text-neutral-600 transition-colors duration-150 hover:bg-white/60 hover:text-red-600"
                 >
                     <LogOut className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-red-500" />
                     <span className="tracking-wide">Đăng xuất</span>
