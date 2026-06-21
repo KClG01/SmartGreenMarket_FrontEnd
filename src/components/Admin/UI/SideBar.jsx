@@ -10,7 +10,6 @@ import {
     LogOut,
     FileCheck,
     FileText,
-    ShieldCheck,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -25,21 +24,19 @@ const NAV_ITEMS = [
     //{ label: "Quản lý thông báo",    icon: Bell,       to: "/quan-tri/thong-bao" },
 ];
 
-export default function SideBar() {
-    const { logout, user } = useAuth();
-
-    const adminName =
-        user?.full_name ||
-        user?.username ||
-        user?.account?.username ||
-        "Quản trị viên";
+export default function SideBar({ isOpen = true }) {
+    const { logout } = useAuth();
 
     const handleLogout = async () => {
         await logout();
     };
 
     return (
-        <aside className="fixed left-0 top-16 bottom-0 z-40 flex w-64 flex-col border-r border-emerald-900/10 bg-[#e4ebe6]">
+        <aside
+            className={`fixed left-0 top-16 bottom-0 z-40 flex w-64 flex-col border-r border-emerald-900/10 bg-[#e4ebe6] transition-all duration-300 ${
+                isOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+        >
             {/* Nav items */}
             <nav className="flex-1 px-4 py-6 flex flex-col gap-1 overflow-y-auto">
                 {NAV_ITEMS.map(({ label, icon: Icon, to, end }) => (
