@@ -64,6 +64,25 @@ export function isActiveTrackingOrder(status) {
   return !TERMINAL_ORDER_STATUSES.includes(status);
 }
 
+export function isHistoryOrder(status) {
+  return TERMINAL_ORDER_STATUSES.includes(status);
+}
+
+export function matchesHistoryStatusFilter(orderStatus, filterKey) {
+  if (filterKey === "all") return isHistoryOrder(orderStatus);
+  if (filterKey === "completed") return orderStatus === "completed";
+  if (filterKey === "cancelled") return orderStatus === "cancelled";
+  return false;
+}
+
+export function sortOrdersByCreatedDesc(orders = []) {
+  return [...orders].sort((a, b) => {
+    const timeA = new Date(a?.created_at ?? 0).getTime();
+    const timeB = new Date(b?.created_at ?? 0).getTime();
+    return timeB - timeA;
+  });
+}
+
 const DELIVERY_SLOT_WINDOWS = {
   morning: { start: "06:00", end: "11:00" },
   afternoon: { start: "13:00", end: "18:00" },
