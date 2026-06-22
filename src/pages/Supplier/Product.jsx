@@ -106,11 +106,6 @@ export default function ProductSupplierPage() {
 
   return (
     <div className={SUPPLIER_PAGE_CLASS}>
-      <SupplierPageHeader
-        title="Quản lý sản phẩm"
-        description="Theo dõi và quản lý các sản phẩm đã và đang niêm yết trên hệ thống"
-      />
-
       {/* Toolbar */}
       <div className="flex justify-between items-center">
         <input

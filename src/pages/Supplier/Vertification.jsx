@@ -49,11 +49,6 @@ export default function CertificationSupplierPage() {
 
   return (
     <div className={SUPPLIER_PAGE_CLASS}>
-      <SupplierPageHeader
-        title="Quản lý chứng nhận"
-        description="Theo dõi và quản lý các chứng nhận sản phẩm đang gửi trên hệ thống"
-      />
-
       {/* ── Actions bar ─────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <input
