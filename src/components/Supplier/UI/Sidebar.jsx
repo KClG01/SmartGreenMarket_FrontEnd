@@ -18,7 +18,7 @@ export default function SideBar({ supplier }) {
     return (
         <aside
             style={{ width }}
-            className="h-full flex flex-col flex-shrink-0 bg-emerald-950 overflow-hidden py-4 transition-[width] duration-200"
+            className="h-full flex flex-col flex-shrink-0 bg-emerald-900 overflow-hidden py-4 transition-[width] duration-200"
         >
             {/* ── Logo + tên + vai trò của nhà cung cấp ── */}
             <div className={`flex items-center gap-3 mb-4 flex-shrink-0 ${open ? "px-3" : "justify-center px-0"}`}>
@@ -73,8 +73,8 @@ export default function SideBar({ supplier }) {
                                             open ? "gap-3 px-2.5 h-10 w-full" : "h-10 w-10 justify-center mx-auto"
                                         } ${
                                             isActive
-                                                ? "bg-emerald-900 text-emerald-50"
-                                                : "text-emerald-100 hover:bg-emerald-900/60"
+                                                ? "bg-emerald-700 text-emerald-50"
+                                                : "text-emerald-100 hover:bg-emerald-700/60"
                                         }`
                                     }
                                 >
