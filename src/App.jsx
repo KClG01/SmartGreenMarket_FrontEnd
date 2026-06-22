@@ -19,7 +19,7 @@ import StorefrontEntryRedirect from "./components/User/StorefrontEntryRedirect";
 //User Pages
 import {HomePage, ProductDetailPage, CartPage, OrderPage, PaymentPage, OrderStatusPage, UserProfilePage, ChangePasswordPage, OrderHistoryPage, UserLoginPage, UserRegisterPage, SearchProductPage, DealerSlugEntryPage, CheckoutPage, OrderTrackingPage, PoliciesPage, SupportPage}  from "./pages/User";
 //Supplier Pages
-import { OrderSupplierPage, ProductSupplierPage, CertificationSupplierPage, RegisterPage, SupplierLoginPage, SupplierInfoPage, CategorySupplierPage, CultivationSupplierPage,DashboardSupplierPage } from "./pages/Supplier";
+import { OrderSupplierPage, ProductSupplierPage, CertificationSupplierPage, RegisterPage, SupplierLoginPage, SupplierInfoPage, CategorySupplierPage, CultivationSupplierPage,DashboardSupplierPage,NotFound } from "./pages/Supplier";
 //Admin Pages
 import { AdminLoginPage, AdminDashboardPage, SettingPage, SupplierPage, CategoryPage, ProductPage, CertificationPage, DocumentPage, NotificationPage, DealerPage, } from "./pages/Admin";
 //Dealer Pages
@@ -68,6 +68,7 @@ export default function App() {
                             <Route path="danh-muc" element={<CategorySupplierPage />} />
                             <Route path="tat-ca-thong-bao" element={<NotificationPage />} />
                             <Route path="canh-tac" element={<CultivationSupplierPage />} />
+                            <Route path="*" element={<NotFound />} />
                         </Route>
                     </Route>
                     <Route path="/nha-cung-cap/dang-nhap" element={<SupplierLoginPage />} />
