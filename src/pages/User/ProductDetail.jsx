@@ -7,6 +7,8 @@ import {
 } from "../../hooks/useBuyerCatalog";
 import { useStorefrontPaths } from "../../hooks/useStorefrontPaths";
 import { addRecentlyViewed } from "../../utils/recentlyViewedUtils";
+import { recordProductView } from "../../utils/buyerInteractionUtils";
+import { useAuth } from "../../contexts/authProvider";
 import { handleApiError } from "../../services/api/Buyer/buyerCatalogService";
 import ProductDetailGallery from "../../components/User/Product/ProductDetailGallery";
 import ProductDetailPurchase from "../../components/User/Product/ProductDetailPurchase";
@@ -21,6 +23,7 @@ function scrollToPageTop() {
 export default function ProductDetailPage() {
     const { id } = useParams();
     const paths = useStorefrontPaths();
+    const { user } = useAuth();
     const [product, setProduct] = useState(null);
     const [related, setRelated] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -82,6 +85,11 @@ export default function ProductDetailPage() {
         if (!product?.id || !paths.slug) return;
         addRecentlyViewed(paths.slug, product);
     }, [product?.id, paths.slug]);
+
+    useEffect(() => {
+        if (!product?.id || !paths.slug) return;
+        recordProductView(paths.slug, product, user);
+    }, [product?.id, paths.slug, user]);
 
     const breadcrumb = useMemo(() => {
         if (!product) return [];
