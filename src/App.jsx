@@ -21,9 +21,9 @@ import {HomePage, ProductDetailPage, CartPage, OrderPage, PaymentPage, OrderStat
 //Supplier Pages
 import { OrderSupplierPage, ProductSupplierPage, CertificationSupplierPage, RegisterPage, SupplierLoginPage, SupplierInfoPage, CategorySupplierPage, CultivationSupplierPage,DashboardSupplierPage,NotFound } from "./pages/Supplier";
 //Admin Pages
-import { AdminLoginPage, AdminDashboardPage, SettingPage, SupplierPage, CategoryPage, ProductPage, CertificationPage, DocumentPage, NotificationPage, DealerPage, } from "./pages/Admin";
+import { AdminLoginPage, AdminDashboardPage, SettingPage, SupplierPage, CategoryPage, ProductPage, ProductMasterPage, CertificationPage, DocumentPage, NotificationPage, DealerPage, } from "./pages/Admin";
 //Dealer Pages
-import { RegisterDealerPage, DealerLoginPage, DealerDashboardPage, DealerInventoryPage, DealerSupplierPage, DealerCategoryPage, DealerSalesOrderPage, DealerPurchaseOrderPage, DealerCreatePurchaseOrderPage, DealerPurchaseOrderDetailPage, DealerSupplierDetailPage, DealerCategoryDetail, DealerInfoPage, DealerCustomerPage, DealerProductManagementPage, DealerProductDetailPage } from "./pages/Dealer";
+import { RegisterDealerPage, DealerLoginPage, DealerDashboardPage, DealerInventoryPage, DealerSupplierPage, DealerCategoryPage, DealerSalesOrderPage, DealerPurchaseOrderPage, DealerCreatePurchaseOrderPage, DealerPurchaseOrderDetailPage, DealerDraftOrderPreviewPage, DealerSupplierDetailPage, DealerCategoryDetail, DealerInfoPage, DealerCustomerPage, DealerProductManagementPage, DealerProductDetailPage } from "./pages/Dealer";
 export default function App() {
     return (
         <BrowserRouter>
@@ -83,6 +83,7 @@ export default function App() {
                             <Route path="cau-hinh" element={<SettingPage />} />
                             <Route path="nha-cung-cap" element={<SupplierPage />} />
                             <Route path="danh-muc" element={<CategoryPage />} />
+                            <Route path="san-pham-chuan" element={<ProductMasterPage />} />
                             <Route path="san-pham" element={<ProductPage />} />
                             <Route path="chung-chi" element={<CertificationPage />} />
                             <Route path="giay-to" element={<DocumentPage />} />
@@ -103,6 +104,7 @@ export default function App() {
                             <Route path="nhap-hang" element={<DealerPurchaseOrderPage />} />
                             <Route path="nhap-hang/tao-moi" element={<DealerCreatePurchaseOrderPage />} />
                             <Route path="nhap-hang/tao-phieu-nhap" element={<DealerPurchaseOrderDetailPage />} />
+                            <Route path="nhap-hang/xem-truoc" element={<DealerDraftOrderPreviewPage />} />
                             <Route path="nhap-hang/chi-tiet/:id" element={<DealerPurchaseOrderDetailPage />} />
                             <Route path="nha-cung-cap/:id" element={<DealerSupplierDetailPage />} />
                             <Route path="danh-muc/:id" element={<DealerCategoryDetail />} />
