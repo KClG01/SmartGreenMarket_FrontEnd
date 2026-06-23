@@ -1,6 +1,10 @@
 import axiosClient from "../axiosClient";
 
 export const buyerReviewService = {
+    
+    // Đánh giá sản phẩm sau đơn completed. Prefix: /api/storefronts/{dealer_slug}/.
+    // Buyer: pending-reviews → POST reviews (multipart) → PATCH/DELETE review. Public: GET products/{id}/reviews/ + summary.
+    
     getAll: (dealer_slug) => axiosClient.get(`/storefronts/${dealer_slug}/reviews/`).then((res) => res.data),
     //Buyer đánh giá của tôi (danh sách)
 
