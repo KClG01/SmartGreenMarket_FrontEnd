@@ -13,6 +13,7 @@ import {
   extractSupplierApiMessage,
 } from "../../../utils/supplierValidation";
 import { productMasterService } from "../../../services/api/Admin/productMasterService";
+import  ConfirmModal  from "../../common/ConfirmModal"
 
 const inputCls =
   "w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-colors placeholder:text-zinc-300 disabled:bg-zinc-50 disabled:text-zinc-400";
@@ -63,6 +64,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess, mode = 
   const [images, setImages] = useState([]);
   const [thumbnailIdx, setThumbnailIdx] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [categories, setCategories] = useState([]);
@@ -245,6 +247,44 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess, mode = 
     });
   };
 
+  // ── Mở confirm trước khi submit ───────────────────────────
+  const handleRequestSubmit = () => {
+    setError(null);
+    // Validate trước, nếu lỗi thì không mở confirm
+    if (!form.category) {
+      setFieldErrors({ category: "Vui lòng chọn danh mục." });
+      setError("Vui lòng chọn danh mục.");
+      return;
+    }
+    if (!isPersonal && !selectedProductId) {
+      setError("Vui lòng chọn sản phẩm từ danh mục.");
+      return;
+    }
+    if (isPersonal && !form.name.trim()) {
+      setFieldErrors({ name: "Vui lòng nhập tên sản phẩm." });
+      setError("Vui lòng nhập tên sản phẩm.");
+      return;
+    }
+    const price = parseFloat(form.wholesale_price);
+    const capacity = parseFloat(form.daily_production_capacity);
+    const inlineErrors = {};
+    if (!form.wholesale_price || isNaN(price) || price <= 0) {
+      inlineErrors.wholesale_price = "Giá sỉ phải là số dương lớn hơn 0.";
+    }
+    if (!form.daily_production_capacity || isNaN(capacity) || capacity <= 0) {
+      inlineErrors.daily_production_capacity = "Năng suất phải là số dương lớn hơn 0.";
+    }
+    const formErrs = validateProductForm(form);
+    const allErrs = { ...formErrs, ...inlineErrors };
+    if (Object.keys(allErrs).length) {
+      setFieldErrors(allErrs);
+      setError(errorsToSummary(allErrs) || "Vui lòng kiểm tra lại các trường có lỗi.");
+      return;
+    }
+    // Mọi thứ hợp lệ → mở confirm
+    setShowConfirm(true);
+  };
+
   // ── Submit ─────────────────────────────────────────────────
   const handleSubmit = async () => {
     setError(null);
@@ -300,31 +340,35 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess, mode = 
     setSaving(true);
 
     try {
-      const productFd = new FormData();
-      const slug = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+      // ── Build payload đúng theo API spec ──────────────────────
+      // catalog:  { category, product_master, wholesale_price, daily_production_capacity, description? }
+      // personal: { category, name, unit, wholesale_price, daily_production_capacity, description?, product_master? }
+      const payload = {
+        category: parseInt(form.category, 10),
+        wholesale_price: form.wholesale_price,
+        daily_production_capacity: form.daily_production_capacity,
+      };
 
-      productFd.append("category", parseInt(form.category, 10));
-      productFd.append("slug", slug);
-      productFd.append("wholesale_price", price);
-      productFd.append("daily_production_capacity", capacity);
-      if (form.description.trim()) productFd.append("description", form.description.trim());
+      if (form.description.trim()) payload.description = form.description.trim();
       if (form.storage_duration_days !== "") {
-        productFd.append("storage_duration_days", parseInt(form.storage_duration_days, 10));
+        payload.storage_duration_days = parseInt(form.storage_duration_days, 10);
       }
-      if (form.min_storage_temp !== "") productFd.append("min_storage_temp", form.min_storage_temp);
-      if (form.max_storage_temp !== "") productFd.append("max_storage_temp", form.max_storage_temp);
+      if (form.min_storage_temp !== "") payload.min_storage_temp = parseFloat(form.min_storage_temp);
+      if (form.max_storage_temp !== "") payload.max_storage_temp = parseFloat(form.max_storage_temp);
 
       if (isPersonal) {
-        productFd.append("name", form.name.trim());
-        productFd.append("unit", form.unit);
+        // personal: bắt buộc name + unit, product_master chỉ là id tham khảo (tùy chọn)
+        payload.name = form.name.trim();
+        payload.unit = form.unit;
         if (selectedProductId) {
-          productFd.append("product_master", selectedProductId);
+          payload.product_master = parseInt(selectedProductId, 10);
         }
       } else {
-        productFd.append("product_master", selectedProductId);
+        // catalog: chỉ cần product_master id
+        payload.product_master = parseInt(selectedProductId, 10);
       }
 
-      const newProduct = await productService.addProduct(productFd);
+      const newProduct = await productService.addProduct(payload);
       const productId = newProduct?.id;
       if (!productId) throw new Error("Không lấy được ID sản phẩm vừa tạo.");
 
@@ -372,6 +416,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess, mode = 
     fieldErrors[field] ? <p className="text-xs text-red-500 mt-1">{fieldErrors[field]}</p> : null;
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={() => !saving && onClose()} />
 
@@ -526,7 +571,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess, mode = 
                     </div>
 
                     {/* Đơn vị */}
-                    <div className="mb-3">
+                    {/* <div className="mb-3">
                       <label className={labelCls}>Đơn vị tính (*)</label>
                       <select
                         value={form.unit}
@@ -538,7 +583,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess, mode = 
                           <option key={u.value} value={u.value}>{u.label}</option>
                         ))}
                       </select>
-                    </div>
+                    </div> */}
 
                     {/* Tham khảo product master — dropdown có system category riêng */}
                     <div className="mb-3 border border-dashed border-blue-200 rounded-lg p-3 bg-blue-50/40">
@@ -831,7 +876,7 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess, mode = 
             Hủy
           </button>
           <button
-            onClick={handleSubmit}
+            onClick={handleRequestSubmit}
             disabled={saving}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white ${btnColor} rounded-lg transition-colors disabled:opacity-70 min-w-[130px] justify-center`}
           >
@@ -851,6 +896,25 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess, mode = 
         }
       `}</style>
     </div>
+
+    {/* ConfirmModal đặt ngoài wrapper z-50 để đè lên trên */}
+    <ConfirmModal
+      isOpen={showConfirm}
+      onClose={() => setShowConfirm(false)}
+      onConfirm={handleSubmit}
+      title={isPersonal ? "Xác nhận thêm sản phẩm cá nhân" : "Xác nhận thêm sản phẩm"}
+      message={
+        isPersonal
+          ? `Sản phẩm "${form.name}" sẽ được gửi lên để admin xét duyệt. Bạn có chắc chắn muốn tiếp tục?`
+          : "Sản phẩm sẽ được thêm vào danh sách chờ duyệt. Bạn có chắc chắn muốn tiếp tục?"
+      }
+      confirmText="Xác nhận lưu"
+      cancelText="Kiểm tra lại"
+      variant="warning"
+      successMessage="Thêm sản phẩm thành công! Vui lòng chờ admin phê duyệt."
+      errorMessage="Thêm sản phẩm thất bại. Vui lòng thử lại."
+    />
+    </>
   );
 }
 
