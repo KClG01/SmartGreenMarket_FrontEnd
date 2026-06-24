@@ -310,7 +310,7 @@ export default function ProductReviews({
 
     return (
         <section className="border-t border-stone-300 pt-8 lg:pt-12">
-            <h2 className="mb-5 font-['Noto_Serif',serif] text-2xl font-semibold text-emerald-950 sm:text-[1.75rem] lg:mb-8 lg:text-3xl">
+            <h2 className="mb-5 text-2xl font-semibold text-emerald-950 sm:text-[1.75rem] lg:mb-8 lg:text-3xl">
                 Đánh giá sản phẩm
             </h2>
 
