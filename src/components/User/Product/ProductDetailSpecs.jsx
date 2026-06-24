@@ -78,7 +78,6 @@ export default function ProductDetailSpecs({ product }) {
                         }
                     />
                     <SpecRow label="Nguồn hàng gốc" value={product.supplier_product_name} />
-                    <SpecRow label="Mã sản phẩm" value={product.slug || `#${product.id}`} />
                 </SpecSection>
 
                 <SpecSection title="Bảo quản & sử dụng">
