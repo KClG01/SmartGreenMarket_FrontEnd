@@ -84,7 +84,11 @@ export default function Header() {
                         {searchInput}
                     </form>
 
-                    <div className="flex shrink-0 items-center gap-0.5 sm:gap-1 md:gap-0">
+                    <div
+                        className={`flex shrink-0 items-center gap-0.5 sm:gap-1 ${
+                            isLoggedIn ? "md:gap-0" : "md:gap-3"
+                        }`}
+                    >
                         {isLoggedIn ? (
                             <>
                                 <HeaderNavLink
@@ -121,13 +125,13 @@ export default function Header() {
                             <>
                                 <Link
                                     to={paths.login}
-                                    className="whitespace-nowrap rounded-lg border border-emerald-800 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 no-underline transition-colors hover:bg-emerald-50 sm:px-4 sm:py-2 sm:text-sm"
+                                    className="whitespace-nowrap rounded-lg border border-emerald-800 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 no-underline transition-colors hover:bg-emerald-50 sm:px-4 sm:py-2 sm:text-sm md:px-5"
                                 >
                                     Đăng nhập
                                 </Link>
                                 <Link
                                     to={paths.register}
-                                    className="whitespace-nowrap rounded-lg bg-emerald-800 px-2.5 py-1.5 text-xs font-semibold text-white no-underline transition-colors hover:bg-emerald-900 sm:px-4 sm:py-2 sm:text-sm"
+                                    className="whitespace-nowrap rounded-lg bg-emerald-800 px-2.5 py-1.5 text-xs font-semibold text-white no-underline transition-colors hover:bg-emerald-900 sm:px-4 sm:py-2 sm:text-sm md:px-5"
                                 >
                                     Đăng ký
                                 </Link>
