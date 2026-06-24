@@ -212,16 +212,6 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess, mode = 
       setError("Vui lòng nhập tên sản phẩm.");
       return;
     }
-    if (isPersonal) {
-      productFd.append("name", form.name.trim());
-      productFd.append("unit", form.unit);
-      // gửi product_master nếu supplier có chọn tham khảo
-      if (selectedProductId) {
-        productFd.append("product_master", selectedProductId);
-      }
-    } else {
-      productFd.append("product_master", selectedProductId);
-    }
     const errs = validateProductForm(form);
     if (Object.keys(errs).length) {
       setFieldErrors(errs);
@@ -245,9 +235,12 @@ export default function CreateProductModal({ isOpen, onClose, onSuccess, mode = 
       if (form.max_storage_temp !== "") productFd.append("max_storage_temp", form.max_storage_temp);
 
       if (isPersonal) {
-        // personal: gửi name + unit, KHÔNG gửi product_master
+        // personal: gửi name + unit, kèm product_master tùy chọn nếu supplier chọn
         productFd.append("name", form.name.trim());
         productFd.append("unit", form.unit);
+        if (selectedProductId) {
+          productFd.append("product_master", selectedProductId);
+        }
       } else {
         // catalog: gửi product_master (id), name được lấy từ product master
         productFd.append("product_master", selectedProductId);

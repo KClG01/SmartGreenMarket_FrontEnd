@@ -353,9 +353,9 @@ export default function ProductTable({
                           <Unlock size={14} />
                         </button>
                       )}
-                      <button className="p-act danger" title="Xóa" onClick={() => onDelete(row)}>
+                      {/* <button className="p-act danger" title="Xóa" onClick={() => onDelete(row)}>
                         <Trash2 size={14} />
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 </div>
