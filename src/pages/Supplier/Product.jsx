@@ -259,6 +259,16 @@ export default function ProductSupplierPage() {
         onUnlockSelling={(row) => setToggleTarget({ row, action: "unlock" })}
         togglingSelling={Boolean(togglingId && detailRow?.id === togglingId)}
       />
+
+      {showAddCategory && (
+        <AddCategoryModal
+          onClose={() => setShowAddCategory(false)}
+          onSuccess={(newCat) => {
+            console.log("Danh mục mới:", newCat);
+            // TODO: nếu có state danh mục thì append vào đây
+          }}
+        />
+      )}
     </div>
   );
 }
