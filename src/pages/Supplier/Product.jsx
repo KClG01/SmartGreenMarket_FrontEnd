@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Package, ShoppingCart, Lock, Clock } from "lucide-react";
+import { Package, ShoppingCart, Lock, Clock, Search, Filter, Plus, User } from "lucide-react";
 import ProductTable from "../../components/Supplier/Product/ProductTable";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal";
 import ConfirmModal from "../../components/common/ConfirmModal";
@@ -29,24 +29,26 @@ function MetricCard({ icon: Icon, value, label, tone }) {
 }
 
 export default function ProductSupplierPage() {
-  const [data,           setData]           = useState([]);
-  const [search,         setSearch]         = useState("");
-  const [statusFilter,   setStatusFilter]   = useState("");
+  const [data, setData] = useState([]);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [categories,     setCategories]     = useState([]); // danh sách danh mục từ data
+  const [categories, setCategories] = useState([]); // danh sách danh mục từ data
+  const [modalMode, setModalMode] = useState("catalog"); // "catalog" | "personal"
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Modal states
-  const [deleteRow,    setDeleteRow]    = useState(null);
-  const [createRow,    setCreateRow]    = useState(null);
-  const [detailRow,    setDetailRow]    = useState(null);
+  const [deleteRow, setDeleteRow] = useState(null);
+  const [createRow, setCreateRow] = useState(null);
+  const [detailRow, setDetailRow] = useState(null);
   const [toggleTarget, setToggleTarget] = useState(null);
-  const [togglingId,   setTogglingId]   = useState(null);
-  const [deleting,     setDeleting]     = useState(false);
+  const [togglingId, setTogglingId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   /* ── Fetch ── */
   const fetchProducts = async () => {
     try {
-      const response    = await productService.getAll();
+      const response = await productService.getAll();
       const productList = Array.isArray(response) ? response : (response?.results || []);
       setData(productList);
 
@@ -65,10 +67,10 @@ export default function ProductSupplierPage() {
 
   /* ── Thống kê ── */
   const stats = {
-    total:    data.length,
-    active:   data.filter((r) => r.status === "active").length,
+    total: data.length,
+    active: data.filter((r) => r.status === "active").length,
     inactive: data.filter((r) => r.status === "inactive").length,
-    pending:  data.filter((r) => r.status === "pending").length,
+    pending: data.filter((r) => r.status === "pending").length,
   };
 
   /* ── Delete ── */
@@ -118,7 +120,7 @@ export default function ProductSupplierPage() {
     setData((prev) => prev.map((row) => (row.id === updated.id ? { ...row, ...updated } : row)));
     setDetailRow((prev) => (prev ? { ...prev, ...updated } : prev));
     try {
-      const response    = await productService.getAll();
+      const response = await productService.getAll();
       const productList = Array.isArray(response) ? response : (response?.results || []);
       setData(productList);
       const fresh = productList.find((p) => p.id === updated.id);
@@ -133,10 +135,10 @@ export default function ProductSupplierPage() {
 
       {/* ── Thống kê ── */}
       <div className="flex flex-wrap gap-4">
-        <MetricCard icon={Package}     value={stats.total}    label="Tổng sản phẩm"  tone="b" />
-        <MetricCard icon={ShoppingCart} value={stats.active}  label="Đang bán"        tone="g" />
-        <MetricCard icon={Lock}        value={stats.inactive} label="Đã khóa"         tone="r" />
-        <MetricCard icon={Clock}       value={stats.pending}  label="Chờ duyệt"       tone="a" />
+        <MetricCard icon={Package} value={stats.total} label="Tổng sản phẩm" tone="b" />
+        <MetricCard icon={ShoppingCart} value={stats.active} label="Đang bán" tone="g" />
+        <MetricCard icon={Lock} value={stats.inactive} label="Đã khóa" tone="r" />
+        <MetricCard icon={Clock} value={stats.pending} label="Chờ duyệt" tone="a" />
       </div>
 
       {/* ── Toolbar ── */}
@@ -147,15 +149,23 @@ export default function ProductSupplierPage() {
           placeholder="Tìm kiếm sản phẩm..."
           className="px-4 py-2 border border-neutral-200 rounded-lg text-sm w-72 outline-none focus:border-emerald-600"
         />
-        <button
-          onClick={() => setCreateRow({})}
-          className="flex items-center gap-1.5 px-4 py-2 bg-emerald-800 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Thêm sản phẩm
-        </button>
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => { setModalMode("catalog"); setIsModalOpen(true); }}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-green-700 hover:bg-green-800 rounded-lg"
+          >
+            <Plus className="w-4 h-4" />
+            Thêm sản phẩm
+          </button>
+
+          <button
+            onClick={() => { setModalMode("personal"); setIsModalOpen(true); }}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-lg"
+          >
+            <User className="w-4 h-4" />
+            Thêm sản phẩm cá nhân
+          </button>
+        </div>
       </div>
 
       {/* ── Filters ── */}
@@ -170,11 +180,10 @@ export default function ProductSupplierPage() {
               <button
                 key={cat.id}
                 onClick={() => setCategoryFilter(cat.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  categoryFilter === cat.id
-                    ? "bg-emerald-800 text-white"
-                    : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${categoryFilter === cat.id
+                  ? "bg-emerald-800 text-white"
+                  : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"
+                  }`}
               >
                 {cat.name}
               </button>
@@ -185,11 +194,10 @@ export default function ProductSupplierPage() {
         {/* Filter nhanh: chờ duyệt */}
         <button
           onClick={() => setStatusFilter(statusFilter === "pending" ? "" : "pending")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
-            statusFilter === "pending"
-              ? "bg-amber-500 text-white border-amber-500"
-              : "bg-white text-amber-600 border-amber-300 hover:bg-amber-50"
-          }`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${statusFilter === "pending"
+            ? "bg-amber-500 text-white border-amber-500"
+            : "bg-white text-amber-600 border-amber-300 hover:bg-amber-50"
+            }`}
         >
           <Clock size={12} />
           Chờ duyệt {stats.pending > 0 && `(${stats.pending})`}
@@ -236,9 +244,10 @@ export default function ProductSupplierPage() {
       />
 
       <CreateProductModal
-        isOpen={createRow !== null}
-        onClose={() => setCreateRow(null)}
-        onSuccess={() => { setCreateRow(null); fetchProducts(); }}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={(p) => { /* reload list */ }}
+        mode={modalMode}
       />
 
       <DetailProductModal
