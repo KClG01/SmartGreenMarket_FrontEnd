@@ -16,6 +16,15 @@ const DOCUMENT_TYPE_LABELS = {
     tax_certificate: "Giấy chứng nhận thuế",
 };
 
+function getDocumentTypeLabel(row) {
+    return (
+        row.document_type_label
+        || DOCUMENT_TYPE_LABELS[row.document_type]
+        || row.document_type
+        || "—"
+    );
+}
+
 // ── Column definitions ────────────────────────────────────────────────────────
 const buildColumns = (onView) => [
     {
@@ -38,11 +47,7 @@ const buildColumns = (onView) => [
         grow: 1,
         cell: (row) => (
             <span className="text-sm font-semibold font-['Geist',sans-serif]">
-                {
-                    DOCUMENT_TYPE_LABELS[
-                        row.document_type
-                    ] || row.document_type
-                }
+                {getDocumentTypeLabel(row)}
             </span>
         ),
     },
@@ -104,16 +109,17 @@ const buildColumns = (onView) => [
 ];
 
 export default function DocumentTable({ data, search, statusFilter, onView }) {
-    const filtered = data.filter((row) => {
-        const documentTypeLabel =
-            DOCUMENT_TYPE_LABELS[
-                row.document_type
-            ] || row.document_type;
-        // 1. Lọc theo ô tìm kiếm (Tìm text theo loại, tên cty, trạng thái)
-        const matchName = documentTypeLabel.toLowerCase().includes(search.toLowerCase()) ||
-                        row.supplier?.company_name.toLowerCase().includes(search.toLowerCase());
+    const normalizedSearch = search.trim().toLowerCase();
 
-        // 2. Logic phân loại bộ lọc nút bấm
+    const filtered = data.filter((row) => {
+        const documentTypeLabel = getDocumentTypeLabel(row);
+        const companyName = row.supplier?.company_name ?? "";
+
+        const matchName =
+            !normalizedSearch
+            || documentTypeLabel.toLowerCase().includes(normalizedSearch)
+            || companyName.toLowerCase().includes(normalizedSearch);
+
         const statusGroup = ["approved", "rejected", "pending"];
         const docTypeGroup = ["business_license", "id_card", "tax_certificate"];
 
@@ -121,14 +127,12 @@ export default function DocumentTable({ data, search, statusFilter, onView }) {
 
         if (statusFilter) {
             if (statusGroup.includes(statusFilter)) {
-                // Nếu nút được bấm thuộc nhóm Trạng thái
                 matchFilter = row.status === statusFilter;
             } else if (docTypeGroup.includes(statusFilter)) {
-                // Nếu nút được bấm thuộc nhóm Loại chứng chỉ
                 matchFilter = row.document_type === statusFilter;
             }
         }
-        
+
         return matchName && matchFilter;
     });
 
