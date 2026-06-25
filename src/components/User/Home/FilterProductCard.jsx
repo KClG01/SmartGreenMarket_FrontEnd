@@ -4,6 +4,8 @@ export default function FilterProductCard({
     id,
     name = "Sản phẩm",
     price = "0đ",
+    priceValue = 0,
+    unitKey = "kg",
     rating = 4.5,
     availableQuantity = 0,
     unit = "",
@@ -15,6 +17,8 @@ export default function FilterProductCard({
             id={id}
             name={name}
             price={price}
+            priceValue={priceValue}
+            unitKey={unitKey}
             unit={unit}
             availableQuantity={availableQuantity}
             inStock={inStock}

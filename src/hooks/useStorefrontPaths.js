@@ -14,6 +14,7 @@ export function useStorefrontPaths() {
         slug,
         entry: "/",
         home: prefix ? `${prefix}/trang-chu` : "/",
+        products: prefix ? `${prefix}/san-pham` : "/",
         product: (id) => (prefix ? `${prefix}/san-pham/${id}` : "/"),
         search: (query = "", extraParams = {}) => {
             const path = prefix ? `${prefix}/tim-kiem` : "/";

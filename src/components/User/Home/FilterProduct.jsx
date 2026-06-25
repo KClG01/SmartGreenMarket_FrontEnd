@@ -175,11 +175,6 @@ export default function FilterProduct() {
 
     return (
         <section id="kham-pha" className="mx-auto w-full max-w-[1280px] px-10 pt-12 pb-4">
-            <div className="mb-8">
-                <h2 className="text-2xl font-bold text-emerald-950">
-                    Khám phá sản phẩm
-                </h2>
-            </div>
 
             {error ? (
                 <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -189,12 +184,6 @@ export default function FilterProduct() {
 
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
                 <aside className="w-full shrink-0 rounded-2xl border border-emerald-100/80 bg-white shadow-[0_4px_24px_rgba(6,78,59,0.06)] lg:w-[280px]">
-                    <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-700 to-emerald-600 px-5 py-4">
-                        <h3 className="text-base font-bold text-white">Bộ lọc</h3>
-                        <p className="mt-0.5 text-xs text-emerald-100">
-                            Tìm nông sản tươi phù hợp
-                        </p>
-                    </div>
 
                     <div className="px-5">
                         <FilterSection title="Danh mục">
@@ -330,6 +319,8 @@ export default function FilterProduct() {
                                     categoryName={product.category_name}
                                     name={product.name}
                                     price={product.price}
+                                    priceValue={product.priceValue}
+                                    unitKey={product.unitKey}
                                     rating={product.rating}
                                     availableQuantity={product.available_quantity}
                                     unit={product.unit}
