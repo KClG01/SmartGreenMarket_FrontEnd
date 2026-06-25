@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../contexts/authProvider";
+import { accountService } from "../services/api/accountService";
 import {
     buyerProfileService,
     handleApiError,
@@ -63,25 +64,24 @@ export function useBuyerProfile() {
 
             setSaving(true);
             try {
-                let latestProfile = profile;
+                const payload = buildBuyerProfileUpdatePayload(form, profile);
+                const hasTextChanges = Object.keys(payload).length > 0;
+
+                if (!avatarFile && !hasTextChanges) {
+                    return { success: false, message: "Không có thay đổi để lưu." };
+                }
 
                 if (avatarFile) {
-                    const avatarData = await buyerProfileService.uploadAvatar(
-                        slug,
-                        avatarFile,
-                        form,
-                    );
-                    latestProfile = applyProfileResponse(avatarData);
+                    const formData = new FormData();
+                    formData.append("avatar", avatarFile);
+                    await accountService.updateAvatar(formData);
                 }
 
-                const payload = buildBuyerProfileUpdatePayload(form, latestProfile);
-                if (Object.keys(payload).length === 0) {
-                    return avatarFile
-                        ? { success: true }
-                        : { success: false, message: "Không có thay đổi để lưu." };
+                if (hasTextChanges) {
+                    await buyerProfileService.updateProfile(slug, payload);
                 }
 
-                const data = await buyerProfileService.updateProfile(slug, payload);
+                const data = await buyerProfileService.getProfile(slug);
                 applyProfileResponse(data);
                 return { success: true };
             } catch (err) {

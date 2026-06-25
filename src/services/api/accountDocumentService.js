@@ -1,9 +1,12 @@
 import axiosClient from "./axiosClient";
+import { normalizeListResponse } from "../../utils/adminDashboardUtils";
 
 export const accountDocumentService = {
   // --- ADMIN + SUPPLIER
   getAll: () =>
-    axiosClient.get("/account-documents/").then((res) => res.data.results),
+    axiosClient
+      .get("/account-documents/")
+      .then((res) => normalizeListResponse(res.data)),
 
   // [
   //   {
