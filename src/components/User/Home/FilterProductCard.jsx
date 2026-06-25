@@ -6,7 +6,7 @@ export default function FilterProductCard({
     price = "0đ",
     priceValue = 0,
     unitKey = "kg",
-    rating = 4.5,
+    rating = null,
     availableQuantity = 0,
     unit = "",
     inStock = true,
