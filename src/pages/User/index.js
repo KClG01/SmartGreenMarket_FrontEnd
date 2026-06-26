@@ -16,3 +16,4 @@ export { default as CheckoutPage } from "./CheckoutPage";
 export { default as OrderTrackingPage } from "./OrderTrackingPage";
 export { default as PoliciesPage } from "./PoliciesPage";
 export { default as SupportPage } from "./SupportPage";
+
