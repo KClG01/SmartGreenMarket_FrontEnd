@@ -6,7 +6,7 @@ import DetailOrderModal from "../../components/Supplier/Order/DetailOrderModal";
 import SupplierPageHeader, { SUPPLIER_PAGE_CLASS } from "../../components/Supplier/UI/SupplierPageHeader";
 import { orderService, parseOrderList } from "../../services/api/orderService";
 
-export default function OrderSupplierPage() {
+export default function ProductSupplierPage() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
