@@ -66,7 +66,7 @@ const buildColumns = (onView) => [
         selector: (row) => row.createdAt,
         sortable: true,
         center: true,
-        width: '150px',
+        width: '200px',
         cell: (row) => (
             <span className="font-bold text-sm font-semibold font-['Geist',sans-serif]">
                 {formatDateTime(row.createdAt)}
@@ -78,8 +78,7 @@ const buildColumns = (onView) => [
         selector: (row) => row.status,
         sortable: true,
         center: true,
-        
-        grow: 1,
+        width: "150px",
         cell: (row) => {
             const st = STATUS_CONFIG[row.status] ?? STATUS_CONFIG.pending;
             return (
@@ -91,7 +90,7 @@ const buildColumns = (onView) => [
     },
     {
     name: "Thao tác",
-    width: "250px",
+    width: "150px",
     center: true,
     cell: (row) => (
       <div className="flex items-center gap-1 pr-2">

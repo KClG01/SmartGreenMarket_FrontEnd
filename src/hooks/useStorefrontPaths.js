@@ -14,6 +14,12 @@ export function useStorefrontPaths() {
         slug,
         entry: "/",
         home: prefix ? `${prefix}/trang-chu` : "/",
+        products: prefix ? `${prefix}/san-pham` : "/",
+        productsWithCategory: (categoryId) => {
+            const base = prefix ? `${prefix}/san-pham` : "/";
+            if (categoryId == null || categoryId === "") return base;
+            return `${base}?category=${encodeURIComponent(categoryId)}`;
+        },
         product: (id) => (prefix ? `${prefix}/san-pham/${id}` : "/"),
         search: (query = "", extraParams = {}) => {
             const path = prefix ? `${prefix}/tim-kiem` : "/";
@@ -34,5 +40,10 @@ export function useStorefrontPaths() {
         orderStatus: prefix ? `${prefix}/theo-doi-don-hang` : "/",
         policies: prefix ? `${prefix}/chinh-sach` : "/",
         support: prefix ? `${prefix}/ho-tro` : "/",
+        about: prefix ? `${prefix}/ve-chung-toi` : "/",
+        aboutSection: (sectionId = "ve-chung-toi") => {
+            const base = prefix ? `${prefix}/ve-chung-toi` : "/";
+            return sectionId ? `${base}#${sectionId}` : base;
+        },
     };
 }
