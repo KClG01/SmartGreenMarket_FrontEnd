@@ -3,7 +3,7 @@ import {
   X, CheckCheck, Truck, PackageCheck,
   MapPin, Phone, User, Store, CreditCard,
   Calendar, CalendarClock, CheckCircle2, XCircle,
-  Printer, Loader2,
+  Printer, Loader2, Pencil,
 } from "lucide-react";
 
 import {
@@ -59,6 +59,10 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
   const [depositPct, setDepositPct]                 = useState("");
   const [depositErr, setDepositErr]                 = useState("");
 
+  // Delivery date override
+  const [deliveryDate, setDeliveryDate]             = useState("");
+  const [editingDelivery, setEditingDelivery]       = useState(false);
+
   // ── Fetch supplier info ─────────────────────────────────────────
   useEffect(() => {
     supplierService.getAll().then(setSupplier).catch(console.error);
@@ -81,15 +85,17 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
     setRejectFinalModal(false);
     setPrintModal(false);
     setLightboxImg(null);
-    setDepositPct("");
-    setDepositErr("");
+
     setDetailError("");
     setLoading(false);
     setRejectLoading(false);
     setShippingLoading(false);
     setVerifyDepositLoading(false);
     setVerifyFinalLoading(false);
-    setDetailFetched(false);
+    setDepositPct("");
+    setDepositErr("");
+    setDeliveryDate("");
+    setEditingDelivery(false);
 
     const incoming = parseOrderDetail(initialOrder);
     setOrder(incoming);
@@ -176,8 +182,10 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
   const confirmOrder = async () => {
     setLoading(true);
     try {
-      const updated = await orderService.confirmOrder(order.id, { deposit_percent: String(depositNum) });
-      setOrder(updated ?? { ...order, status: "confirmed", deposit_percent: String(depositNum) });
+      const payload = { deposit_percent: String(depositNum) };
+      if (deliveryDate) payload.requested_delivery_time = deliveryDate;
+      const updated = await orderService.confirmOrder(order.id, payload);
+      setOrder(updated ?? { ...order, status: "confirmed", deposit_percent: String(depositNum), ...(deliveryDate && { requested_delivery_time: deliveryDate }) });
       setConfirmModal(false);
       AppToaster.success("Đã xác nhận đơn hàng thành công");
       onUpdate?.();
@@ -320,7 +328,52 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
                 {fmtDate(order.created_at)}
               </MetaItem>
               <MetaItem icon={<CalendarClock size={14} className="text-emerald-700" />} label="Ngày giao dự kiến">
-                <span className="text-emerald-700 font-bold">{fmtDateShort(order.requested_delivery_time)}</span>
+                {isPending && editingDelivery ? (
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <input
+                      type="date"
+                      value={deliveryDate}
+                      min={new Date().toISOString().split("T")[0]}
+                      onChange={e => setDeliveryDate(e.target.value)}
+                      autoFocus
+                      className="px-2.5 py-1 text-sm border border-emerald-400 rounded-lg outline-none bg-white font-medium text-gray-900 focus:border-emerald-600 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setEditingDelivery(false)}
+                      className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
+                    >
+                      Xong
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className={deliveryDate ? "text-emerald-700 font-bold" : "text-emerald-700 font-bold"}>
+                      {deliveryDate
+                        ? new Date(deliveryDate).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+                        : fmtDateShort(order.requested_delivery_time)}
+                    </span>
+                    {deliveryDate && (
+                      <span className="text-[10px] text-amber-600 font-semibold bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
+                        đã sửa
+                      </span>
+                    )}
+                    {isPending && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!deliveryDate && order.requested_delivery_time)
+                            setDeliveryDate(order.requested_delivery_time.split("T")[0]);
+                          setEditingDelivery(true);
+                        }}
+                        className="p-0.5 rounded text-neutral-300 hover:text-emerald-600 transition-colors"
+                        title="Chỉnh ngày giao"
+                      >
+                        <Pencil size={11} />
+                      </button>
+                    )}
+                  </div>
+                )}
               </MetaItem>
               <MetaItem icon={<CheckCircle2 size={14} className="text-emerald-700" />} label="Xác nhận lúc">
                 {fmtDate(order.confirmed_at)}
@@ -613,6 +666,8 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
           approved={approved} rejected={rejected} total={total}
           depositPct={depositNum}
           totalAmount={order.total_amount}
+          deliveryDate={deliveryDate}
+          originalDeliveryDate={order.requested_delivery_time}
           loading={loading}
           onClose={() => setConfirmModal(false)}
           onConfirm={confirmOrder}
