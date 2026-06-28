@@ -19,7 +19,7 @@ const getOrderItemsQty = (row) => {
 
 // Status -> pill tone + label, matching the .pill.{g|a|b|gr|r} classes in the mockup
 const ORDER_STATUS_CONFIG = {
-  pending_supplier_confirmation: { label: "Chờ xác nhận", tone: "a" },
+  pending_supplier_confirmation: { label: "Chờ duyệt", tone: "a" },
   rejected: { label: "Từ chối", tone: "r" },
   confirmed: { label: "Đã xác nhận", tone: "b" },
   deposit_pending_verification: { label: "Chờ xác nhận cọc", tone: "a" },
@@ -35,7 +35,7 @@ const ORDER_STATUS_CONFIG = {
 // Tinh gọn danh sách bộ lọc theo yêu cầu
 const STATUS_FILTERS = [
   { key: "all", label: "Tất cả trạng thái" },
-  { key: "pending_supplier_confirmation", label: "Chờ xác nhận" },
+  { key: "pending_supplier_confirmation", label: "Chờ duyệt" },
   { key: "deposit_pending_verification", label: "Chờ xác nhận cọc" },
   { key: "final_payment_pending_verification", label: "Chờ thanh toán cuối" },
   { key: "completed", label: "Hoàn tất" },
