@@ -1,52 +1,73 @@
 import { useCallback, useRef, useState } from "react";
 
-const DRAG_THRESHOLD = 6;
+const DRAG_THRESHOLD = 8;
 
 export function useDragScroll() {
     const ref = useRef(null);
+    const isPointerDown = useRef(false);
     const isDragging = useRef(false);
     const didDrag = useRef(false);
     const startX = useRef(0);
     const scrollLeftStart = useRef(0);
+    const activePointerId = useRef(null);
     const [dragging, setDragging] = useState(false);
 
     const endDrag = useCallback(() => {
+        isPointerDown.current = false;
         isDragging.current = false;
         setDragging(false);
+        activePointerId.current = null;
     }, []);
 
     const onPointerDown = useCallback((event) => {
         const element = ref.current;
         if (!element || event.button !== 0) return;
 
-        isDragging.current = true;
+        if (event.target.closest("button")) {
+            return;
+        }
+
+        isPointerDown.current = true;
+        isDragging.current = false;
         didDrag.current = false;
         startX.current = event.clientX;
         scrollLeftStart.current = element.scrollLeft;
-        setDragging(true);
-        element.setPointerCapture(event.pointerId);
+        activePointerId.current = event.pointerId;
     }, []);
 
     const onPointerMove = useCallback((event) => {
-        if (!isDragging.current) return;
-
         const element = ref.current;
-        if (!element) return;
+        if (!element || !isPointerDown.current) return;
 
         const delta = event.clientX - startX.current;
-        if (Math.abs(delta) > DRAG_THRESHOLD) {
+
+        if (!isDragging.current) {
+            if (Math.abs(delta) <= DRAG_THRESHOLD) return;
+
+            isDragging.current = true;
             didDrag.current = true;
+            setDragging(true);
+
+            if (activePointerId.current != null) {
+                element.setPointerCapture(activePointerId.current);
+            }
         }
 
+        event.preventDefault();
         element.scrollLeft = scrollLeftStart.current - delta;
     }, []);
 
     const onPointerUp = useCallback(
         (event) => {
             const element = ref.current;
-            if (element?.hasPointerCapture(event.pointerId)) {
-                element.releasePointerCapture(event.pointerId);
+            if (
+                element
+                && activePointerId.current != null
+                && element.hasPointerCapture(activePointerId.current)
+            ) {
+                element.releasePointerCapture(activePointerId.current);
             }
+
             endDrag();
         },
         [endDrag],
@@ -67,8 +88,8 @@ export function useDragScroll() {
             onPointerDown,
             onPointerMove,
             onPointerUp,
-            onPointerLeave: endDrag,
-            onPointerCancel: endDrag,
+            onPointerLeave: onPointerUp,
+            onPointerCancel: onPointerUp,
             onClickCapture,
             onDragStart: (event) => event.preventDefault(),
         },

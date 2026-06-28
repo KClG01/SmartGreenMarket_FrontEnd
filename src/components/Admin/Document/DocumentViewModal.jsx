@@ -62,11 +62,9 @@ export default function DocumentViewModal({
 
                         <div>
                             <h2 className="text-lg font-bold text-neutral-900">
-                                {
-                                    DOCUMENT_TYPE_LABELS[
-                                        document.document_type
-                                    ]
-                                }
+                                {document.document_type_label
+                                    || DOCUMENT_TYPE_LABELS[document.document_type]
+                                    || document.document_type}
                             </h2>
                         </div>
 

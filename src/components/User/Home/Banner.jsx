@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useStorefrontPaths } from "../../../hooks/useStorefrontPaths";
 
 const SLIDES = [
     {
@@ -17,6 +19,7 @@ const SLIDES = [
 ];
 
 export default function Banner() {
+    const paths = useStorefrontPaths();
     const [current, setCurrent] = useState(0);
 
     useEffect(() => {
@@ -49,12 +52,12 @@ export default function Banner() {
                         <p className="mb-8 max-w-sm text-lg leading-7 text-white/85">
                             {slide.subtitle}
                         </p>
-                        <button
-                            type="button"
-                            className="hover:scale-105 cursor-pointer w-fit rounded-xl bg-emerald-800 px-7 py-3 font-medium text-white transition-colors hover:bg-emerald-700"
+                        <Link
+                            to={paths.products}
+                            className="hover:scale-105 w-fit rounded-xl bg-emerald-800 px-7 py-3 font-medium text-white no-underline transition-colors hover:bg-emerald-700"
                         >
                             Mua ngay
-                        </button>
+                        </Link>
                     </div>
                 </div>
             ))}
