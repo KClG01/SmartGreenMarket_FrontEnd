@@ -124,11 +124,6 @@ export const productService = {
     return res.data;
   },
 
-  deleteProduct: async (id) => {
-    const res = await axiosClient.delete(`/supplier-products/${id}`);
-    return res.data;
-  },
-
   verify: (id, data) => {
     const formData = new FormData();
     formData.append("status", data.status);
@@ -146,11 +141,9 @@ export const productService = {
     //     "rejection_reason": "string"
     //   }
   },
-  remove: (id) => {
-    return axiosClient
-      .delete(`/supplier-products/${id}/`)
-      .then((res) => res.data);
-  },
+
+  delete: (id) => {return axiosClient.delete(`/supplier-products/${id}/`).then((res) => res.data);},
+  //Chặn khi còn phiếu nhập đang xử lý hoặc đại lý đang bán. Admin hoặc NCC sở hữu sản phẩm.
 };
 
 // Xử lý bug
