@@ -21,7 +21,7 @@ import { ORDER_STEPS, STEP_INDEX, SUB_STATUS_LABEL, PAYMENT_STATUS } from "./con
 import { fmtPrice, fmtDate, fmtDateShort, getApiErrorMessage, buildPrintHtml } from "./utils";
 
 // Components
-import ItemRow               from "./components/ItemRow";
+import ItemList               from "./components/ItemList";
 import PaymentReceiptCard    from "./components/PaymentReceiptCard";
 import PrintPreviewModal     from "./components/PrintPreviewModal";
 import ConfirmOrderModal     from "./components/ConfirmOrderModal";
@@ -329,7 +329,7 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
               </MetaItem>
               <MetaItem icon={<CalendarClock size={14} className="text-emerald-700" />} label="Ngày giao dự kiến">
                 {isPending && editingDelivery ? (
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <span className="flex items-center gap-2 mt-0.5">
                     <input
                       type="date"
                       value={deliveryDate}
@@ -345,9 +345,9 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
                     >
                       Xong
                     </button>
-                  </div>
+                  </span>
                 ) : (
-                  <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="flex items-center gap-1.5 mt-0.5">
                     <span className={deliveryDate ? "text-emerald-700 font-bold" : "text-emerald-700 font-bold"}>
                       {deliveryDate
                         ? new Date(deliveryDate).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
@@ -372,7 +372,7 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
                         <Pencil size={11} />
                       </button>
                     )}
-                  </div>
+                  </span>
                 )}
               </MetaItem>
               <MetaItem icon={<CheckCircle2 size={14} className="text-emerald-700" />} label="Xác nhận lúc">
@@ -435,18 +435,29 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
               ) : total === 0 ? (
                 <div className="px-6 py-8 text-center text-sm text-neutral-400">Đơn hàng chưa có sản phẩm nào.</div>
               ) : (
-                <div className="divide-y divide-neutral-100">
-                  {items.map((item, idx) => (
-                    <ItemRow
-                      key={item.id ?? idx}
-                      item={item}
-                      canEdit={isPending}
-                      onApprove={() => setItemStatus(item.id, "approved")}
-                      onReject={() => setItemStatus(item.id, "rejected")}
-                      onReset={() => setItemStatus(item.id, "pending")}
-                    />
-                  ))}
-                </div>
+                <ItemList
+                  items={items}
+                  canEdit={isPending}
+                  statusOrder={order.status}
+                  onApprove={(id) => setItemStatus(id, "approved")}
+                  onReject={(id) => setItemStatus(id, "rejected")}
+                  onReset={(id) => setItemStatus(id, "pending")}
+                  onSaveQuantities={async (changes) => {
+                    // changes: [{ id, quantity }, ...]
+                    // TODO: orderService.updateItemQuantities chưa tồn tại — cần thêm hàm này
+                    // (gọi API thật của bạn để lưu số lượng mới cho các item trong `changes`)
+                    const updated = await orderService.updateItemQuantities(order.id, changes);
+                    setOrder((prev) => mergeOrderDetail(prev, updated) ?? {
+                      ...prev,
+                      items: prev.items.map((it) => {
+                        const change = changes.find((c) => String(c.id) === String(it.id));
+                        if (!change) return it;
+                        return { ...it, quantity: change.quantity, subtotal: change.quantity * Number(it.unit_price) };
+                      }),
+                    });
+                    AppToaster.success("Đã cập nhật số lượng");
+                  }}
+                />
               )}
 
               {/* Progress bar khi pending */}
