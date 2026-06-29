@@ -14,6 +14,7 @@ import {
   parseBuyerOrderList,
 } from "../../services/api/Buyer/buyerOrder";
 import { useDealerSlug } from "../../hooks/useStorefrontPaths";
+import { useOrderStatusNotifications } from "../../hooks/useOrderStatusNotifications";
 import { matchesStatusFilter, isActiveTrackingOrder } from "../../utils/orderUtils";
 
 const FILTER_TABS = [
@@ -24,6 +25,7 @@ const FILTER_TABS = [
 
 export default function OrderTrackingPage() {
   const dealerSlug = useDealerSlug();
+  const { markAsSeen } = useOrderStatusNotifications({ enabled: false });
 
   const [orders, setOrders] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
@@ -54,6 +56,12 @@ export default function OrderTrackingPage() {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  useEffect(() => {
+    if (!isLoading && !error) {
+      markAsSeen(orders);
+    }
+  }, [orders, isLoading, error, markAsSeen]);
 
   const activeOrders = useMemo(
     () => orders.filter((order) => isActiveTrackingOrder(order.status)),
