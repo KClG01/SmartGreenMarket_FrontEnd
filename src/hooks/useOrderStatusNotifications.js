@@ -4,7 +4,8 @@ import {
     buyerOrder,
     parseBuyerOrderList,
 } from "../services/api/Buyer/buyerOrder";
-import { isBuyerUser, getBuyerCartId } from "../utils/buyerAuthUtils";
+import { isBuyerUser } from "../utils/buyerAuthUtils";
+import { getBuyerCartId } from "../utils/cartUtils";
 import {
     detectOrderStatusUpdates,
     markOrderStatusesSeen,
