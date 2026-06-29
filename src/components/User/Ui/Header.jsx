@@ -5,6 +5,7 @@ import { useAuth } from "../../../contexts/authProvider";
 import { isBuyerUser } from "../../../utils/buyerAuthUtils";
 import { useCart } from "../../../contexts/cartProvider";
 import { useStorefrontPaths } from "../../../hooks/useStorefrontPaths";
+import { useOrderStatusNotifications } from "../../../hooks/useOrderStatusNotifications";
 
 function HeaderNavLink({ to, icon: Icon, label, title, badge }) {
     return (
@@ -44,6 +45,9 @@ export default function Header() {
     const [searchQuery, setSearchQuery] = useState("");
 
     const isLoggedIn = isBuyerUser(user);
+    const { updateCount: orderUpdateCount } = useOrderStatusNotifications({
+        enabled: isLoggedIn,
+    });
 
     const handleSearchSubmit = (event) => {
         event.preventDefault();
@@ -103,6 +107,18 @@ export default function Header() {
                                     icon={Newspaper}
                                     label="Đơn hàng"
                                     title="Theo dõi đơn hàng"
+                                    badge={
+                                        orderUpdateCount > 0 ? (
+                                            <span
+                                                className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-emerald-700"
+                                                aria-label={`${orderUpdateCount} đơn hàng có cập nhật trạng thái`}
+                                            >
+                                                {orderUpdateCount > 9
+                                                    ? "9+"
+                                                    : orderUpdateCount}
+                                            </span>
+                                        ) : null
+                                    }
                                 />
                                 <HeaderNavDivider />
                                 <HeaderNavLink
