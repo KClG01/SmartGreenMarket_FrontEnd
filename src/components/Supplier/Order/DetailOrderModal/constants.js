@@ -22,6 +22,9 @@ export const STEP_INDEX = {
   delivered:                                3,
   final_payment_pending_verification:       3,
   completed:                                4,
+  return_pending_review:                    4,
+  return_approved:                          4,
+  return_rejected:                          4,
   rejected:                                 -1,
   cancelled:                                -1,
 };
@@ -32,6 +35,9 @@ export const SUB_STATUS_LABEL = {
   deposit_paid:                         "Đã cọc",
   delivered:                            "Đã giao hàng",
   final_payment_pending_verification:   "Chờ TT cuối",
+  return_pending_review:                "Chờ duyệt trả hàng",
+  return_approved:                      "Đã duyệt trả hàng",
+  return_rejected:                      "Từ chối trả hàng",
 };
 
 // ─── PAYMENT ─────────────────────────────────────────────────────────────────

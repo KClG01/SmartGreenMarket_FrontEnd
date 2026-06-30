@@ -85,6 +85,7 @@ export function parseOrderDetail(response) {
     ...raw,
     items: extractOrderItems(raw).map(normalizeOrderItem),
     payments: Array.isArray(raw.payments) ? raw.payments : [],
+    returns: Array.isArray(raw.returns) ? raw.returns : (raw.returns ? [raw.returns] : []),
     status_histories: raw.status_histories ?? [],
   };
 }
@@ -98,6 +99,23 @@ export function findPendingPayment(payments, paymentType) {
   );
 }
 
+/** Yêu cầu trả hàng đang chờ NCC duyệt */
+export function findPendingReturnRequest(order) {
+  if (!order) return null;
+
+  const standalone = order.pending_return ?? order.active_return;
+  if (standalone?.id != null) return standalone;
+
+  const returns = order.returns ?? order.return_requests ?? [];
+  if (!Array.isArray(returns) || returns.length === 0) return null;
+
+  return (
+    returns.find((r) => r.status === "pending" || r.status === "pending_review") ??
+    returns.find((r) => r.approved == null && !r.reviewed_at) ??
+    returns[returns.length - 1]
+  );
+}
+
 export function mergeOrderDetail(prev, detail) {
   const full = parseOrderDetail(detail);
   if (!full) return prev ?? null;
@@ -105,6 +123,7 @@ export function mergeOrderDetail(prev, detail) {
     ...full,
     items: full.items?.length ? full.items : (prev?.items ?? []),
     payments: Array.isArray(full.payments) ? full.payments : (prev?.payments ?? []),
+    returns: Array.isArray(full.returns) ? full.returns : (prev?.returns ?? []),
   };
 }
 
