@@ -35,6 +35,9 @@ const ORDER_STATUS_CONFIG = {
   final_payment_pending_verification: { label: "Chờ thanh toán cuối", tone: "a" },
   completed: { label: "Hoàn tất", tone: "g" },
   cancelled: { label: "Đã hủy", tone: "gr" },
+  return_pending_review: { label: "Chờ duyệt trả hàng", tone: "a" },
+  return_approved: { label: "Đã duyệt trả hàng", tone: "g" },
+  return_rejected: { label: "Từ chối trả hàng", tone: "r" },
 };
 
 // Tinh gọn danh sách bộ lọc theo yêu cầu
@@ -46,6 +49,12 @@ const STATUS_FILTERS = [
   { key: "final_payment_pending_verification", label: "Chờ thanh toán cuối" },
   { key: "completed", label: "Hoàn tất" },
   { key: "cancelled", label: "Hủy / Từ chối", statuses: ["cancelled", "rejected"] },
+  { key: "return_pending_review", label: "Chờ duyệt trả hàng" },
+  {
+    key: "return_reviewed",
+    label: "Duyệt / từ chối trả hàng",
+    statuses: ["return_approved", "return_rejected"],
+  },
 ];
 
 // Pill tones copied 1:1 from the mockup's :root variables.
