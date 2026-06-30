@@ -36,6 +36,7 @@ const ORDER_STATUS_CONFIG = {
 const STATUS_FILTERS = [
   { key: "all", label: "Tất cả trạng thái" },
   { key: "pending_supplier_confirmation", label: "Chờ duyệt" },
+  {key: "confirmed", label: "Đã xác nhận", tone: "b" },
   { key: "deposit_pending_verification", label: "Chờ xác nhận cọc" },
   { key: "final_payment_pending_verification", label: "Chờ thanh toán cuối" },
   { key: "completed", label: "Hoàn tất" },
