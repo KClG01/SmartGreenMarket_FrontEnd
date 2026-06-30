@@ -55,23 +55,51 @@ export const ORDER_STATUS_CFG = {
   delivered: { label: "Đã giao", bg: "bg-teal-100", text: "text-teal-700" },
   completed: { label: "Hoàn tất", bg: "bg-emerald-100", text: "text-emerald-700" },
   cancelled: { label: "Đã hủy", bg: "bg-red-50", text: "text-red-500" },
+  return_requested: { label: "Yêu cầu trả hàng", bg: "bg-amber-100", text: "text-amber-700" },
+  return_approved: { label: "Đã duyệt trả hàng", bg: "bg-teal-100", text: "text-teal-700" },
+  return_rejected: { label: "Từ chối trả hàng", bg: "bg-red-100", text: "text-red-600" },
+  returned: { label: "Đã trả hàng", bg: "bg-violet-100", text: "text-violet-700" },
 };
+
+/** Các trạng thái thuộc luồng trả hàng */
+export const RETURN_ORDER_STATUSES = [
+  "return_requested",
+  "return_approved",
+  "return_rejected",
+  "returned",
+];
+
+export const RETURN_SUB_FILTERS = [
+  { key: "all", label: "Tất cả" },
+  { key: "return_requested", label: "Gửi yêu cầu" },
+  { key: "return_approved", label: "Duyệt" },
+  { key: "return_rejected", label: "Từ chối" },
+  { key: "returned", label: "Đã trả" },
+];
 
 /** Các trạng thái không hiển thị trên trang theo dõi đơn hàng */
 export const TERMINAL_ORDER_STATUSES = ["completed", "cancelled"];
 
 export function isActiveTrackingOrder(status) {
-  return !TERMINAL_ORDER_STATUSES.includes(status);
+  return !TERMINAL_ORDER_STATUSES.includes(status) && !RETURN_ORDER_STATUSES.includes(status);
 }
 
 export function isHistoryOrder(status) {
-  return TERMINAL_ORDER_STATUSES.includes(status);
+  return TERMINAL_ORDER_STATUSES.includes(status) || RETURN_ORDER_STATUSES.includes(status);
 }
 
-export function matchesHistoryStatusFilter(orderStatus, filterKey) {
+export function isReturnOrder(status) {
+  return RETURN_ORDER_STATUSES.includes(status);
+}
+
+export function matchesHistoryStatusFilter(orderStatus, filterKey, returnSubFilter = "all") {
   if (filterKey === "all") return isHistoryOrder(orderStatus);
   if (filterKey === "completed") return orderStatus === "completed";
   if (filterKey === "cancelled") return orderStatus === "cancelled";
+  if (filterKey === "return") {
+    if (returnSubFilter === "all") return isReturnOrder(orderStatus);
+    return orderStatus === returnSubFilter;
+  }
   return false;
 }
 
@@ -155,6 +183,14 @@ export function matchesStatusFilter(orderStatus, filterKey) {
   if (filterKey === "all") return true;
   const allowed = STATUS_FILTER_MAP[filterKey];
   return allowed ? allowed.includes(orderStatus) : orderStatus === filterKey;
+}
+
+export function canCancelBuyerOrder(status) {
+  return status === "pending";
+}
+
+export function canReturnBuyerOrder(status) {
+  return status === "completed";
 }
 
 export const getStatusCfg = (status) =>
