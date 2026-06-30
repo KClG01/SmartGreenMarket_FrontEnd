@@ -7,6 +7,8 @@ import OrderListLoading from "../../components/User/OrderTracking/OrderListLoadi
 import OrderListError from "../../components/User/OrderTracking/OrderListError";
 import OrderListEmpty from "../../components/User/OrderTracking/OrderListEmpty";
 import OrderDetailModal from "../../components/User/OrderTracking/OrderDetailModal";
+import CancelOrderModal from "../../components/User/OrderTracking/CancelOrderModal";
+import ReturnOrderModal from "../../components/User/OrderTracking/ReturnOrderModal";
 
 import {
   buyerOrder,
@@ -32,6 +34,8 @@ export default function OrderTrackingPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [returnTarget, setReturnTarget] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     if (!dealerSlug) {
@@ -95,6 +99,19 @@ export default function OrderTrackingPage() {
     setSelectedOrderId(null);
   }, []);
 
+  const handleCancelRequest = useCallback((order) => {
+    setCancelTarget(order);
+  }, []);
+
+  const handleReturnRequest = useCallback((order) => {
+    setReturnTarget(order);
+  }, []);
+
+  const handleActionSuccess = useCallback(() => {
+    fetchOrders();
+    setSelectedOrderId(null);
+  }, [fetchOrders]);
+
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-4xl">
@@ -129,6 +146,8 @@ export default function OrderTrackingPage() {
                 key={order.id}
                 order={order}
                 onViewDetail={handleViewDetail}
+                onCancelOrder={handleCancelRequest}
+                onReturnOrder={handleReturnRequest}
               />
             ))}
           </div>
@@ -141,6 +160,24 @@ export default function OrderTrackingPage() {
         isOpen={selectedOrderId != null}
         onClose={handleCloseDetail}
         onOrderUpdated={fetchOrders}
+        onCancelOrder={handleCancelRequest}
+        onReturnOrder={handleReturnRequest}
+      />
+
+      <CancelOrderModal
+        isOpen={cancelTarget != null}
+        onClose={() => setCancelTarget(null)}
+        dealerSlug={dealerSlug}
+        order={cancelTarget}
+        onSuccess={handleActionSuccess}
+      />
+
+      <ReturnOrderModal
+        isOpen={returnTarget != null}
+        onClose={() => setReturnTarget(null)}
+        dealerSlug={dealerSlug}
+        order={returnTarget}
+        onSuccess={handleActionSuccess}
       />
     </div>
   );
