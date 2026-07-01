@@ -42,6 +42,18 @@ export const productMasterService = {
 //             "slug": "nQwKcNeL6MihLcQjUighWP7hFK1P3b8GXicfNzjJNptpABymYLGuUAJ",
 //             "default_unit": "string",
 //             "description": "string",
+//              "seasons": [
+          //   {
+          //     "id": 0,
+          //     "code": "UBFE",
+          //     "name": "string",
+          //     "description": "string",
+          //     "start_month": 32767,
+          //     "end_month": 32767,
+          //     "sort_order": 2147483647,
+          //     "status": "active"
+          //   }
+          // ],
 //             "status": "active",
 //             "sort_order": 2147483647
 //           }
@@ -67,6 +79,18 @@ export const productMasterService = {
 //     "slug": "iQtkXTHgoVcZFmIp15YD29aDwGNTbU72GT-z-jSrYSZsY2gilUf20aJGefDX5-suJzBc6S8BtUbYIT_ssvbH1CGIqujQnw",
 //     "default_unit": "string",
 //     "description": "string",
+//      "seasons": [
+//   {
+//     "id": 0,
+//     "code": "UBFE",
+//     "name": "string",
+//     "description": "string",
+//     "start_month": 32767,
+//     "end_month": 32767,
+//     "sort_order": 2147483647,
+//     "status": "active"
+//   }
+// ],
 //     "status": "active",
 //     "sort_order": 2147483647
 //   }
@@ -81,6 +105,10 @@ export const productMasterService = {
   //   "name": "Cà chua",
   //   "default_unit": "kg",
   //   "description": "Cà chua loại phổ thông",
+  // "season_ids": [
+  //   1,
+  //   2
+  // ],
   //   "sort_order": 0
   // }
 
@@ -94,6 +122,10 @@ export const productMasterService = {
   //   "name": "string",
   //   "default_unit": "string",
   //   "description": "string",
+  //   "season_ids": [
+  //     1,
+  //     2
+  //   ],
   //   "status": "active",
   //   "sort_order": 2147483647
   // }
