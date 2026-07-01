@@ -21,7 +21,7 @@ import { HomePage, ProductDetailPage, ProductsPage, CartPage, OrderPage, Payment
 //Supplier Pages
 import { OrderSupplierPage, ProductSupplierPage, CertificationSupplierPage, RegisterPage, SupplierLoginPage, SupplierInfoPage, CategorySupplierPage, CultivationSupplierPage, DashboardSupplierPage, NotFound } from "./pages/Supplier";
 //Admin Pages
-import { AdminLoginPage, AdminDashboardPage, SettingPage, SupplierPage, CategoryPage, ProductPage, ProductMasterPage, CertificationPage, DocumentPage, NotificationPage, DealerPage, } from "./pages/Admin";
+import { AdminLoginPage, AdminDashboardPage, SettingPage, SupplierPage, CategoryPage, ProductPage, ProductMasterPage, SeasonPage, CertificationPage, DocumentPage, NotificationPage, DealerPage, } from "./pages/Admin";
 //Dealer Pages
 import { RegisterDealerPage, DealerLoginPage, DealerDashboardPage, DealerInventoryPage, DealerSupplierPage, DealerCategoryPage, DealerSalesOrderPage, DealerPurchaseOrderPage, DealerCreatePurchaseOrderPage, DealerPurchaseOrderDetailPage, DealerDraftOrderPreviewPage, DealerSupplierDetailPage, DealerCategoryDetail, DealerInfoPage, DealerCustomerPage, DealerProductManagementPage, DealerProductDetailPage } from "./pages/Dealer";
 export default function App() {
@@ -87,6 +87,7 @@ export default function App() {
                             <Route path="nha-cung-cap" element={<SupplierPage />} />
                             <Route path="danh-muc" element={<CategoryPage />} />
                             <Route path="san-pham-chuan" element={<ProductMasterPage />} />
+                            <Route path="mua-he" element={<SeasonPage />} />
                             <Route path="san-pham" element={<ProductPage />} />
                             <Route path="chung-chi" element={<CertificationPage />} />
                             <Route path="giay-to" element={<DocumentPage />} />
