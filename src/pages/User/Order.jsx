@@ -18,11 +18,18 @@ import {
     handleApiError as handleOrderApiError,
 } from "../../services/api/Buyer/buyerOrder";
 import {
+    buyerVoucherService,
+    handleApiError as handleVoucherApiError,
+} from "../../services/api/Buyer/buyerVoucherService";
+import {
     buildCreateOrderPayload,
+    buildVoucherApplyPayload,
     CHECKOUT_SHIPPING_FEE,
     findFirstAvailableDeliverySelection,
     isDeliverySlotAvailable,
+    parseAvailableVouchers,
     parseDeliverySlots,
+    parseVoucherApplyResult,
 } from "../../utils/buyerOrderUtils";
 
 export default function OrderPage() {
@@ -57,6 +64,11 @@ export default function OrderPage() {
     const [selectedSlot, setSelectedSlot] = useState("");
     const [note, setNote] = useState("");
     const [voucherCode, setVoucherCode] = useState("");
+    const [availableVouchers, setAvailableVouchers] = useState([]);
+    const [vouchersLoading, setVouchersLoading] = useState(true);
+    const [applyingVoucher, setApplyingVoucher] = useState(false);
+    const [appliedVoucher, setAppliedVoucher] = useState(null);
+    const [voucherError, setVoucherError] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [pageError, setPageError] = useState("");
     const [addressModalOpen, setAddressModalOpen] = useState(false);
@@ -103,6 +115,17 @@ export default function OrderPage() {
 
     const selectedDeliverySlotName = selectedDeliverySlot?.name ?? "";
     const selectedDeliverySlotTime = selectedDeliverySlot?.timeLabel ?? "";
+
+    const discount = appliedVoucher?.discountAmount ?? 0;
+
+    const checkoutItemsKey = useMemo(
+        () =>
+            checkoutItems
+                .map((item) => `${item.id}:${item.quantity}`)
+                .sort()
+                .join("|"),
+        [checkoutItems],
+    );
 
     useEffect(() => {
         if (checkoutItems.length === 0) return;
@@ -158,6 +181,40 @@ export default function OrderPage() {
         };
     }, [paths.slug]);
 
+    useEffect(() => {
+        if (!paths.slug) {
+            setVouchersLoading(false);
+            return;
+        }
+
+        let cancelled = false;
+
+        buyerVoucherService
+            .getAll({ dealer_slug: paths.slug })
+            .then((data) => {
+                if (cancelled) return;
+                setAvailableVouchers(parseAvailableVouchers(data));
+            })
+            .catch((err) => {
+                if (!cancelled) {
+                    console.error("Failed to load vouchers:", err);
+                    setAvailableVouchers([]);
+                }
+            })
+            .finally(() => {
+                if (!cancelled) setVouchersLoading(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [paths.slug]);
+
+    useEffect(() => {
+        setAppliedVoucher(null);
+        setVoucherError("");
+    }, [checkoutItemsKey]);
+
     const handleSelectDate = (date) => {
         setSelectedDate(date);
         const entry = deliveryDates.find((item) => item.date === date);
@@ -166,6 +223,69 @@ export default function OrderPage() {
     };
 
     const handleCreateAddress = async (form) => createAddress(form);
+
+    const handleVoucherCodeChange = (value) => {
+        setVoucherCode(value);
+        if (appliedVoucher && value.trim() !== appliedVoucher.code) {
+            setAppliedVoucher(null);
+        }
+        if (voucherError) setVoucherError("");
+    };
+
+    const handleApplyVoucher = async (code = voucherCode) => {
+        const trimmedCode = String(code ?? "").trim();
+        if (!trimmedCode || applyingVoucher) return;
+
+        setApplyingVoucher(true);
+        setVoucherError("");
+
+        try {
+            const payload = buildVoucherApplyPayload(
+                trimmedCode,
+                checkoutItems,
+                paths.slug,
+            );
+            const result = await buyerVoucherService.apply(payload);
+            const parsed = parseVoucherApplyResult(result, trimmedCode);
+
+            if (!parsed || parsed.valid === false) {
+                throw new Error(parsed?.message || "Không thể xác thực voucher");
+            }
+
+            if (!parsed.code && !parsed.discountAmount) {
+                throw new Error("Không thể xác thực voucher");
+            }
+
+            setVoucherCode(parsed.code || trimmedCode);
+            setAppliedVoucher({
+                ...parsed,
+                code: parsed.code || trimmedCode,
+            });
+            appToast.success("Áp dụng voucher thành công");
+        } catch (err) {
+            const message = handleVoucherApiError(
+                err,
+                "Mã voucher không hợp lệ hoặc không áp dụng được",
+            );
+            setVoucherError(message);
+            setAppliedVoucher(null);
+            appToast.warning(message);
+        } finally {
+            setApplyingVoucher(false);
+        }
+    };
+
+    const handleSelectVoucher = (voucher) => {
+        if (!voucher?.code) return;
+        setVoucherCode(voucher.code);
+        handleApplyVoucher(voucher.code);
+    };
+
+    const handleRemoveVoucher = () => {
+        setAppliedVoucher(null);
+        setVoucherCode("");
+        setVoucherError("");
+    };
 
     const canSubmit =
         checkoutItems.length > 0 &&
@@ -193,6 +313,7 @@ export default function OrderPage() {
                 deliveryDate: selectedDate,
                 deliverySlot: selectedSlot,
                 note,
+                voucherCode: appliedVoucher?.code ?? voucherCode,
             });
 
             const order = await buyerOrder.create(paths.slug, payload);
@@ -317,13 +438,21 @@ export default function OrderPage() {
                 <div className="space-y-4">
                     <OrderVoucherSection
                         voucherCode={voucherCode}
-                        onVoucherCodeChange={setVoucherCode}
-                        disabled
+                        onVoucherCodeChange={handleVoucherCodeChange}
+                        appliedVoucher={appliedVoucher}
+                        availableVouchers={availableVouchers}
+                        loading={vouchersLoading}
+                        applying={applyingVoucher}
+                        error={voucherError}
+                        disabled={submitting}
+                        onApply={() => handleApplyVoucher()}
+                        onRemove={handleRemoveVoucher}
+                        onSelectVoucher={handleSelectVoucher}
                     />
                     <PaymentSummaryCard
                         subtotal={subtotal}
                         shippingFee={CHECKOUT_SHIPPING_FEE}
-                        discount={0}
+                        discount={discount}
                         submitting={submitting}
                         disabled={!canSubmit}
                         onPay={handleOpenConfirm}
@@ -341,6 +470,7 @@ export default function OrderPage() {
                 itemCount={checkoutItems.length}
                 subtotal={subtotal}
                 shippingFee={CHECKOUT_SHIPPING_FEE}
+                discount={discount}
                 deliveryLabel={selectedDeliveryDate?.label ?? ""}
                 deliverySlotName={selectedDeliverySlotName}
                 deliverySlotTime={selectedDeliverySlotTime}
