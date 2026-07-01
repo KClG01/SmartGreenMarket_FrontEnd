@@ -39,6 +39,7 @@ export const NAV_SECTIONS = [
 
 // Header dùng hàm này để hiện tên trang hiện tại (ví dụ "Chứng nhận") cạnh nút menu
 export function getPageTitle(pathname) {
+    if (pathname.startsWith("/nha-cung-cap/tat-ca-thong-bao")) return "Thông báo";
     for (const section of NAV_SECTIONS) {
         for (const item of section.items) {
             const matches = item.end ? pathname === item.to : pathname.startsWith(item.to);
