@@ -70,6 +70,10 @@ export default function CategoryViewModal({
     const isPending = category.status === "pending";
     const isActive = category.status === "active";
     const isInactive = category.status === "inactive";
+    const isRejected = category.status === "rejected";
+
+    // Nút xóa chỉ hiển thị khi danh mục ở trạng thái inactive hoặc rejected
+    const canDelete = isInactive || isRejected;
 
     const openReject = ({ title, message, action }) => {
         setRejectConfig({ title, message, action });
@@ -280,12 +284,13 @@ export default function CategoryViewModal({
                                         Cập nhật
                                     </button>
 
-                                    <button
+                                    {isActive ? (
+                                        <button
                                         type="button"
                                         disabled={loading}
                                         onClick={() =>
                                             openConfirm({
-                                                title: "Xóa danh mục hệ thống",
+                                                title: "Xóa danh mục",
                                                 message: `Bạn có chắc chắn muốn xóa "${category.name}"? Hành động này không thể hoàn tác.`,
                                                 confirmText: "Xóa",
                                                 variant: "danger",
@@ -296,24 +301,6 @@ export default function CategoryViewModal({
                                     >
                                         Xóa
                                     </button>
-
-                                    {isActive ? (
-                                        <button
-                                            type="button"
-                                            disabled={loading}
-                                            onClick={() =>
-                                                openConfirm({
-                                                    title: "Khóa danh mục",
-                                                    message: `Bạn có chắc chắn muốn khóa "${category.name}" không?`,
-                                                    confirmText: "Khóa",
-                                                    variant: "warning",
-                                                    action: () => onLock(category),
-                                                })
-                                            }
-                                            className="cursor-pointer rounded-xl bg-gray-500 px-6 py-2.5 font-semibold text-white hover:bg-gray-400 disabled:opacity-50"
-                                        >
-                                            Khóa
-                                        </button>
                                     ) : null}
 
                                     {isInactive ? (
@@ -335,6 +322,26 @@ export default function CategoryViewModal({
                                         </button>
                                     ) : null}
                                 </>
+                            ) : null}
+
+                            {/* Nút Xóa — hiển thị cho mọi scope khi inactive hoặc rejected */}
+                            {!isEditing && canDelete ? (
+                                <button
+                                    type="button"
+                                    disabled={loading}
+                                    onClick={() =>
+                                        openConfirm({
+                                            title: "Xóa danh mục",
+                                            message: `Bạn có chắc chắn muốn xóa "${category.name}"? Hành động này không thể hoàn tác.`,
+                                            confirmText: "Xóa",
+                                            variant: "danger",
+                                            action: () => onDelete(category),
+                                        })
+                                    }
+                                    className="cursor-pointer rounded-xl bg-red-600 px-6 py-2.5 font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                                >
+                                    Xóa
+                                </button>
                             ) : null}
 
                             {!isEditing && isCustomScope && isPending ? (
@@ -372,19 +379,21 @@ export default function CategoryViewModal({
 
                             {!isEditing && isCustomScope && isActive ? (
                                 <button
-                                    onClick={() =>
-                                        openConfirm({
-                                            title: "Khóa danh mục",
-                                            message: `Bạn có chắc chắn muốn khóa "${category.name}" không?`,
-                                            confirmText: "Khóa",
-                                            variant: "warning",
-                                            action: () => onLock(category),
-                                        })
-                                    }
-                                    className="cursor-pointer rounded-xl bg-gray-500 px-6 py-2.5 font-semibold text-white hover:bg-gray-400"
-                                >
-                                    Khóa
-                                </button>
+                                type="button"
+                                disabled={loading}
+                                onClick={() =>
+                                    openConfirm({
+                                        title: "Xóa danh mục",
+                                        message: `Bạn có chắc chắn muốn xóa "${category.name}"? Hành động này không thể hoàn tác.`,
+                                        confirmText: "Xóa",
+                                        variant: "danger",
+                                        action: () => onDelete(category),
+                                    })
+                                }
+                                className="cursor-pointer rounded-xl bg-red-600 px-6 py-2.5 font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                            >
+                                Xóa
+                            </button>
                             ) : null}
 
                             {!isEditing && isCustomScope && isInactive ? (

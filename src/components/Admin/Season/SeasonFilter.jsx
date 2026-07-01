@@ -1,17 +1,17 @@
 import FilterDropdown from "../UI/FilterDropdown";
 
-export const PRODUCT_MASTER_FILTER_OPTIONS = [
+export const SEASON_FILTER_OPTIONS = [
     { label: "Tất cả", value: "" },
     { label: "Hoạt động", value: "active" },
     { label: "Khóa", value: "inactive" },
 ];
 
-export default function ProductMasterFilter(props) {
+export default function SeasonFilter(props) {
     return (
         <FilterDropdown
             {...props}
             label="Lọc trạng thái"
-            options={PRODUCT_MASTER_FILTER_OPTIONS}
+            options={SEASON_FILTER_OPTIONS}
         />
     );
 }

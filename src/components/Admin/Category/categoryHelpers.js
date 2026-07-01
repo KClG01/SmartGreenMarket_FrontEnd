@@ -3,9 +3,26 @@ export const CATEGORY_SCOPE = {
     CUSTOM: "custom",
 };
 
+const CATEGORY_STATUS_FILTERS = ["active", "rejected", "pending", "inactive"];
+const CATEGORY_SCOPE_FILTERS = ["system", "custom"];
+
+export function buildCategoryListParams(statusFilter) {
+    if (!statusFilter) return {};
+
+    if (CATEGORY_STATUS_FILTERS.includes(statusFilter)) {
+        return { status: statusFilter };
+    }
+
+    if (CATEGORY_SCOPE_FILTERS.includes(statusFilter)) {
+        return { scope: statusFilter };
+    }
+
+    return {};
+}
+
 export const SCOPE_LABELS = {
     system: "Hệ thống",
-    custom: "Riêng (Dealer/Supplier)",
+    custom: "Người dùng đăng ký",
 };
 
 export function formatCategoryRow(category) {
