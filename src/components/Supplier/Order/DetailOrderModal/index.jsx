@@ -11,11 +11,12 @@ import {
   parseOrderDetail,
   findPendingPayment,
   findPendingReturnRequest,
+  canReviewReturnRequest,
   mergeOrderDetail,
   sortPaymentsForDisplay,
   canVerifyPayment,
+  buildConfirmOrderPayload,
 } from "../../../../services/api/orderService";
-import { purchaseOrderService } from "../../../../services/api/purchaseOrderService";
 import { supplierService } from "../../../../services/api/suppilerService";
 import { toast } from "sonner";
 
@@ -48,6 +49,7 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
   const [rejectDepositModal, setRejectDepositModal] = useState(false);
   const [rejectFinalModal, setRejectFinalModal]     = useState(false);
   const [rejectReturnModal, setRejectReturnModal]   = useState(false);
+  const [rejectItemModal, setRejectItemModal]       = useState(null);
   const [printModal, setPrintModal]                 = useState(false);
   const [lightboxImg, setLightboxImg]               = useState(null);
 
@@ -88,6 +90,7 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
     setRejectDepositModal(false);
     setRejectFinalModal(false);
     setRejectReturnModal(false);
+    setRejectItemModal(null);
     setPrintModal(false);
     setLightboxImg(null);
 
@@ -151,15 +154,19 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
   const rejected     = items.filter(i => i.item_status === "rejected").length;
   const processed    = approved + rejected;
   const allDone      = processed === total && total > 0;
+  const rejectedMissingReason = items.filter(
+    (i) => i.item_status === "rejected" && !(i.reject_reason ?? i.rejection_reason ?? "").trim(),
+  ).length;
   const isPending    = order.status === "pending_supplier_confirmation";
   const isProcessing = order.status === "processing";
   const depositNum   = parseFloat(depositPct);
   const depositValid = !isNaN(depositNum) && depositNum >= 10 && depositNum <= 50;
-  const canConfirm   = isPending && allDone && approved > 0 && depositValid;
+  const canConfirm   = isPending && allDone && approved > 0 && depositValid && rejectedMissingReason === 0;
 
   const isDepositPendingVerify = order.status === "deposit_pending_verification";
   const isFinalPendingVerify   = order.status === "final_payment_pending_verification";
-  const isReturnPendingReview  = order.status === "return_pending_review";
+  const isReturnPendingReview  = canReviewReturnRequest(order);
+  const canEditDelivery        = isPending;
   const needsPaymentVerify     = isDepositPendingVerify || isFinalPendingVerify;
   const pendingReturnRequest   = findPendingReturnRequest(order);
   const sortedPayments         = sortPaymentsForDisplay(order.payments);
@@ -168,6 +175,8 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
 
   const stepIdx       = STEP_INDEX[order.status] ?? 0;
   const isTerminalBad = order.status === "rejected" || order.status === "cancelled";
+  const hasConfirmedDelivery = Boolean(order.confirmed_delivery_time);
+  const confirmedDeliveryDisplay = hasConfirmedDelivery ? fmtDateShort(order.confirmed_delivery_time) : null;
 
   // ── Helpers ──────────────────────────────────────────────────────
   const refreshOrderDetail = async () => {
@@ -180,8 +189,30 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
   const setItemStatus = (id, status, reason = "") =>
     setOrder(prev => ({
       ...prev,
-      items: prev.items.map(i => i.id === id ? { ...i, item_status: status, reject_reason: reason } : i),
+      items: prev.items.map(i => i.id === id ? {
+        ...i,
+        item_status: status,
+        reject_reason: status === "rejected" ? reason : "",
+        rejection_reason: status === "rejected" ? reason : "",
+      } : i),
     }));
+
+  const applyItemQuantities = (changes) => {
+    setOrder((prev) => ({
+      ...prev,
+      items: prev.items.map((it) => {
+        const change = changes.find((c) => String(c.id) === String(it.id));
+        if (!change) return it;
+        const qty = String(change.quantity);
+        const unitPrice = Number(it.unit_price);
+        return {
+          ...it,
+          quantity: qty,
+          subtotal: String(Number(qty) * unitPrice),
+        };
+      }),
+    }));
+  };
 
   const approveAll = () =>
     setOrder(prev => ({ ...prev, items: prev.items.map(i => ({ ...i, item_status: "approved", reject_reason: "" })) }));
@@ -191,7 +222,7 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
     setLoading(true);
     try {
       const resolvedDate = deliveryDate
-        ? new Date(deliveryDate).toISOString()
+        ? new Date(`${deliveryDate}T00:00:00`).toISOString()
         : order.requested_delivery_time;
 
       if (!resolvedDate) {
@@ -200,13 +231,15 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
         return;
       }
 
-      const payload = {
-        deposit_percent: String(depositNum),
-        confirmed_delivery_time: resolvedDate,
-      };
+      const payload = buildConfirmOrderPayload({
+        items,
+        depositPercent: depositNum,
+        confirmedDeliveryTime: resolvedDate,
+        note: "",
+      });
 
       const updated = await orderService.confirmOrder(order.id, payload);
-      setOrder(updated ?? {
+      setOrder((prev) => mergeOrderDetail(prev, updated) ?? updated ?? {
         ...order,
         status: "confirmed",
         deposit_percent: String(depositNum),
@@ -221,6 +254,15 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
     } finally {
       setLoading(false);
     }
+  };
+
+  const saveDeliveryDate = () => {
+    if (!deliveryDate) {
+      toast.error("Vui lòng chọn ngày giao hàng");
+      return;
+    }
+    setEditingDelivery(false);
+    toast.success("Đã chọn ngày giao — sẽ gửi khi xác nhận đơn hàng");
   };
 
   const rejectOrder = async (rejectionReason) => {
@@ -285,10 +327,11 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
 
     setReviewReturnLoading(true);
     try {
-      await purchaseOrderService.reviewReturn(order.id, returnId, {
+      const updated = await orderService.reviewReturn(order.id, returnId, {
         approved,
         review_note: reviewNote.trim(),
       });
+      setOrder((prev) => mergeOrderDetail(prev, updated) ?? prev);
       await refreshOrderDetail();
       setRejectReturnModal(false);
       toast.success(approved ? "Đã duyệt yêu cầu trả hàng" : "Đã từ chối yêu cầu trả hàng");
@@ -324,6 +367,20 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
               <Printer size={13} /> In đơn
             </button>
 
+            {hasConfirmedDelivery && !isTerminalBad && (
+              <div
+                className="hidden sm:flex flex-col items-center px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 shrink-0 min-w-[108px]"
+                title="Ngày giao NCC cam kết khi xác nhận phiếu"
+              >
+                <span className="text-[9px] font-semibold text-emerald-600 uppercase tracking-wide leading-none">
+                  Giao cam kết
+                </span>
+                <span className="text-sm font-extrabold text-emerald-800 leading-tight mt-0.5 whitespace-nowrap">
+                  {confirmedDeliveryDisplay}
+                </span>
+              </div>
+            )}
+
             <div className="hidden sm:flex items-center gap-1 shrink-0">
               {isTerminalBad ? (
                 <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
@@ -340,6 +397,8 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
                   const done   = idx < stepIdx;
                   const active = idx === stepIdx;
                   const subLabel = active ? SUB_STATUS_LABEL[order.status] : null;
+                  const showCommittedDelivery =
+                    step.key === "confirmed" && hasConfirmedDelivery && stepIdx >= 1;
                   return (
                     <div key={step.key} className="flex items-center gap-1">
                       <div className="flex flex-col items-center gap-0.5">
@@ -350,6 +409,14 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
                         }`}>
                           <Icon size={11} />{step.label}
                         </div>
+                        {showCommittedDelivery && (
+                          <span
+                            className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full leading-tight whitespace-nowrap max-w-[140px] truncate"
+                            title={confirmedDeliveryDisplay}
+                          >
+                            {confirmedDeliveryDisplay}
+                          </span>
+                        )}
                         {subLabel && (
                           <span className="text-[9px] text-amber-600 font-semibold bg-amber-50 border border-amber-200 px-1.5 rounded-full leading-tight whitespace-nowrap">
                             {subLabel}
@@ -378,8 +445,8 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
               <MetaItem icon={<Calendar size={14} className="text-emerald-700" />} label="Ngày đặt hàng">
                 {fmtDate(order.created_at)}
               </MetaItem>
-              <MetaItem icon={<CalendarClock size={14} className="text-emerald-700" />} label="Ngày giao dự kiến">
-                {isPending && editingDelivery ? (
+              <MetaItem icon={<CalendarClock size={14} className="text-emerald-700" />} label={hasConfirmedDelivery ? "Ngày giao cam kết" : "Ngày giao dự kiến"}>
+                {canEditDelivery && editingDelivery ? (
                   <span className="flex items-center gap-2 mt-0.5">
                     <input
                       type="date"
@@ -391,37 +458,55 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
                     />
                     <button
                       type="button"
-                      onClick={() => setEditingDelivery(false)}
-                      className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
+                      onClick={saveDeliveryDate}
+                      className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 transition-colors"
                     >
                       Xong
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingDelivery(false)}
+                      className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors"
+                    >
+                      Hủy
+                    </button>
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1.5 mt-0.5">
-                    <span className={deliveryDate ? "text-emerald-700 font-bold" : "text-emerald-700 font-bold"}>
-                      {deliveryDate
-                        ? new Date(deliveryDate).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
-                        : fmtDateShort(order.requested_delivery_time)}
+                  <span className="flex flex-col gap-0.5 mt-0.5">
+                    <span className="flex items-center gap-1.5">
+                      <span className={hasConfirmedDelivery ? "text-base font-extrabold text-emerald-800" : "text-sm font-bold text-emerald-700"}>
+                        {deliveryDate
+                          ? fmtDateShort(`${deliveryDate}T00:00:00`)
+                          : hasConfirmedDelivery
+                            ? confirmedDeliveryDisplay
+                            : fmtDateShort(order.requested_delivery_time)}
+                      </span>
+                      {canEditDelivery && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const source = order.confirmed_delivery_time ?? order.requested_delivery_time;
+                            if (!deliveryDate && source) {
+                              setDeliveryDate(source.split("T")[0]);
+                            }
+                            setEditingDelivery(true);
+                          }}
+                          className="p-0.5 rounded text-neutral-300 hover:text-emerald-600 transition-colors"
+                          title="Chỉnh ngày giao"
+                        >
+                          <Pencil size={11} />
+                        </button>
+                      )}
                     </span>
-                    {deliveryDate && (
-                      <span className="text-[10px] text-amber-600 font-semibold bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
-                        đã sửa
+                    {hasConfirmedDelivery && order.requested_delivery_time && (
+                      <span className="text-[11px] font-medium text-neutral-400">
+                        Dealer mong: {fmtDateShort(order.requested_delivery_time)}
                       </span>
                     )}
-                    {isPending && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!deliveryDate && order.requested_delivery_time)
-                            setDeliveryDate(order.requested_delivery_time.split("T")[0]);
-                          setEditingDelivery(true);
-                        }}
-                        className="p-0.5 rounded text-neutral-300 hover:text-emerald-600 transition-colors"
-                        title="Chỉnh ngày giao"
-                      >
-                        <Pencil size={11} />
-                      </button>
+                    {deliveryDate && !hasConfirmedDelivery && (
+                      <span className="text-[10px] text-amber-600 font-semibold bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full self-start">
+                        đã chọn — gửi khi xác nhận đơn
+                      </span>
                     )}
                   </span>
                 )}
@@ -491,22 +576,11 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
                   canEdit={isPending}
                   statusOrder={order.status}
                   onApprove={(id) => setItemStatus(id, "approved")}
-                  onReject={(id) => setItemStatus(id, "rejected")}
+                  onReject={(id) => setRejectItemModal(id)}
                   onReset={(id) => setItemStatus(id, "pending")}
                   onSaveQuantities={async (changes) => {
-                    // changes: [{ id, quantity }, ...]
-                    // TODO: orderService.updateItemQuantities chưa tồn tại — cần thêm hàm này
-                    // (gọi API thật của bạn để lưu số lượng mới cho các item trong `changes`)
-                    const updated = await orderService.updateItemQuantities(order.id, changes);
-                    setOrder((prev) => mergeOrderDetail(prev, updated) ?? {
-                      ...prev,
-                      items: prev.items.map((it) => {
-                        const change = changes.find((c) => String(c.id) === String(it.id));
-                        if (!change) return it;
-                        return { ...it, quantity: change.quantity, subtotal: change.quantity * Number(it.unit_price) };
-                      }),
-                    });
-                    toast.success("Đã cập nhật số lượng");
+                    applyItemQuantities(changes);
+                    toast.success("Đã áp dụng số lượng — sẽ gửi khi xác nhận đơn");
                   }}
                 />
               )}
@@ -682,6 +756,8 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
                   <p className={`text-xs font-medium ${canConfirm ? "text-emerald-700" : "text-neutral-400"}`}>
                     {!allDone
                       ? "⚠ Cần duyệt hoặc từ chối tất cả sản phẩm"
+                      : rejectedMissingReason > 0
+                      ? `⚠ ${rejectedMissingReason} sản phẩm từ chối chưa có lý do`
                       : !depositValid
                       ? "⚠ Cần nhập tỉ lệ tiền cọc hợp lệ (10–50%)"
                       : `✓ ${approved} sản phẩm duyệt${rejected > 0 ? `, ${rejected} từ chối` : ""} · Cọc ${depositNum}%`}
@@ -818,6 +894,17 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
           loading={reviewReturnLoading}
           onClose={() => setRejectReturnModal(false)}
           onReject={(reason) => reviewReturnAction(false, reason)}
+        />
+      )}
+      {rejectItemModal != null && (
+        <RejectPaymentModal
+          title="Từ chối sản phẩm"
+          loading={false}
+          onClose={() => setRejectItemModal(null)}
+          onReject={(reason) => {
+            setItemStatus(rejectItemModal, "rejected", reason);
+            setRejectItemModal(null);
+          }}
         />
       )}
 

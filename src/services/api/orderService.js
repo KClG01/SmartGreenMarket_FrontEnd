@@ -62,8 +62,35 @@ export function normalizeOrderItem(item) {
     quantity: item.quantity ?? "0",
     subtotal: item.subtotal ?? item.line_total ?? "0",
     note: item.note ?? "",
-    item_status: item.item_status ?? item.status ?? "pending",
+    item_status:
+      item.item_status ??
+      item.review_status ??
+      item.status ??
+      "pending",
     reject_reason: item.reject_reason ?? item.rejection_reason ?? "",
+  };
+}
+
+/** Payload POST /purchase-orders/{id}/confirm/ */
+export function buildConfirmOrderPayload({
+  items,
+  depositPercent,
+  confirmedDeliveryTime,
+  note = "",
+}) {
+  return {
+    confirmed_delivery_time: confirmedDeliveryTime,
+    deposit_percent: String(depositPercent),
+    note: note ?? "",
+    items: (items ?? []).map((item) => ({
+      id: item.id,
+      review_status: item.item_status,
+      quantity: String(item.quantity ?? "0"),
+      rejection_reason:
+        item.item_status === "rejected"
+          ? (item.reject_reason ?? item.rejection_reason ?? "").trim()
+          : "",
+    })),
   };
 }
 
@@ -99,21 +126,40 @@ export function findPendingPayment(payments, paymentType) {
   );
 }
 
+const RETURN_PENDING_STATUSES = new Set([
+  "return_requested",
+  "return_request",
+  "return_pending_review",
+]);
+
+export function isReturnPendingReviewStatus(status) {
+  return RETURN_PENDING_STATUSES.has(String(status ?? "").trim());
+}
+
 /** Yêu cầu trả hàng đang chờ NCC duyệt */
 export function findPendingReturnRequest(order) {
   if (!order) return null;
 
   const standalone = order.pending_return ?? order.active_return;
-  if (standalone?.id != null) return standalone;
+  if (standalone?.id != null && standalone.approved == null && !standalone.reviewed_at) {
+    return standalone;
+  }
 
   const returns = order.returns ?? order.return_requests ?? [];
-  if (!Array.isArray(returns) || returns.length === 0) return null;
+  if (!Array.isArray(returns) || returns.length === 0) {
+    return isReturnPendingReviewStatus(order.status) ? standalone : null;
+  }
 
   return (
-    returns.find((r) => r.status === "pending" || r.status === "pending_review") ??
+    returns.find((r) => r.status === "pending" || r.status === "pending_review" || r.status === "requested") ??
     returns.find((r) => r.approved == null && !r.reviewed_at) ??
-    returns[returns.length - 1]
+    null
   );
+}
+
+export function canReviewReturnRequest(order) {
+  if (!order) return false;
+  return String(order.status ?? "").trim() === "return_requested";
 }
 
 export function mergeOrderDetail(prev, detail) {
@@ -180,8 +226,18 @@ export const orderService = {
     const res = await axiosClient.get(`/purchase-orders/${id}/`);
     return parseOrderDetail(res.data);
   },
+  /** [Bước 2a] NCC xác nhận phiếu — gửi confirmed_delivery_time + deposit_percent */
   confirmOrder: async (id, data) => {
     const res = await axiosClient.post(`/purchase-orders/${id}/confirm/`, data);
+    return parseOrderDetail(res.data);
+  },
+
+  /** [Trả hàng] NCC duyệt/từ chối yêu cầu trả hàng */
+  reviewReturn: async (orderId, returnId, { approved, review_note = "" }) => {
+    const res = await axiosClient.post(
+      `/purchase-orders/${orderId}/returns/${returnId}/review/`,
+      { approved, review_note },
+    );
     return parseOrderDetail(res.data);
   },
 
