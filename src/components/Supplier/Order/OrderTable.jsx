@@ -1,29 +1,66 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Eye, ChevronDown, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-import { extractOrderItems, normalizeOrderItem, orderService } from "../../../services/api/orderService";
+import { extractOrderItems, normalizeOrderItem, orderService, getSuccessfullyReturnedItemIds, orderMayHaveReturnHistory } from "../../../services/api/orderService";
 import {
   getSupplierOrderStatusConfig,
   SUPPLIER_ORDER_STATUS_FILTERS,
 } from "./orderStatusConfig";
 
 const ITEMS_SUMMARY_LIMIT = 3;
+const RETURNED_ITEM_COLOR = "#A32D2D";
 
-// Chỉ hiện tên sản phẩm (không kèm số lượng), tối đa ITEMS_SUMMARY_LIMIT sản phẩm, dư thì "..."
-const getOrderItemsSummary = (row) => {
+function getOrderItemsList(row) {
   const rawItems = extractOrderItems(row);
-  const items = Array.isArray(rawItems) ? rawItems.map(normalizeOrderItem) : [];
+  return Array.isArray(rawItems) ? rawItems.map(normalizeOrderItem) : [];
+}
+
+// Plain-text summary (title tooltip)
+const getOrderItemsSummaryText = (row) => {
+  const items = getOrderItemsList(row);
   if (!items.length) return "—";
   const names = items.map((item) => item.product_name);
   if (names.length <= ITEMS_SUMMARY_LIMIT) return names.join(", ");
   return `${names.slice(0, ITEMS_SUMMARY_LIMIT).join(", ")}, ...`;
 };
 
+function OrderItemsCell({ row }) {
+  const items = getOrderItemsList(row);
+  const returnedIds = getSuccessfullyReturnedItemIds(row);
+
+  if (!items.length) return "—";
+
+  const visible = items.slice(0, ITEMS_SUMMARY_LIMIT);
+  const hasMore = items.length > ITEMS_SUMMARY_LIMIT;
+
+  return (
+    <>
+      {visible.map((item, i) => {
+        const isReturned = returnedIds.has(String(item.id));
+        return (
+          <span key={item.id ?? i}>
+            {i > 0 && ", "}
+            <span
+              style={{
+                color: isReturned ? RETURNED_ITEM_COLOR : "#565f6b",
+                fontWeight: isReturned ? 600 : 400,
+              }}
+            >
+              {item.product_name}
+            </span>
+          </span>
+        );
+      })}
+      {hasMore && <span style={{ color: "#565f6b" }}>, ...</span>}
+    </>
+  );
+}
+
 const getOrderItemsQty = (row) => {
-  const rawItems = extractOrderItems(row);
-  const items = Array.isArray(rawItems) ? rawItems.map(normalizeOrderItem) : [];
+  const items = getOrderItemsList(row);
   if (!items.length) return "0 kg";
   const total = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
-  return `${total.toLocaleString("vi-VN")} kg`;
+  const unit = items[0]?.product_unit || "kg";
+  return `${total.toLocaleString("vi-VN")} ${unit}`;
 };
 
 const RETURN_STATUS_ALIASES = {
@@ -36,55 +73,10 @@ function normalizeOrderStatus(status) {
   return RETURN_STATUS_ALIASES[value] ?? value;
 }
 
-function getLatestReturn(order) {
-  const standalone = order?.pending_return ?? order?.active_return ?? order?.latest_return;
-  const returns = order?.returns ?? order?.return_requests ?? [];
-  const list = Array.isArray(returns) ? returns : [];
-
-  if (standalone?.id != null) {
-    const matched = list.find((item) => item.id === standalone.id);
-    return matched ?? standalone;
-  }
-
-  if (list.length === 0) return null;
-
-  return [...list].sort(
-    (a, b) =>
-      new Date(b.reviewed_at ?? b.updated_at ?? b.created_at ?? 0) -
-      new Date(a.reviewed_at ?? a.updated_at ?? a.created_at ?? 0),
-  )[0];
-}
-
-/** Chuẩn hóa trạng thái đơn để lọc/hiển thị — bám enum BE + fallback từ returns[].approved */
-function resolveOrderStatus(order) {
-  const status = normalizeOrderStatus(order?.status);
-
-  if (status === "returned") return "returned";
-  if (status === "return_approved") return "return_approved";
-  if (status === "return_rejected") return "return_rejected";
-
-  const latestReturn = getLatestReturn(order);
-  if (latestReturn) {
-    if (latestReturn.approved === true) {
-      const returnStatus = normalizeOrderStatus(latestReturn.status);
-      if (returnStatus === "returned") return "returned";
-      return "return_approved";
-    }
-    if (latestReturn.approved === false) return "return_rejected";
-    if (latestReturn.approved == null && !latestReturn.reviewed_at) {
-      return "return_requested";
-    }
-  }
-
-  if (status === "return_requested") return "return_requested";
-
-  return status;
-}
-
 function matchesStatusFilter(row, statusFilter) {
   if (statusFilter === "all") return true;
 
-  const rowStatus = resolveOrderStatus(row);
+  const rowStatus = normalizeOrderStatus(row?.status);
   const activeFilter = STATUS_FILTERS.find((f) => f.key === statusFilter);
   if (!activeFilter) return rowStatus === normalizeOrderStatus(statusFilter);
 
@@ -167,9 +159,9 @@ export default function OrderTable({ data, search, loading, onView }) {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState(null);
 
-  // Cache items theo order id, tránh gọi lại getById khi đổi trang qua lại
-  const [itemsCache, setItemsCache] = useState({}); // { [orderId]: items[] }
-  const fetchingIds = useRef(new Set()); // tránh fetch trùng khi effect chạy nhiều lần
+  // Cache items + returns theo order id
+  const [detailCache, setDetailCache] = useState({}); // { [orderId]: { items, returns } }
+  const fetchingIds = useRef(new Set());
 
   const toggleSort = (key) => {
     setSort((prev) => {
@@ -211,14 +203,20 @@ export default function OrderTable({ data, search, loading, onView }) {
   const safePage = Math.min(page, totalPages);
   const pageRows = sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
-  // Chỉ fetch items cho các dòng đang hiển thị ở trang hiện tại và chưa có trong cache
+  // Fetch detail khi thiếu items hoặc thiếu returns (đơn có lịch sử trả hàng)
   useEffect(() => {
     const idsToFetch = pageRows
       .filter((row) => {
-        if (extractOrderItems(row).length > 0) return false; // list đã có items sẵn
-        if (itemsCache[row.id]) return false; // đã cache rồi
-        if (fetchingIds.current.has(row.id)) return false; // đang fetch
-        return true;
+        if (fetchingIds.current.has(row.id)) return false;
+
+        const cached = detailCache[row.id];
+        const hasItems = extractOrderItems(row).length > 0 || (cached?.items?.length > 0);
+        const hasReturns = Array.isArray(row.returns) && row.returns.length > 0;
+        const returnsCached = cached?.returns !== undefined;
+
+        if (!hasItems) return true;
+        if (orderMayHaveReturnHistory(row) && !hasReturns && !returnsCached) return true;
+        return false;
       })
       .map((row) => row.id);
 
@@ -230,29 +228,35 @@ export default function OrderTable({ data, search, loading, onView }) {
       idsToFetch.map(async (id) => {
         try {
           const detail = await orderService.getById(id);
-          return [id, detail?.items ?? []];
+          return [id, { items: detail?.items ?? [], returns: detail?.returns ?? [] }];
         } catch (error) {
-          console.error(`Lỗi khi tải items đơn ${id}:`, error);
-          return [id, []];
+          console.error(`Lỗi khi tải chi tiết đơn ${id}:`, error);
+          return [id, { items: [], returns: [] }];
         } finally {
           fetchingIds.current.delete(id);
         }
       }),
     ).then((results) => {
-      setItemsCache((prev) => {
+      setDetailCache((prev) => {
         const next = { ...prev };
-        for (const [id, items] of results) next[id] = items;
+        for (const [id, detail] of results) next[id] = detail;
         return next;
       });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [safePage, data]);
 
-  // Lấy row đã merge items từ cache (nếu có) để hiển thị
   const getDisplayRow = (row) => {
-    if (extractOrderItems(row).length > 0) return row;
-    const cached = itemsCache[row.id];
-    return cached ? { ...row, items: cached } : row;
+    const cached = detailCache[row.id];
+    const merged = { ...row };
+
+    if (extractOrderItems(row).length === 0 && cached?.items?.length) {
+      merged.items = cached.items;
+    }
+    if ((!Array.isArray(row.returns) || row.returns.length === 0) && cached?.returns !== undefined) {
+      merged.returns = cached.returns;
+    }
+    return merged;
   };
 
   return (
@@ -418,11 +422,11 @@ export default function OrderTable({ data, search, loading, onView }) {
                   </div>
                   <div
                     className="text-xs whitespace-nowrap overflow-hidden text-ellipsis"
-                    style={{ width: 180, flexShrink: 0, color: "#565f6b" }}
-                    title={itemsLoaded ? getOrderItemsSummary(row) : ""}
+                    style={{ width: 180, flexShrink: 0 }}
+                    title={itemsLoaded ? getOrderItemsSummaryText(row) : ""}
                   >
                     {itemsLoaded ? (
-                      getOrderItemsSummary(row)
+                      <OrderItemsCell row={row} />
                     ) : (
                       <span style={{ color: "#80899a" }}>Đang tải...</span>
                     )}
@@ -455,7 +459,7 @@ export default function OrderTable({ data, search, loading, onView }) {
                     )}
                   </div>
                   <div style={{ width: 100, flexShrink: 0, textAlign: "center" }}>
-                    <StatusPill status={resolveOrderStatus(row)} />
+                    <StatusPill status={normalizeOrderStatus(row.status)} />
                   </div>
                   <div
                     style={{ width: ACTION_COL_WIDTH, flexShrink: 0, textAlign: "center" }}

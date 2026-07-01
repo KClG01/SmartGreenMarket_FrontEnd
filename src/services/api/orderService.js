@@ -165,6 +165,42 @@ export function isReturnRecordPending(ret) {
   return ret.approved == null && !ret.reviewed_at;
 }
 
+const SUCCESSFUL_RETURN_STATUSES = new Set(["approved", "returned"]);
+
+/** Yêu cầu trả hàng đã được NCC duyệt thành công */
+export function isSuccessfulReturnRecord(ret) {
+  if (!ret) return false;
+  if (ret.approved === false) return false;
+  const status = String(ret.status ?? "").toLowerCase();
+  if (SUCCESSFUL_RETURN_STATUSES.has(status)) return true;
+  if (ret.approved === true) return true;
+  return Boolean(ret.resolved_at && ret.reviewed_by != null && status !== "rejected");
+}
+
+/** ID các dòng đơn (purchase_order_item_id) đã trả hàng thành công */
+export function getSuccessfullyReturnedItemIds(order) {
+  const ids = new Set();
+  const returns = order?.returns ?? order?.return_requests ?? [];
+  if (!Array.isArray(returns)) return ids;
+
+  for (const ret of returns) {
+    if (!isSuccessfulReturnRecord(ret)) continue;
+    for (const item of ret.items ?? []) {
+      const itemId = item.purchase_order_item_id ?? item.purchase_order_item ?? item.order_item_id;
+      if (itemId != null) ids.add(String(itemId));
+    }
+  }
+  return ids;
+}
+
+export function orderMayHaveReturnHistory(order) {
+  if (!order) return false;
+  if (Array.isArray(order.returns) && order.returns.length > 0) return true;
+  if (order.return_summary?.approved_refund_total > 0) return true;
+  const status = String(order.status ?? "").trim();
+  return ["return_requested", "return_approved", "return_rejected", "returned"].includes(status);
+}
+
 /** Thanh toán đang chờ NCC xác minh (cọc / thanh toán cuối) */
 export function findPendingPayment(payments, paymentType) {
   if (!Array.isArray(payments)) return null;
