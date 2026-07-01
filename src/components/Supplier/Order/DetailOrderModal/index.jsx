@@ -16,6 +16,7 @@ import {
   sortPaymentsForDisplay,
   canVerifyPayment,
   buildConfirmOrderPayload,
+  sortReturnsNewestFirst,
 } from "../../../../services/api/orderService";
 import { supplierService } from "../../../../services/api/suppilerService";
 import { toast } from "sonner";
@@ -31,6 +32,7 @@ import ConfirmOrderModal     from "./components/ConfirmOrderModal";
 import RejectOrderModal      from "./components/RejectOrderModal";
 import ConfirmShippingModal  from "./components/ConfirmShippingModal";
 import RejectPaymentModal    from "./components/RejectPaymentModal";
+import ReturnRequestCard     from "./components/ReturnRequestCard";
 import InfoCard              from "./shared/InfoCard";
 import { InfoRow, MetaItem, SummaryRow } from "./shared/typography";
 
@@ -169,6 +171,9 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
   const canEditDelivery        = isPending;
   const needsPaymentVerify     = isDepositPendingVerify || isFinalPendingVerify;
   const pendingReturnRequest   = findPendingReturnRequest(order);
+  const sortedReturns          = sortReturnsNewestFirst(order.returns);
+  const showReturnsSection     = sortedReturns.length > 0 || Boolean(pendingReturnRequest);
+  const returnSummary          = order.return_summary;
   const sortedPayments         = sortPaymentsForDisplay(order.payments);
   const pendingDepositPayment  = findPendingPayment(order.payments, "deposit");
   const pendingFinalPayment    = findPendingPayment(order.payments, "final_payment");
@@ -788,48 +793,54 @@ export default function DetailOrderModal({ isOpen, onClose, order: initialOrder,
               </div>
             )}
 
-            {/* Duyệt / từ chối yêu cầu trả hàng */}
-            {isReturnPendingReview && (
-              <div className="bg-white rounded-2xl border border-neutral-200 px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                    <RotateCcw size={18} className="text-amber-600" />
-                  </div>
-                  <div>
-                    <h2 className="font-bold text-gray-900 text-sm">Yêu cầu trả hàng</h2>
-                    <p className="text-xs text-neutral-400 mt-0.5">
-                      Đại lý đã gửi yêu cầu trả hàng. Vui lòng xem xét và phản hồi.
-                    </p>
-                    {pendingReturnRequest?.reason && (
-                      <p className="text-xs text-neutral-600 mt-1">
-                        Lý do: <span className="font-medium">{pendingReturnRequest.reason}</span>
-                      </p>
+            {/* Yêu cầu / lịch sử trả hàng */}
+            {showReturnsSection && (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between px-1 flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <RotateCcw size={15} className="text-amber-600" />
+                    <h2 className="font-bold text-gray-900 text-sm">
+                      {isReturnPendingReview ? "Yêu cầu trả hàng" : "Lịch sử trả hàng"}
+                    </h2>
+                    {sortedReturns.length > 0 && (
+                      <span className="text-xs text-neutral-400">
+                        ({sortedReturns.length} lần)
+                      </span>
                     )}
                   </div>
+                  {returnSummary?.approved_refund_total > 0 && (
+                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                      Đã hoàn: {fmtPrice(returnSummary.approved_refund_total)}
+                    </span>
+                  )}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setRejectReturnModal(true)}
-                    disabled={reviewReturnLoading}
-                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap border border-red-200 text-red-600 bg-white hover:bg-red-50 transition-all disabled:opacity-60"
-                  >
-                    <XCircle size={15} /> Từ chối trả hàng
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => reviewReturnAction(true, "")}
-                    disabled={reviewReturnLoading}
-                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap bg-emerald-800 text-white hover:bg-emerald-700 transition-all disabled:opacity-60 shadow-sm shadow-emerald-200"
-                  >
-                    {reviewReturnLoading ? (
-                      <Loader2 size={15} className="animate-spin" />
-                    ) : (
-                      <CheckCheck size={15} />
-                    )}
-                    Duyệt trả hàng
-                  </button>
-                </div>
+
+                {isReturnPendingReview && pendingReturnRequest &&
+                  !sortedReturns.some((r) => r.id === pendingReturnRequest.id) && (
+                  <ReturnRequestCard
+                    returnRequest={pendingReturnRequest}
+                    orderItems={items}
+                    showActions
+                    reviewLoading={reviewReturnLoading}
+                    onApprove={() => reviewReturnAction(true, "")}
+                    onReject={() => setRejectReturnModal(true)}
+                  />
+                )}
+
+                {sortedReturns.map((ret) => (
+                  <ReturnRequestCard
+                    key={ret.id}
+                    returnRequest={ret}
+                    orderItems={items}
+                    showActions={
+                      isReturnPendingReview &&
+                      pendingReturnRequest?.id === ret.id
+                    }
+                    reviewLoading={reviewReturnLoading}
+                    onApprove={() => reviewReturnAction(true, "")}
+                    onReject={() => setRejectReturnModal(true)}
+                  />
+                ))}
               </div>
             )}
 

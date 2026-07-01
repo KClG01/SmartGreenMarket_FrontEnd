@@ -112,9 +112,57 @@ export function parseOrderDetail(response) {
     ...raw,
     items: extractOrderItems(raw).map(normalizeOrderItem),
     payments: Array.isArray(raw.payments) ? raw.payments : [],
-    returns: Array.isArray(raw.returns) ? raw.returns : (raw.returns ? [raw.returns] : []),
+    returns: Array.isArray(raw.returns) ? raw.returns.map(normalizeReturnRequest) : (raw.returns ? [normalizeReturnRequest(raw.returns)] : []),
+    return_summary: raw.return_summary ?? null,
     status_histories: raw.status_histories ?? [],
   };
+}
+
+export function normalizeReturnRequest(ret) {
+  if (!ret || typeof ret !== "object") return ret;
+  return {
+    ...ret,
+    items: Array.isArray(ret.items) ? ret.items : [],
+  };
+}
+
+/** Gắn ảnh, đơn vị, đơn giá từ dòng đơn hàng gốc */
+export function enrichReturnItems(returnItems, orderItems = []) {
+  return (returnItems ?? []).map((ri) => {
+    const orderItem = orderItems.find(
+      (o) =>
+        String(o.id) === String(ri.purchase_order_item_id) ||
+        String(o.id) === String(ri.purchase_order_item),
+    );
+    const qty = Number(ri.quantity ?? 0);
+    const unitPrice = Number(orderItem?.unit_price ?? 0);
+    return {
+      ...ri,
+      product_name: ri.product_name ?? orderItem?.product_name ?? "Sản phẩm",
+      product_unit: ri.product_unit ?? orderItem?.product_unit ?? "",
+      product_thumbnail_url: orderItem?.product_thumbnail_url ?? null,
+      unit_price: orderItem?.unit_price ?? null,
+      estimated_refund: qty && unitPrice ? qty * unitPrice : null,
+    };
+  });
+}
+
+export function sortReturnsNewestFirst(returns) {
+  if (!Array.isArray(returns)) return [];
+  return [...returns].sort(
+    (a, b) => new Date(b.created_at ?? 0) - new Date(a.created_at ?? 0),
+  );
+}
+
+const RETURN_RECORD_PENDING = new Set(["pending", "pending_review", "requested"]);
+
+export function isReturnRecordPending(ret) {
+  if (!ret) return false;
+  if (ret.resolved_at) return false;
+  if (ret.reviewed_by != null) return false;
+  const status = String(ret.status ?? "").toLowerCase();
+  if (RETURN_RECORD_PENDING.has(status)) return true;
+  return ret.approved == null && !ret.reviewed_at;
 }
 
 /** Thanh toán đang chờ NCC xác minh (cọc / thanh toán cuối) */
@@ -140,21 +188,28 @@ export function isReturnPendingReviewStatus(status) {
 export function findPendingReturnRequest(order) {
   if (!order) return null;
 
-  const standalone = order.pending_return ?? order.active_return;
-  if (standalone?.id != null && standalone.approved == null && !standalone.reviewed_at) {
-    return standalone;
-  }
-
   const returns = order.returns ?? order.return_requests ?? [];
-  if (!Array.isArray(returns) || returns.length === 0) {
-    return isReturnPendingReviewStatus(order.status) ? standalone : null;
+  const list = Array.isArray(returns) ? returns : [];
+
+  const pendingId = order.return_summary?.pending_return_id;
+  if (pendingId != null) {
+    const byId = list.find((r) => r.id === pendingId);
+    if (byId) return normalizeReturnRequest(byId);
   }
 
-  return (
-    returns.find((r) => r.status === "pending" || r.status === "pending_review" || r.status === "requested") ??
-    returns.find((r) => r.approved == null && !r.reviewed_at) ??
-    null
-  );
+  const standalone = order.pending_return ?? order.active_return;
+  if (standalone?.id != null && isReturnRecordPending(standalone)) {
+    return normalizeReturnRequest(standalone);
+  }
+
+  const pending = list.find((r) => isReturnRecordPending(r));
+  if (pending) return normalizeReturnRequest(pending);
+
+  if (isReturnPendingReviewStatus(order.status) && list.length > 0) {
+    return normalizeReturnRequest(sortReturnsNewestFirst(list)[0]);
+  }
+
+  return standalone ? normalizeReturnRequest(standalone) : null;
 }
 
 export function canReviewReturnRequest(order) {
@@ -170,6 +225,7 @@ export function mergeOrderDetail(prev, detail) {
     items: full.items?.length ? full.items : (prev?.items ?? []),
     payments: Array.isArray(full.payments) ? full.payments : (prev?.payments ?? []),
     returns: Array.isArray(full.returns) ? full.returns : (prev?.returns ?? []),
+    return_summary: full.return_summary ?? prev?.return_summary ?? null,
   };
 }
 

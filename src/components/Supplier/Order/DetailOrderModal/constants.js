@@ -54,6 +54,35 @@ export const PAYMENT_STATUS = {
   rejected: { label: "Từ chối",      cls: "bg-red-50 text-red-600 border-red-200" },
 };
 
+export const RETURN_RECORD_STATUS = {
+  pending:         { label: "Chờ duyệt",   cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  pending_review:  { label: "Chờ duyệt",   cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  requested:       { label: "Chờ duyệt",   cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  approved:        { label: "Đã duyệt",    cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  rejected:        { label: "Từ chối",      cls: "bg-red-50 text-red-600 border-red-200" },
+};
+
+export function getReturnRecordStatusBadge(ret) {
+  if (!ret) return RETURN_RECORD_STATUS.pending;
+  const key = String(ret.status ?? "").toLowerCase();
+  if (RETURN_RECORD_STATUS[key]) return RETURN_RECORD_STATUS[key];
+  if (ret.status_label) {
+    const tone = key.includes("reject")
+      ? "r"
+      : key.includes("approv")
+        ? "g"
+        : "a";
+    const cls =
+      tone === "r"
+        ? "bg-red-50 text-red-600 border-red-200"
+        : tone === "g"
+          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+          : "bg-amber-50 text-amber-700 border-amber-200";
+    return { label: ret.status_label, cls };
+  }
+  return RETURN_RECORD_STATUS.pending;
+}
+
 export const PAYMENT_TYPE = {
   deposit:       "Đặt cọc",
   full:          "Thanh toán đủ",
