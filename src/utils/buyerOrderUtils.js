@@ -193,6 +193,47 @@ export function parseAvailableVouchers(response) {
   return results.filter((item) => item?.code);
 }
 
+export function getVoucherMinOrderAmount(voucher) {
+  const raw =
+    voucher?.min_order_amount ??
+    voucher?.minimum_order_amount ??
+    voucher?.min_order_value ??
+    voucher?.min_spend ??
+    0;
+  const value = Number(raw);
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+export function findVoucherByCode(vouchers = [], code = "") {
+  const normalizedCode = String(code ?? "").trim().toLowerCase();
+  if (!normalizedCode) return null;
+
+  return (
+    vouchers.find(
+      (voucher) =>
+        String(voucher?.code ?? "")
+          .trim()
+          .toLowerCase() === normalizedCode,
+    ) ?? null
+  );
+}
+
+export function getVoucherEligibility(voucher, subtotal = 0) {
+  const minOrderAmount = getVoucherMinOrderAmount(voucher);
+  const orderSubtotal = Number(subtotal) || 0;
+
+  if (minOrderAmount <= 0 || orderSubtotal >= minOrderAmount) {
+    return { eligible: true, minOrderAmount, reason: "" };
+  }
+
+  const formattedMin = new Intl.NumberFormat("vi-VN").format(minOrderAmount);
+  return {
+    eligible: false,
+    minOrderAmount,
+    reason: `Chưa đạt giá trị đơn hàng tối thiểu (${formattedMin}đ).`,
+  };
+}
+
 export function filterVouchersByQuery(vouchers = [], query = "") {
   const normalizedQuery = String(query ?? "").trim().toLowerCase();
   if (!normalizedQuery) return vouchers;

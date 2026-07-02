@@ -3,7 +3,9 @@ import { Loader2, Search, Sparkles, Tag, Ticket, X } from "lucide-react";
 import { formatCurrency } from "../Cart/mockData";
 import {
     filterVouchersByQuery,
+    findVoucherByCode,
     formatVoucherDiscountLabel,
+    getVoucherEligibility,
 } from "../../../utils/buyerOrderUtils";
 
 export default function OrderVoucherSection({
@@ -11,6 +13,7 @@ export default function OrderVoucherSection({
     onVoucherCodeChange,
     appliedVoucher = null,
     availableVouchers = [],
+    subtotal = 0,
     loading = false,
     applying = false,
     error = "",
@@ -19,8 +22,29 @@ export default function OrderVoucherSection({
     onRemove,
     onSelectVoucher,
 }) {
-    const canApply = !disabled && !applying && !appliedVoucher && voucherCode.trim();
     const searchQuery = voucherCode.trim();
+    const matchedVoucher = useMemo(
+        () => findVoucherByCode(availableVouchers, searchQuery),
+        [availableVouchers, searchQuery],
+    );
+    const inputEligibility = useMemo(
+        () =>
+            matchedVoucher
+                ? getVoucherEligibility(matchedVoucher, subtotal)
+                : { eligible: true, minOrderAmount: 0, reason: "" },
+        [matchedVoucher, subtotal],
+    );
+    const canApply =
+        !disabled &&
+        !applying &&
+        !appliedVoucher &&
+        searchQuery &&
+        inputEligibility.eligible;
+    const eligibilityMessage =
+        !appliedVoucher && !inputEligibility.eligible ? inputEligibility.reason : "";
+    const displayError = error || eligibilityMessage;
+    const showRemoveButton = Boolean(appliedVoucher) || (Boolean(searchQuery) && Boolean(displayError));
+
     const filteredVouchers = useMemo(
         () => filterVouchersByQuery(availableVouchers, searchQuery),
         [availableVouchers, searchQuery],
@@ -52,15 +76,14 @@ export default function OrderVoucherSection({
                         placeholder="Tìm hoặc nhập mã voucher (ví dụ: GIAMGIA10K)"
                         className="w-full rounded-xl border border-stone-200 bg-stone-50 py-3 pl-10 pr-24 text-sm text-zinc-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70"
                     />
-                    {appliedVoucher ? (
+                    {showRemoveButton ? (
                         <button
                             type="button"
                             onClick={onRemove}
                             disabled={disabled || applying}
-                            className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="cursor-pointer absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <X className="h-3.5 w-3.5" />
-                            Gỡ
                         </button>
                     ) : (
                         <button
@@ -80,9 +103,9 @@ export default function OrderVoucherSection({
                     )}
                 </form>
 
-                {error ? (
+                {displayError ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        {error}
+                        {displayError}
                     </div>
                 ) : null}
 
