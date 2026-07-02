@@ -142,8 +142,18 @@ export const productService = {
     //   }
   },
 
-  delete: (id) => {return axiosClient.delete(`/supplier-products/${id}/`).then((res) => res.data);},
-  //Chặn khi còn phiếu nhập đang xử lý hoặc đại lý đang bán. Admin hoặc NCC sở hữu sản phẩm.
+  /** Xóa sản phẩm NCC — DELETE /supplier-products/{id}/ */
+  deleteProduct: async (id) => {
+    const res = await axiosClient.delete(`/supplier-products/${id}/`);
+    return res.data;
+  },
+
+  /** @deprecated dùng deleteProduct */
+  delete: async (id) => {
+    const res = await axiosClient.delete(`/supplier-products/${id}/`);
+    return res.data;
+  },
+  // Chặn khi còn phiếu nhập đang xử lý hoặc đại lý đang bán. Admin hoặc NCC sở hữu sản phẩm.
 };
 
 // Xử lý bug
