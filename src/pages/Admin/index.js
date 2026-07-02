@@ -10,3 +10,5 @@ export { default as CertificationPage } from "./Certification";
 export { default as DocumentPage } from "./Document";
 export { default as NotificationPage } from "./Notification";
 export { default as DealerPage } from "./Dealer";
+export { default as VoucherPage } from "./Voucher";
+

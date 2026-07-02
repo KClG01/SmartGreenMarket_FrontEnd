@@ -132,3 +132,18 @@ export const DOCUMENT_STAT_CARDS = [
     card({ key: "rejected", label: "Từ chối", filterValue: "rejected", icon: XCircle, style: "danger" }),
     card({ key: "pending", label: "Đăng ký", filterValue: "pending", icon: Clock, style: "warning" }),
 ];
+
+/** Voucher — status: active | rejected | pending | draft */
+export const VOUCHER_STAT_CARDS = [
+    card({ key: "active", label: "Đang hoạt động", filterValue: "active", icon: CheckCircle2, style: "success" }),
+    card({ key: "rejected", label: "Từ chối", filterValue: "rejected", icon: XCircle, style: "danger" }),
+    card({
+        key: "pending",
+        label: "Đăng ký",
+        filterValue: "pending",
+        icon: Clock,
+        style: "warning",
+        match: (row) => row.status === "pending" || row.status === "draft",
+    }),
+];
+
