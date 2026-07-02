@@ -35,6 +35,7 @@ export const buyerVoucherService = {
         }),
     // Xác thực các điều kiện áp dụng voucher và trả về thông tin giảm giá.
 
+    // Schema
     // {
     //     "voucher_code": "SALE50K",
     //     "items": [
@@ -49,6 +50,20 @@ export const buyerVoucherService = {
     //     ]
     //   }
 
+    // OUT
+    // {
+    //     "voucher": {
+    //       "id": 0,
+    //       "code": "string",
+    //       "title": "string",
+    //       "discount_type": "string",
+    //       "discount_value": ".03",
+    //       "min_order_amount": "523086925314"
+    //     },
+    //     "order_total": "6162",
+    //     "discount_amount": "4",
+    //     "final_total": "5476.2"
+    //   }
 };
 
 export const handleApiError = (error, defaultMessage = "Có lỗi xảy ra") => {

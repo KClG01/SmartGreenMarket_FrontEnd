@@ -26,6 +26,8 @@ import {
     buildVoucherApplyPayload,
     CHECKOUT_SHIPPING_FEE,
     findFirstAvailableDeliverySelection,
+    findVoucherByCode,
+    getVoucherEligibility,
     isDeliverySlotAvailable,
     parseAvailableVouchers,
     parseDeliverySlots,
@@ -236,6 +238,15 @@ export default function OrderPage() {
         const trimmedCode = String(code ?? "").trim();
         if (!trimmedCode || applyingVoucher) return;
 
+        const matchedVoucher = findVoucherByCode(availableVouchers, trimmedCode);
+        if (matchedVoucher) {
+            const eligibility = getVoucherEligibility(matchedVoucher, subtotal);
+            if (!eligibility.eligible) {
+                setVoucherError(eligibility.reason);
+                return;
+            }
+        }
+
         setApplyingVoucher(true);
         setVoucherError("");
 
@@ -277,7 +288,17 @@ export default function OrderPage() {
 
     const handleSelectVoucher = (voucher) => {
         if (!voucher?.code) return;
+
+        const eligibility = getVoucherEligibility(voucher, subtotal);
         setVoucherCode(voucher.code);
+
+        if (!eligibility.eligible) {
+            setVoucherError(eligibility.reason);
+            setAppliedVoucher(null);
+            return;
+        }
+
+        setVoucherError("");
         handleApplyVoucher(voucher.code);
     };
 
@@ -441,6 +462,7 @@ export default function OrderPage() {
                         onVoucherCodeChange={handleVoucherCodeChange}
                         appliedVoucher={appliedVoucher}
                         availableVouchers={availableVouchers}
+                        subtotal={subtotal}
                         loading={vouchersLoading}
                         applying={applyingVoucher}
                         error={voucherError}
